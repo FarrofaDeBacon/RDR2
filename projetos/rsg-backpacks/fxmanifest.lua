@@ -13,6 +13,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/animations.lua',
     'client/ground.lua',
     'client/target.lua',
     'client/weight.lua',

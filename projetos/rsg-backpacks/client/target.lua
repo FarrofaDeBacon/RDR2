@@ -51,7 +51,9 @@ function SetupTarget(entity, stashId, itemName)
                 return bp and bp.state ~= 'open'
             end,
             onSelect = function()
-                TriggerServerEvent("rsg-backpacks:server:wearBackpack", stashId)
+                PlayWearFromGroundAnimation(function()
+                    TriggerServerEvent("rsg-backpacks:server:wearBackpack", stashId)
+                end)
             end,
         },
         {
@@ -65,7 +67,9 @@ function SetupTarget(entity, stashId, itemName)
                 return bp and bp.state ~= 'open'
             end,
             onSelect = function()
-                TriggerServerEvent("rsg-backpacks:server:pickupBackpack", stashId)
+                PlayDoffAndPlaceAnimation(function()
+                    TriggerServerEvent("rsg-backpacks:server:pickupBackpack", stashId)
+                end)
             end,
         }
     })
