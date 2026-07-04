@@ -1333,87 +1333,287 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="inventory-container" onclick={() => { showContextMenu = false; hideItemInfo(); }}>
     
+    <div class="inventory-main-layout">
+      <!-- ======================================================== -->
+      <!-- COLUNA 1 — BOLSO (Sempre Visível) -->
+      <!-- ======================================================== -->
+      <div class="inventory-column pocket-column">
+        <!-- Seção Superior: Silhueta + Carteira e Status -->
+        <div class="pocket-header-wrapper">
+          <div class="character-silhouette">
+            <img src="assets/silhouette.png" alt="" class="silhouette-img" />
+          </div>
+          
+          <div class="status-and-wallet">
+            <!-- Carteira em Destaque Dourado -->
+            <div class="wallet-container gold-glow">
+              <div class="wallet-header">CARTEIRA</div>
+              <div class="wallet-balance">
+                <span class="currency-symbol">$</span>
+                <span class="amount">{(playerMoney / 100).toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <!-- Ações rápidas de Mochila e Bolsa equipadas no cabeçalho -->
+            <div class="equipment-indicators">
+              {#if backpack && backpack.isEquipped && unequipBackpack}
+                <div class="equip-indicator-item">
+                  <div class="durability-mini">
+                    <span class="indicator-label">MOCHILA</span>
+                    <div class="mini-bar-bg">
+                      <div class="mini-bar-fill" style="width: {backpack.durability || 100}%; background: {(backpack.durability || 100) > 50 ? '#55c05a' : ((backpack.durability || 100) > 20 ? '#e08b1a' : '#c93c3c')};"></div>
+                    </div>
+                  </div>
+                  <button class="equipped-btn" onclick={unequipBackpack} title="Colocar Mochila no Chão">
+                    <i class="fas fa-suitcase"></i>
+                  </button>
+                </div>
+              {/if}
 
+              {#if satchel && satchel.isEquipped && unequipSatchel}
+                <div class="equip-indicator-item">
+                  <div class="durability-mini">
+                    <span class="indicator-label">BOLSA</span>
+                    <div class="mini-bar-bg">
+                      <div class="mini-bar-fill" style="width: {satchel.durability || 100}%; background: {(satchel.durability || 100) > 50 ? '#55c05a' : ((satchel.durability || 100) > 20 ? '#e08b1a' : '#c93c3c')};"></div>
+                    </div>
+                  </div>
+                  <button class="equipped-btn" onclick={unequipSatchel} title="Guardar Bolsa nos Bolsos">
+                    <i class="fas fa-briefcase"></i>
+                  </button>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
 
-    <!-- Player Satchel (Esquerdo) -->
-    <InventoryPanel
-      inventoryType="player"
-      inventoryLabel={t.satchel}
-      inventoryWeight={playerWeight}
-      inventoryMaxWeight={maxWeight}
-      inventorySlots={totalSlots}
-      inventoryItems={playerInventory}
-      isShopInventory={false}
-      shouldCenterInventory={shouldCenterInventory}
-      t={t}
-      playerName={playerName}
-      playerId={playerId}
-      playerMoney={playerMoney}
-      getItemInSlot={getItemInSlot}
-      useItem={useItem}
-      handleMouseDown={handleMouseDown}
-      showItemInfo={showItemInfo}
-      hideItemInfo={hideItemInfo}
-      selectedItem={selectedItem}
-      showContextMenu={showContextMenu}
-      errorSlot={errorSlot}
-      backpack={backpack}
-      unequipBackpack={unequipBackpack}
-      satchel={satchel}
-      unequipSatchel={unequipSatchel}
-    />
+        <!-- Seção do Cinto de Munição -->
+        <div class="ammo-belt-section" class:disabled={!satchel || !satchel.isEquipped}>
+          <div class="section-title">CINTO DE MUNIÇÃO</div>
+          <div class="ammo-calibers-grid">
+            <div class="caliber-row">
+              <span>PISTOLA / REVOLVER</span>
+              <div class="caliber-bar-bg"><div class="caliber-bar-fill green" style="width: 85%"></div></div>
+            </div>
+            <div class="caliber-row">
+              <span>RIFLE / REPETIDORA</span>
+              <div class="caliber-bar-bg"><div class="caliber-bar-fill orange" style="width: 45%"></div></div>
+            </div>
+            <div class="caliber-row">
+              <span>ESCOPETA (SHOTGUN)</span>
+              <div class="caliber-bar-bg"><div class="caliber-bar-fill red" style="width: 15%"></div></div>
+            </div>
+          </div>
+        </div>
 
-    <!-- Close button left satchel -->
-    <div 
-      class="close-btn player-close-btn" 
-      class:centered-close-btn={shouldCenterInventory}
-      onclick={closeInventory}
-    >
-      {t.close}
+        <!-- Grade de Itens do Bolso -->
+        <div class="pocket-grid-wrapper">
+          <div class="column-header">
+            <h3>BOLSO</h3>
+            <div class="header-right">
+              <span class="playerNameText">{playerName || playerId || ''}</span>
+              <span class="weight-text">{(playerWeight/1000).toFixed(1)}/{(maxWeight/1000).toFixed(1)} kg</span>
+            </div>
+          </div>
+          
+          <div class="item-grid-container">
+            <div class="item-grid pocket-grid">
+              {#each Array(totalSlots) as _, idx}
+                {@const slot = idx + 1}
+                {@const item = getItemInSlot(slot, 'player')}
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div 
+                  id="slot-{slot}"
+                  class="item-slot" 
+                  data-slot={slot} 
+                  class:invalid-slot-highlight={errorSlot === slot}
+                  ondblclick={() => item && useItem(item)}
+                  onmousedown={(event) => handleMouseDown(event, slot, 'player')}
+                  onmouseenter={() => item && showItemInfo(item, 'player')}
+                  onmouseleave={hideItemInfo}
+                  ondragover={(event) => event.preventDefault()}
+                >
+                  {#if slot <= 5}
+                    <div class="item-slot-key"><p>{slot}</p></div>
+                  {/if}
+                  {#if item}
+                    <div class="item-slot-img">
+                      <img src="images/{item.image}" alt="" />
+                    </div>
+                    <div class="item-slot-amount"><p>x{item.amount}</p></div>
+                    {#if item.info && typeof item.info === 'object' && 'quality' in item.info}
+                      <div class="item-slot-durability">
+                        <div 
+                          class="item-slot-durability-fill"
+                          style="width: {item.info.quality}%"
+                          class:high={item.info.quality > 75}
+                          class:medium={item.info.quality <= 75 && item.info.quality > 25}
+                          class:low={item.info.quality <= 25}
+                        ></div>
+                      </div>
+                    {/if}
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tooltip estático do item no bolso se selecionado -->
+        {#if selectedItem && selectedItem.inventory === 'player' && !showContextMenu}
+          <div class="satchel-item-details player-details">
+            <ItemDetails {selectedItem} />
+          </div>
+        {/if}
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- COLUNA 2 — BOLSA (Satchel - Só Visível se Equipada) -->
+      <!-- ======================================================== -->
+      {#if satchel && satchel.isEquipped}
+        <div class="inventory-column satchel-column">
+          <div class="column-header">
+            <h3>BOLSA</h3>
+            <span class="weight-text">{((satchel.items ? Object.values(satchel.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0) / 1000).toFixed(1)} / {(satchel.maxweight / 1000).toFixed(1)} kg</span>
+          </div>
+
+          {#if satchel.durability !== undefined}
+            <div class="durability-container">
+              <div class="durability-header">
+                <span>INTEGRIDADE DA BOLSA</span>
+                <span>{satchel.durability}%</span>
+              </div>
+              <div class="durability-bar-bg">
+                <div class="durability-fill" style="width: {satchel.durability}%; background: {satchel.durability > 50 ? '#55c05a' : (satchel.durability > 20 ? '#e08b1a' : '#c93c3c')};"></div>
+              </div>
+            </div>
+          {/if}
+
+          <div class="item-grid-container">
+            <div class="item-grid satchel-grid">
+              {#each Array(satchel.slots) as _, idx}
+                {@const slot = idx + 1}
+                {@const item = satchel.items[slot] || null}
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div 
+                  id="satchel-slot-{slot}"
+                  class="item-slot" 
+                  data-slot={slot}
+                  onmousedown={(event) => handleMouseDown(event, slot, 'backpack')}
+                  onmouseenter={() => item && showItemInfo(item, 'backpack')}
+                  onmouseleave={hideItemInfo}
+                  ondragover={(event) => event.preventDefault()}
+                >
+                  {#if item}
+                    <div class="item-slot-img">
+                      <img src="images/{item.image}" alt="" />
+                    </div>
+                    <div class="item-slot-amount"><p>x{item.amount}</p></div>
+                    {#if item.info && typeof item.info === 'object' && 'quality' in item.info}
+                      <div class="item-slot-durability">
+                        <div 
+                          class="item-slot-durability-fill"
+                          style="width: {item.info.quality}%"
+                          class:high={item.info.quality > 75}
+                          class:medium={item.info.quality <= 75 && item.info.quality > 25}
+                          class:low={item.info.quality <= 25}
+                        ></div>
+                      </div>
+                    {/if}
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedItem && selectedItem.inventory === 'backpack' && !showContextMenu}
+            <div class="satchel-item-details other-details">
+              <ItemDetails {selectedItem} />
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      <!-- ======================================================== -->
+      <!-- COLUNA 3 — OUTRO INVENTÁRIO (Mochila / Baú / Loja) -->
+      <!-- ======================================================== -->
+      {#if !isOtherInventoryEmpty && !isTradeActive}
+        <div class="inventory-column other-column">
+          <div class="column-header">
+            <h3>{otherInventoryLabel}</h3>
+            <span class="weight-text">{(otherInventoryWeight/1000).toFixed(1)}/{(otherInventoryMaxWeight/1000).toFixed(1)} kg</span>
+          </div>
+
+          <!-- Grade de Itens do Outro Inventário -->
+          <div class="item-grid-container">
+            <div class="item-grid other-grid">
+              {#each Array(otherInventorySlots) as _, idx}
+                {@const slot = idx + 1}
+                {@const item = getItemInSlot(slot, 'other')}
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div 
+                  id="slot-{slot}"
+                  class="item-slot" 
+                  data-slot={slot} 
+                  class:invalid-slot-highlight={errorSlot === slot}
+                  ondblclick={() => item && useItem(item)}
+                  onmousedown={(event) => handleMouseDown(event, slot, 'other')}
+                  onmouseenter={() => item && showItemInfo(item, 'other')}
+                  onmouseleave={hideItemInfo}
+                  ondragover={(event) => event.preventDefault()}
+                >
+                  {#if item}
+                    <div class="item-slot-img">
+                      <img src="images/{item.image}" alt="" />
+                    </div>
+                    <div class="item-slot-amount"><p>x{item.amount}</p></div>
+                    {#if isShopInventory && item.price}
+                      <div class="item-price"><p>${Number(item.price).toFixed(2)}</p></div>
+                    {/if}
+                    {#if isShopInventory && item.buyPrice}
+                      <div class="item-sell-price"><p>{t.sell}: ${Number(item.buyPrice).toFixed(2)}</p></div>
+                    {/if}
+                    {#if item.info && typeof item.info === 'object' && 'quality' in item.info}
+                      <div class="item-slot-durability">
+                        <div 
+                          class="item-slot-durability-fill"
+                          style="width: {item.info.quality}%"
+                          class:high={item.info.quality > 75}
+                          class:medium={item.info.quality <= 75 && item.info.quality > 25}
+                          class:low={item.info.quality <= 25}
+                        ></div>
+                      </div>
+                    {/if}
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedItem && selectedItem.inventory === 'other' && !showContextMenu}
+            <div class="satchel-item-details other-details">
+              <ItemDetails {selectedItem} />
+            </div>
+          {/if}
+        </div>
+      {/if}
+
     </div>
 
-    <!-- Input quantity panel (if other inventory active) -->
-    {#if !isOtherInventoryEmpty && !isTradeActive}
-      <div class="input-container">
-        <div class="input-wrapper">
-          <input type="number" bind:value={transferAmount} min="1" placeholder={transferAmount === null ? t.amount_placeholder : ''} />
-          <button onclick={clearTransferAmount} class="clear-button">
-            <i class="fas fa-times"></i>
-          </button>
+    <!-- Close button & Inputs (fora das colunas, centralizados debaixo do layout) -->
+    <div class="controls-container">
+      {#if !isOtherInventoryEmpty && !isTradeActive}
+        <div class="input-container">
+          <div class="input-wrapper">
+            <input type="number" bind:value={transferAmount} min="1" placeholder={transferAmount === null ? t.amount_placeholder : ''} />
+            <button onclick={clearTransferAmount} class="clear-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
-      </div>
-    {/if}
-
-    <!-- Other Satchel (Direito) -->
-    {#if !isOtherInventoryEmpty && !isTradeActive}
-      <InventoryPanel
-        inventoryType="other"
-        inventoryLabel={otherInventoryLabel}
-        inventoryWeight={otherInventoryWeight}
-        inventoryMaxWeight={otherInventoryMaxWeight}
-        inventorySlots={otherInventorySlots}
-        inventoryItems={otherInventory}
-        isShopInventory={isShopInventory}
-        shouldCenterInventory={false}
-        t={t}
-        playerMoney={0}
-        getItemInSlot={getItemInSlot}
-        useItem={useItem}
-        handleMouseDown={handleMouseDown}
-        showItemInfo={showItemInfo}
-        hideItemInfo={hideItemInfo}
-        selectedItem={selectedItem}
-        showContextMenu={showContextMenu}
-        errorSlot={errorSlot}
-      />
-      <!-- Close button right satchel -->
-      <div 
-        class="close-btn other-close-btn" 
-        onclick={closeInventory}
-      >
-        {t.close}
-      </div>
-    {/if}
+      {/if}
+      <button class="close-btn" onclick={closeInventory}>{t.close}</button>
+    </div>
 
     <!-- Trade Panel -->
     {#if isTradeActive}
