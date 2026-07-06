@@ -174,6 +174,10 @@
           </div>
         {/each}
       </div>
+      <!-- DEBUG BLOCK -->
+      <div style="color: #ebdcb9; font-size: 9px; text-align: center; margin-top: 5px; font-family: Open Sans, sans-serif; pointer-events: none; text-shadow: 1px 1px 1px black;">
+        DEBUG: {JSON.stringify(equipmentSlots)}
+      </div>
     </div>
   {/if}
 </div>
