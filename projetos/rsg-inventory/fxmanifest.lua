@@ -43,10 +43,10 @@ server_scripts {
     'server/versionchecker.lua',
 }
 
-ui_page 'ui/dist/index.html'
+ui_page 'ui/dist/index_v2.html'
 
 files {
-    'ui/dist/index.html',
+    'ui/dist/index_v2.html',
     'ui/dist/assets/*',
     'ui/dist/images/*',
     "shared/*.lua", --- for lib.load
