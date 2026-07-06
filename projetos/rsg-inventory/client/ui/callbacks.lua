@@ -243,3 +243,15 @@ RegisterNUICallback('GetBackpackStashData', function(data, cb)
         cb(false)
     end
 end)
+
+RegisterNUICallback('EquipItem', function(data, cb)
+    if not validateToken(data and data.token) then cb(false) return end
+    TriggerServerEvent('rsg-inventory:server:EquipItem', data.slot, data.equipmentType)
+    cb(true)
+end)
+
+RegisterNUICallback('UnequipItem', function(data, cb)
+    if not validateToken(data and data.token) then cb(false) return end
+    TriggerServerEvent('rsg-inventory:server:UnequipItem', data.equipmentType, data.slot)
+    cb(true)
+end)

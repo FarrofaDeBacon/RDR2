@@ -20,6 +20,7 @@
   let transferAmount = $state(null);
   let errorSlot = $state(null);
   let busy = $state(false);
+  let equipmentSlots = $state({ backpack: null, satchel: null, wallet: null, holster: null });
 
   // Other inventory states
   let isOtherInventoryEmpty = $state(true);
@@ -71,6 +72,7 @@
   let currentlyDraggingItem = $state(null);
   let currentlyDraggingSlot = $state(null);
   let dragStartInventoryType = $state("player");
+  let dragStartEquipmentType = $state(null);
   const dragThreshold = 5;
 
   // CSRF token
@@ -274,6 +276,11 @@
       backpack = null;
       isBackpackDrawerOpen = false;
     }
+    if (data.equipmentSlots) {
+      equipmentSlots = data.equipmentSlots;
+    } else {
+      equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
+    }
 
     if (t && t.title) {
       document.title = t.title;
@@ -299,6 +306,9 @@
           }
         }
       }
+    }
+    if (data.equipmentSlots) {
+      equipmentSlots = data.equipmentSlots;
     }
   }
 
@@ -338,6 +348,7 @@
     selectedItem = null;
     backpack = null;
     isBackpackDrawerOpen = false;
+    equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
 
     try {
       await post("CloseInventory", { name: inventoryName });
@@ -368,6 +379,8 @@
       return playerInventory[slot] || null;
     } else if (inventoryType === "other") {
       return otherInventory[slot] || null;
+    } else if (inventoryType === "equipment") {
+      return equipmentSlots[slot] || null;
     }
     return null;
   }
@@ -758,6 +771,7 @@
         currentlyDraggingSlot = slot;
         dragStartInventoryType = inventory;
         currentlyDraggingItem = itemInSlot;
+        dragStartEquipmentType = inventory === "equipment" ? slot : null;
       }
     } else if (event.button === 2 && itemInSlot) {
       if (isShopInventory && inventory === "other") {
@@ -794,16 +808,28 @@
       if (isDragging && currentlyDraggingItem) {
         isDragging = false;
 
+        const targetEquipmentSlotElement = event.target.closest(".equipment-inventory .item-slot");
+        if (targetEquipmentSlotElement) {
+          const equipmentType = targetEquipmentSlotElement.dataset.slot;
+          if (equipmentType && dragStartInventoryType === "player") {
+            handleDropOnEquipmentSlot(equipmentType);
+          }
+        }
+
         const targetPlayerItemSlotElement = event.target.closest(".player-inventory .item-slot");
         if (targetPlayerItemSlotElement) {
           const targetSlot = Number(targetPlayerItemSlotElement.dataset.slot);
-          if (targetSlot && !(targetSlot === currentlyDraggingSlot && dragStartInventoryType === "player")) {
-            handleDropOnPlayerSlot(targetSlot);
+          if (targetSlot) {
+            if (dragStartInventoryType === "equipment") {
+              handleDropFromEquipmentSlot(targetSlot);
+            } else if (!(targetSlot === currentlyDraggingSlot && dragStartInventoryType === "player")) {
+              handleDropOnPlayerSlot(targetSlot);
+            }
           }
         }
 
         const targetOtherItemSlotElement = event.target.closest(".other-inventory .item-slot");
-        if (targetOtherItemSlotElement) {
+        if (targetOtherItemSlotElement && dragStartInventoryType !== "equipment") {
           const targetSlot = Number(targetOtherItemSlotElement.dataset.slot);
           if (targetSlot && !(targetSlot === currentlyDraggingSlot && dragStartInventoryType === "other")) {
             handleDropOnOtherSlot(targetSlot);
@@ -816,13 +842,22 @@
           addItemToTrade(currentlyDraggingItem, amount);
         } else {
           const targetInventoryContainer = event.target.closest(".inventory-container");
-          if (targetInventoryContainer && !targetPlayerItemSlotElement && !targetOtherItemSlotElement) {
+          if (targetInventoryContainer && !targetPlayerItemSlotElement && !targetOtherItemSlotElement && !targetEquipmentSlotElement) {
             handleDropOnInventoryContainer();
           }
         }
       }
       clearDragData();
     }
+  }
+
+  function handleDropOnEquipmentSlot(equipmentType) {
+    if (isShopInventory) return;
+    post("EquipItem", { slot: currentlyDraggingSlot, equipmentType: equipmentType });
+  }
+
+  function handleDropFromEquipmentSlot(targetSlot) {
+    post("UnequipItem", { equipmentType: dragStartEquipmentType, slot: targetSlot });
   }
 
   function handleDropOnPlayerSlot(targetSlot) {
@@ -1022,6 +1057,7 @@
     currentlyDraggingItem = null;
     currentlyDraggingSlot = null;
     isDragging = false;
+    dragStartEquipmentType = null;
   }
 
   // --- Trade UI Action Wrappers ---
@@ -1304,7 +1340,7 @@
       inventoryLabel={t.satchel}
       inventoryWeight={playerWeight}
       inventoryMaxWeight={maxWeight}
-      inventorySlots={totalSlots}
+      inventorySlots={10}
       inventoryItems={playerInventory}
       isShopInventory={false}
       shouldCenterInventory={shouldCenterInventory}
@@ -1322,6 +1358,7 @@
       errorSlot={errorSlot}
       backpack={backpack}
       unequipBackpack={unequipBackpack}
+      equipmentSlots={equipmentSlots}
     />
 
     <!-- Close button left satchel -->

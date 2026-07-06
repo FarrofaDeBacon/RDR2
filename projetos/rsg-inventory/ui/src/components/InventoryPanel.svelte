@@ -22,8 +22,16 @@
     showContextMenu,
     errorSlot,
     backpack = null,
-    unequipBackpack = null
+    unequipBackpack = null,
+    equipmentSlots = null
   } = $props();
+
+  const equipmentIcons = {
+    backpack: 'fa-suitcase',
+    satchel: 'fa-shopping-bag',
+    wallet: 'fa-wallet',
+    holster: 'fa-crosshairs'
+  };
 </script>
 
 <div class="{inventoryType === 'player' ? 'player-inventory-bg' : 'other-inventory-bg'}" class:centered-player-inventory-bg={inventoryType === 'player' && shouldCenterInventory}></div>
@@ -128,6 +136,46 @@
     {/each}
   </div>
   <div class="divider below-grid"></div>
+
+  {#if inventoryType === 'player'}
+    <div class="equipment-inventory" class:centered-player-inventory={shouldCenterInventory}>
+      <div class="item-grid equipment-grid">
+        {#each ['backpack', 'satchel', 'wallet', 'holster'] as equipType}
+          {@const item = equipmentSlots?.[equipType] || null}
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div 
+            class="item-slot"
+            data-slot={equipType}
+            onmousedown={(event) => handleMouseDown(event, equipType, 'equipment')}
+            onmouseenter={() => item && showItemInfo(item, 'equipment')}
+            onmouseleave={hideItemInfo}
+            ondragover={(event) => event.preventDefault()}
+          >
+            {#if item && item.image}
+              <div class="item-slot-img">
+                <img src="images/{item.image}" alt="" />
+              </div>
+              {#if equipType !== 'wallet' && item.info && typeof item.info === 'object' && 'quality' in item.info}
+                <div class="item-slot-durability">
+                  <div 
+                    class="item-slot-durability-fill"
+                    style="width: {item.info.quality}%"
+                    class:high={item.info.quality > 75}
+                    class:medium={item.info.quality <= 75 && item.info.quality > 25}
+                    class:low={item.info.quality <= 25}
+                  ></div>
+                </div>
+              {/if}
+            {:else}
+              <div class="equipment-placeholder">
+                <i class="fas {equipmentIcons[equipType]}"></i>
+              </div>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
 </div>
 
 <!-- Static Item Details in the empty lower area of the Satchel -->

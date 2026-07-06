@@ -36,6 +36,7 @@ RegisterNetEvent('rsg-inventory:client:updateInventory', function()
         cash = playerData.money.cash,
         token = token,
         invToken = invToken,
+        equipmentSlots = playerData.metadata and playerData.metadata.equipmentSlots or {}
     })
 end)
 
@@ -194,7 +195,8 @@ RegisterNetEvent('rsg-inventory:client:openInventory', function(items, other)
             closeKey  = config.Keybinds.Close,
             cash      = Player.money.cash,
             labels    = labels,
-            backpack  = backpackData
+            backpack  = backpackData,
+            equipmentSlots = Player.metadata and Player.metadata.equipmentSlots or {}
         })
     end)
 end)
