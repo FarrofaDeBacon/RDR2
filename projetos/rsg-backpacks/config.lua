@@ -1114,4 +1114,26 @@ Config.Backpacks = {
         slots = 8
     },
 
+    ['wallet_small'] = {
+        model = 'p_wallet01x',
+        weight = 1000,
+        slots = 5
+    },
+    ['wallet_large'] = {
+        model = 'p_wallet02x',
+        weight = 2000,
+        slots = 8
+    },
+    ['holster_small'] = {
+        model = 'p_holster01x',
+        weight = 5000,
+        slots = 3,
+        acceptedItemTypes = {'weapon', 'ammo'}
+    },
+    ['holster_large'] = {
+        model = 'p_holster02x',
+        weight = 8000,
+        slots = 5,
+        acceptedItemTypes = {'weapon', 'ammo'}
+    },
 }
