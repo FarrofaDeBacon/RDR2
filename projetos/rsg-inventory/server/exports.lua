@@ -963,7 +963,39 @@ lib.callback.register('rsg-inventory:server:getBackpackStash', function(source, 
     local slots = 15
     local label = "Mochila"
 
-    if model == "satchel_small" then
+    if model == "wallet_small" then
+        maxWeight = 1000
+        slots = 4
+        label = "Carteira Pequena"
+    elseif model == "wallet_large" then
+        maxWeight = 2000
+        slots = 8
+        label = "Carteira Grande"
+    elseif model == "holster_small" then
+        maxWeight = 5000
+        slots = 3
+        label = "Coldre Simples"
+    elseif model == "holster_large" then
+        maxWeight = 8000
+        slots = 5
+        label = "Coldre Reforçado"
+    elseif model == "backpack_tiny" then
+        maxWeight = 5000
+        slots = 4
+        label = "Mochila Mini"
+    elseif model == "backpack_small" then
+        maxWeight = 10000
+        slots = 6
+        label = "Mochila Pequena"
+    elseif model == "backpack_medium" then
+        maxWeight = 15000
+        slots = 10
+        label = "Mochila Média"
+    elseif model == "backpack_large" then
+        maxWeight = 20000
+        slots = 15
+        label = "Mochila Grande"
+    elseif model == "satchel_small" then
         maxWeight = 15000
         slots = 4
         label = "Bolsa Pequena"
