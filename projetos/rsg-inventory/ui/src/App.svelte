@@ -1275,14 +1275,15 @@
   }
 
   async function searchBackpack(item) {
-    if (item && (item.name.startsWith("backpack_") || item.name.startsWith("satchel_")) && item.info) {
+    const nameVal = item ? (item.name || item.itemName || '') : '';
+    if (item && (nameVal.startsWith("backpack_") || nameVal.startsWith("satchel_")) && item.info) {
       const uid = item.info.uid || item.info.stashId;
       if (uid) {
         try {
-          const data = await post("GetBackpackStashData", { uid: uid, model: item.name });
+          const data = await post("GetBackpackStashData", { uid: uid, model: nameVal });
           if (data) {
           const itemsMap = {};
-          const isSatchel = item.name.startsWith("satchel_");
+          const isSatchel = nameVal.startsWith("satchel_");
           const invType = isSatchel ? "satchel" : "backpack";
           if (Array.isArray(data.items)) {
             data.items.forEach((it) => {

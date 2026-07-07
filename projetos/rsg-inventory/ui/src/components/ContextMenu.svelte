@@ -17,17 +17,18 @@
   } = $props();
 
   let showSubmenu = $state(null); // 'trade' | 'give' | 'drop' | 'split' | null
+  const itemName = $derived(contextMenuItem ? (contextMenuItem.name || contextMenuItem.itemName || '') : '');
 </script>
 
 <ul class="context-menu" style="top: {contextMenuPosition.top}; left: {contextMenuPosition.left}">
-  {#if contextMenuItem.name.startsWith("satchel_") && contextMenuItem.inventory === 'equipment' && contextMenuItem.info && (contextMenuItem.info.uid || contextMenuItem.info.stashId)}
+  {#if itemName.startsWith("satchel_") && contextMenuItem.inventory === 'equipment' && contextMenuItem.info && (contextMenuItem.info.uid || contextMenuItem.info.stashId)}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <li onclick={() => searchBackpack(contextMenuItem)}>{t.search_backpack || 'Vasculhar'}</li>
   {/if}
 
   {#if contextMenuItem.inventory === 'equipment'}
-    {#if contextMenuItem.name.startsWith("backpack_") || contextMenuItem.name.startsWith("satchel_")}
+    {#if itemName.startsWith("backpack_") || itemName.startsWith("satchel_")}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <li onclick={() => dropEquipmentItem(contextMenuItem)}>{t.drop_to_ground || 'Colocar no Chão'}</li>
