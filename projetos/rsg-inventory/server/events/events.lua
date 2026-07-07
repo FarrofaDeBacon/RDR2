@@ -260,8 +260,6 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
-                        Inventory.CloseInventory(src, fromId)
-                        Inventory.CloseInventory(src, toId)
                         return
                     end
                 end
@@ -276,8 +274,6 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
-                        Inventory.CloseInventory(src, fromId)
-                        Inventory.CloseInventory(src, toId)
                         return
                     end
                 end
