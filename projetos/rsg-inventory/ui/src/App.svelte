@@ -1088,6 +1088,29 @@
       const amountToTransfer = transferAmount !== null ? transferAmount : sourceItem.amount;
       if (sourceItem.amount < amountToTransfer) return;
 
+      // Check wallet restriction (only accepts cash/money items)
+      if (targetInventoryType === "wallet") {
+        const allowed = ["cash", "money", "dollar", "cent", "blood_dollar", "blood_cent", "gold_bar", "gold_chunk"].includes(sourceItem.name) 
+          || sourceItem.name.includes("money") 
+          || sourceItem.name.includes("cash") 
+          || sourceItem.name.includes("dollar") 
+          || sourceItem.name.includes("cent");
+        if (!allowed) {
+          inventoryError(currentlyDraggingSlot);
+          return;
+        }
+      }
+
+      // Check holster restriction (only accepts weapons and ammo)
+      if (targetInventoryType === "holster") {
+        const isWeapon = sourceItem.type === "weapon" || sourceItem.name.startsWith("weapon_");
+        const isAmmo = sourceItem.type === "ammo" || sourceItem.name.startsWith("ammo_") || sourceItem.name.includes("ammo");
+        if (!isWeapon && !isAmmo) {
+          inventoryError(currentlyDraggingSlot);
+          return;
+        }
+      }
+
       if (dragStartInventoryType === "player" && targetInventoryType === "other" && isShop !== -1) {
         handlePurchase(
           currentlyDraggingSlot,
