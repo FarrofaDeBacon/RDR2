@@ -14,36 +14,27 @@ function SetupTarget(entity, stashId, itemName)
     registeredEntities[stashId] = true
     print("[Backpack Debug] Registering ox_target options for Entity.")
 
+    local bpConfig = Config.Backpacks[itemName]
+    local isSatchel = bpConfig and (bpConfig.isClothing or itemName == "doctor_bag" or itemName:sub(1, 8) == "satchel_")
+    local typeLabel = isSatchel and "Bolsa" or "Mochila"
+
     exports.ox_target:addLocalEntity(entity, {
         {
             name     = 'open_backpack_' .. stashId,
             icon     = 'fas fa-basket-shopping',
-            label    = 'Vasculhar Mochila',
+            label    = 'Vasculhar ' .. typeLabel,
             distance = 2.0,
             onSelect = function()
                 -- Solicita abertura e lock ao servidor
-                lib.callback('rsg-backpacks:server:requestOpenStash', false, function(success, message)
-                    if success then
-                        local model = 'p_ambpack02x'
-                        local bpConfig = Config.Backpacks[itemName]
-                        if bpConfig then model = bpConfig.model end
-                        -- Abre a aba deslizante do inventário (drawer)
-                        TriggerEvent("rsg-inventory:client:openBackpackDrawer", stashId, model)
-                    else
-                        lib.notify({
-                            title = 'Mochila',
-                            description = message or 'Não foi possível vasculhar a mochila.',
-                            type = 'error',
-                            duration = 5000
-                        })
-                    end
-                end, stashId)
+                local model = 'p_ambpack02x'
+                if bpConfig then model = bpConfig.model end
+                TriggerEvent("rsg-inventory:client:openBackpackDrawer", stashId, model)
             end,
         },
         {
             name     = 'wear_backpack_' .. stashId,
             icon     = 'fas fa-shirt',
-            label    = 'Vestir Mochila',
+            label    = 'Vestir ' .. typeLabel,
             distance = 2.0,
             canInteract = function(entity, distance, data)
                 local uid = stashId:sub(1, 3) == "bp_" and stashId:sub(4) or stashId
@@ -59,7 +50,7 @@ function SetupTarget(entity, stashId, itemName)
         {
             name     = 'pickup_backpack_' .. stashId,
             icon     = 'fas fa-hand-holding',
-            label    = 'Recolher Mochila',
+            label    = 'Recolher ' .. typeLabel,
             distance = 2.0,
             canInteract = function(entity, distance, data)
                 local uid = stashId:sub(1, 3) == "bp_" and stashId:sub(4) or stashId

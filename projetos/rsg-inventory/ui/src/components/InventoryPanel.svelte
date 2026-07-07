@@ -34,9 +34,13 @@
   };
 </script>
 
-<div class="{inventoryType === 'player' ? 'player-inventory-bg' : 'other-inventory-bg'}" class:centered-player-inventory-bg={inventoryType === 'player' && shouldCenterInventory}></div>
+<div 
+  class="{inventoryType}-inventory-bg" 
+  class:centered-player-inventory-bg={inventoryType === 'player' && shouldCenterInventory}
+  style={['satchel', 'backpack'].includes(inventoryType) ? `height: calc(9vh + ${Math.ceil(inventorySlots / (inventoryType === 'satchel' ? 4 : 5))} * ((var(--bg-width) - (var(--bg-padding) * 2)) / 5));` : ''}
+></div>
 
-<div class="{inventoryType === 'player' ? 'player-inventory-header' : 'other-inventory-header'}" class:centered-inventory-header={inventoryType === 'player' && shouldCenterInventory}>
+<div class="{inventoryType}-inventory-header" class:centered-inventory-header={inventoryType === 'player' && shouldCenterInventory}>
   <div class="header-main-row">
     <div class="inventory-label">
       <p>{inventoryLabel}</p>
@@ -60,16 +64,18 @@
         <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
           <div style="display: flex; flex-direction: column; width: 70px;">
             <div style="display: flex; justify-content: space-between; font-size: 9px; color: #ebdcb9; margin-bottom: 2px; font-family: Open Sans, sans-serif; font-weight: bold; text-shadow: 1px 1px 1px black;">
-              <span>Mochila</span>
+              <span>{backpack.model && backpack.model.includes('satchel') ? 'Bolsa' : 'Mochila'}</span>
               <span>{backpack.durability || 100}%</span>
             </div>
             <div style="width: 100%; height: 5px; background: rgba(0,0,0,0.5); border-radius: 2px; overflow: hidden; border: 1px solid rgba(194,176,128,0.25);">
               <div style="width: {backpack.durability || 100}%; height: 100%; transition: width 0.3s; background: {(backpack.durability || 100) > 50 ? '#55c05a' : ((backpack.durability || 100) > 20 ? '#e08b1a' : '#c93c3c')};"></div>
             </div>
           </div>
-          <button class="equipped-backpack-header-btn" onclick={unequipBackpack} title="Colocar Mochila no Chão" style="margin-left: 0;">
-            <i class="fas fa-suitcase"></i>
-          </button>
+          {#if backpack.model && !backpack.model.includes('satchel')}
+            <button class="equipped-backpack-header-btn" onclick={unequipBackpack} title="Colocar Mochila no Chão" style="margin-left: 0;">
+              <i class="fas fa-suitcase"></i>
+            </button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -77,7 +83,7 @@
 </div>
 
 <div 
-  class="{inventoryType === 'player' ? 'player-inventory' : 'other-inventory'}" 
+  class="{inventoryType}-inventory" 
   class:centered-player-inventory={inventoryType === 'player' && shouldCenterInventory}
 >
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -138,7 +144,7 @@
   <div class="divider below-grid"></div>
 
   {#if inventoryType === 'player'}
-    <div class="equipment-inventory" class:centered-player-inventory={shouldCenterInventory}>
+    <div class="equipment-inventory">
       <div class="item-grid equipment-grid">
         {#each ['backpack', 'satchel', 'wallet', 'holster'] as equipType}
           {@const item = equipmentSlots?.[equipType] || null}
@@ -174,17 +180,20 @@
           </div>
         {/each}
       </div>
-      <!-- DEBUG BLOCK -->
-      <div style="color: #ebdcb9; font-size: 9px; text-align: center; margin-top: 5px; font-family: Open Sans, sans-serif; pointer-events: none; text-shadow: 1px 1px 1px black;">
-        DEBUG: {JSON.stringify(equipmentSlots)}
-      </div>
+
     </div>
   {/if}
 </div>
 
 <!-- Static Item Details in the empty lower area of the Satchel -->
-{#if selectedItem && selectedItem.inventory === inventoryType && !showContextMenu}
-  <div class="satchel-item-details {inventoryType === 'player' ? 'player-details' : 'other-details'}" class:centered-details={inventoryType === 'player' && shouldCenterInventory}>
-    <ItemDetails {selectedItem} />
-  </div>
+{#if selectedItem && !showContextMenu}
+  {#if inventoryType === 'player' && (selectedItem.inventory === 'player' || selectedItem.inventory === 'satchel' || selectedItem.inventory === 'backpack')}
+    <div class="satchel-item-details player-details" class:centered-details={shouldCenterInventory}>
+      <ItemDetails {selectedItem} />
+    </div>
+  {:else if inventoryType === 'other' && selectedItem.inventory === 'other'}
+    <div class="satchel-item-details other-details">
+      <ItemDetails {selectedItem} />
+    </div>
+  {/if}
 {/if}

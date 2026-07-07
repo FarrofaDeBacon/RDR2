@@ -18,6 +18,7 @@ client_scripts {
     'client/target.lua',
     'client/weight.lua',
     'client/damage.lua',
+    'client/editor.lua',
     'client/main.lua'
 }
 

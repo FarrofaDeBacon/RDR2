@@ -1,5 +1,37 @@
 -- Toggle the hotbar UI with given items
 local RSGCore = exports['rsg-core']:GetCoreObject()
+
+local function hydrateEquipmentSlots(eqSlots)
+    if type(eqSlots) ~= 'table' then return {} end
+    local hydrated = {}
+    for slot, data in pairs(eqSlots) do
+        if type(data) == 'table' then
+            local itemName = data.itemName or data.name
+            if itemName then
+                local sharedItem = RSGCore.Shared.Items[itemName:lower()]
+                if sharedItem then
+                    local newData = {}
+                    for k, v in pairs(data) do newData[k] = v end
+                    newData.image = sharedItem.image
+                    newData.label = sharedItem.label
+                    newData.inventory = "equipment"
+                    if not newData.name then newData.name = itemName end
+                    if not newData.amount then newData.amount = 1 end
+                    newData.slot = slot
+                    hydrated[slot] = newData
+                else
+                    hydrated[slot] = data
+                end
+            else
+                hydrated[slot] = data
+            end
+        else
+            hydrated[slot] = data
+        end
+    end
+    return hydrated
+end
+
 -- @param items: table of items to display on the hotbar
 RegisterNetEvent('rsg-inventory:client:hotbar', function(items)
     local token = exports['rsg-core']:GenerateCSRFToken() -- CSRF token for NUI security
@@ -36,7 +68,7 @@ RegisterNetEvent('rsg-inventory:client:updateInventory', function()
         cash = playerData.money.cash,
         token = token,
         invToken = invToken,
-        equipmentSlots = playerData.metadata and playerData.metadata.equipmentSlots or {}
+        equipmentSlots = hydrateEquipmentSlots(playerData.metadata and playerData.metadata.equipmentSlots or {})
     })
 end)
 
@@ -164,12 +196,13 @@ RegisterNetEvent('rsg-inventory:client:openInventory', function(items, other)
                 elseif eqBackpack.itemName == "backpack_medium" then model = "p_ambpack02x"
                 elseif eqBackpack.itemName == "backpack_small" then model = "p_ambpack05x"
                 elseif eqBackpack.itemName == "backpack_tiny" then model = "p_ambpack04x"
+                elseif string.find(eqBackpack.itemName, "satchel") then model = eqBackpack.itemName
                 end
             end
         end
 
         if uid and model then
-            backpackData = lib.callback.await('rsg-inventory:server:getBackpackStash', uid, model)
+            backpackData = lib.callback.await('rsg-inventory:server:getBackpackStash', false, uid, model)
             if backpackData then
                 backpackData.autoOpen = autoOpenBackpack
                 backpackData.isEquipped = isEquipped
@@ -196,7 +229,7 @@ RegisterNetEvent('rsg-inventory:client:openInventory', function(items, other)
             cash      = Player.money.cash,
             labels    = labels,
             backpack  = backpackData,
-            equipmentSlots = Player.metadata and Player.metadata.equipmentSlots or {}
+            equipmentSlots = hydrateEquipmentSlots(Player.metadata and Player.metadata.equipmentSlots or {})
         })
     end)
 end)

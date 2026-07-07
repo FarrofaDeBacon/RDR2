@@ -959,12 +959,30 @@ end
 exports('GetStashWeight', Inventory.GetStashWeight)
 
 lib.callback.register('rsg-inventory:server:getBackpackStash', function(source, uid, model)
-    -- Get qadr_backpacks from config or default
     local maxWeight = 5000
-    if qadr_backpacks and qadr_backpacks[model] then
+    local slots = 15
+    local label = "Mochila"
+
+    if model == "satchel_small" then
+        maxWeight = 15000
+        slots = 4
+        label = "Bolsa Pequena"
+    elseif model == "satchel_medium" then
+        maxWeight = 25000
+        slots = 8
+        label = "Bolsa Média"
+    elseif model == "satchel_large" then
+        maxWeight = 35000
+        slots = 12
+        label = "Bolsa Grande"
+    elseif string.find(model, "satchel") then
+        maxWeight = 35000
+        slots = 12
+        label = "Bolsa"
+    elseif qadr_backpacks and qadr_backpacks[model] then
         maxWeight = qadr_backpacks[model].weight
+        slots = qadr_backpacks[model].slots or 15
     end
-    local slots = 15 -- 15 slots in the drawer
 
     -- Query durability from DB
     local cleanUid = uid:sub(1, 3) == "bp_" and uid:sub(4) or uid
@@ -983,7 +1001,7 @@ lib.callback.register('rsg-inventory:server:getBackpackStash', function(source, 
         stash = Inventory.InitializeInventory(uid, {
             maxweight = maxWeight,
             slots = slots,
-            label = "Mochila"
+            label = label
         })
         local dbResult = MySQL.prepare.await('SELECT items FROM inventories WHERE identifier = ?', { uid })
         if dbResult then
@@ -992,6 +1010,8 @@ lib.callback.register('rsg-inventory:server:getBackpackStash', function(source, 
     else
         -- Se já existia em memória, atualiza a capacidade caso a durabilidade tenha mudado
         stash.maxweight = maxWeight
+        stash.slots = slots
+        stash.label = label
     end
     
     return {

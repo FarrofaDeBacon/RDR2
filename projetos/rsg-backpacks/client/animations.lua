@@ -71,32 +71,33 @@ end
 -- 1. Equipar (Colocar mochila do inventário nas costas)
 -- O fluxo é: pegar mochila -> colocar nas costas -> ajustar alças
 function PlayEquipAnimation(callback)
-    if isBusy then return end
+    if isBusy then 
+        callback()
+        return 
+    end
     isBusy = true
     
     local ped = PlayerPedId()
     CreateThread(function()
-        local success = PlayAdjustStrapsAnim(ped, 2500)
+        PlayAdjustStrapsAnim(ped, 2500)
         isBusy = false
-        if success then
-            callback()
-        end
+        callback()
     end)
 end
 
 -- 2. Retirar / Colocar no chão (Mochila das costas -> agachar -> chão -> levantar)
 function PlayDoffAndPlaceAnimation(callback)
-    if isBusy then return end
+    if isBusy then 
+        callback()
+        return 
+    end
     isBusy = true
     
     local ped = PlayerPedId()
     CreateThread(function()
-        -- Agachar e colocar no chão
-        local success = PlayCrouchScenario(ped, 3000)
+        PlayCrouchScenario(ped, 3000)
         isBusy = false
-        if success then
-            callback()
-        end
+        callback()
     end)
 end
 

@@ -1,3 +1,4 @@
+local RSGCore = exports['rsg-core']:GetCoreObject()
 
 -- globals
 math = lib.math
@@ -48,24 +49,15 @@ RegisterNetEvent('rsg-inventory:server:EquipItem', function(slot, equipmentType)
     local item = Player.Functions.GetItemBySlot(slotNum)
     if not item then return end
 
-    -- Validation of item name based on target equipment slot
     local isValid = false
     if equipmentType == 'backpack' then
-        if item.name:sub(1, 9) == "backpack_" then
-            isValid = true
-        end
+        if item.name:sub(1, 9) == "backpack_" then isValid = true end
     elseif equipmentType == 'satchel' then
-        if item.name:sub(1, 8) == "satchel_" then
-            isValid = true
-        end
+        if item.name:sub(1, 8) == "satchel_" then isValid = true end
     elseif equipmentType == 'wallet' then
-        if item.name == "wallet" or item.name == "carteira" then
-            isValid = true
-        end
+        if item.name == "wallet" or item.name == "carteira" then isValid = true end
     elseif equipmentType == 'holster' then
-        if item.name == "holster" or item.name == "cinto" or item.name:find("holster") or item.name:find("belt") then
-            isValid = true
-        end
+        if item.name == "holster" or item.name == "cinto" or item.name:find("holster") or item.name:find("belt") then isValid = true end
     end
 
     if not isValid then
@@ -74,7 +66,11 @@ RegisterNetEvent('rsg-inventory:server:EquipItem', function(slot, equipmentType)
         return
     end
 
-    -- Equipping the item
+    if equipmentType == 'backpack' or equipmentType == 'satchel' then
+        exports['rsg-inventory']:UseItem(item.name, src, item)
+        return
+    end
+
     local metadata = Player.PlayerData.metadata
     if not metadata.equipmentSlots then
         metadata.equipmentSlots = { backpack = nil, satchel = nil, wallet = nil, holster = nil }
@@ -103,17 +99,30 @@ RegisterNetEvent('rsg-inventory:server:EquipItem', function(slot, equipmentType)
 end)
 
 RegisterNetEvent('rsg-inventory:server:UnequipItem', function(equipmentType, targetSlot)
+    print(("[rsg-inventory DEBUG] UnequipItem called! equipmentType: %s, targetSlot: %s"):format(tostring(equipmentType), tostring(targetSlot)))
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
 
     local metadata = Player.PlayerData.metadata
-    if not metadata.equipmentSlots or not metadata.equipmentSlots[equipmentType] then return end
+    if not metadata.equipmentSlots or not metadata.equipmentSlots[equipmentType] then 
+        print("[rsg-inventory DEBUG] UnequipItem failed: slot nulo ou metadado inexistente.")
+        return 
+    end
+
+    print(("[rsg-inventory DEBUG] UnequipItem valid! routing..."):format())
+    if equipmentType == 'backpack' then
+        TriggerEvent('rsg-backpacks:server:unequipBackpackToPocket', src)
+        return
+    elseif equipmentType == 'satchel' then
+        print('[rsg-inventory] UnequipItem: desequipando satchel - chamando unequipSatchel')
+        TriggerEvent('rsg-backpacks:server:unequipSatchel', src)
+        return
+    end
 
     local item = metadata.equipmentSlots[equipmentType]
     local targetSlotNum = tonumber(targetSlot)
 
-    -- Move item to targetSlotNum if free, otherwise find first free slot
     local firstFreeSlot = nil
     if targetSlotNum then
         local targetItem = Player.Functions.GetItemBySlot(targetSlotNum)
@@ -141,4 +150,25 @@ RegisterNetEvent('rsg-inventory:server:UnequipItem', function(equipmentType, tar
     Player.Functions.AddItem(item.name, 1, firstFreeSlot, item.info)
     Player.Functions.SetMetaData('equipmentSlots', metadata.equipmentSlots)
     TriggerClientEvent('rsg-inventory:client:updateInventory', src)
+end)
+
+RegisterNetEvent('rsg-inventory:server:DropEquipmentItem', function(equipmentType)
+    print(("[rsg-inventory DEBUG] DropEquipmentItem called! equipmentType: %s"):format(tostring(equipmentType)))
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local metadata = Player.PlayerData.metadata
+    if not metadata.equipmentSlots or not metadata.equipmentSlots[equipmentType] then 
+        print("[rsg-inventory DEBUG] DropEquipmentItem failed: slot nulo ou inexistente")
+        return 
+    end
+
+    if equipmentType == 'backpack' then
+        print("[rsg-inventory DEBUG] DropEquipmentItem routing to unequipBackpack...")
+        TriggerEvent('rsg-backpacks:server:unequipBackpack', src)
+    elseif equipmentType == 'satchel' then
+        print("[rsg-inventory DEBUG] DropEquipmentItem routing to unequipSatchelToGround...")
+        TriggerEvent('rsg-backpacks:server:unequipSatchelToGround', src)
+    end
 end)

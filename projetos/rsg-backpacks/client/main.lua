@@ -1,5 +1,6 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 currentBackpackObject = nil
+currentSatchelObject = nil
 currentBackpackStashId = nil
 currentBackpackModel = nil
 currentBackpackWeightLimit = 0
@@ -14,8 +15,19 @@ AddEventHandler("onResourceStop", function(resource)
         if currentBackpackObject and DoesEntityExist(currentBackpackObject) then
             DeleteEntity(currentBackpackObject)
         end
+        if currentSatchelObject and DoesEntityExist(currentSatchelObject) then
+            DeleteEntity(currentSatchelObject)
+        end
+        -- Clear clothing satchels category when resource stops
+        local ped = PlayerPedId()
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+        Citizen.InvokeNative(0x704C908E9C405136, ped)
+        Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+        Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+
         for entity, _ in pairs(registeredEntities) do
-            if DoesEntityExist(entity) then
+            if type(entity) == "number" and DoesEntityExist(entity) then
                 exports['ox_target']:removeLocalEntity(entity)
             end
         end
@@ -33,18 +45,66 @@ RegisterNetEvent('rsg-backpacks:client:attachToBack', function(stashId, itemName
 
     isAttaching = true
 
+    local ped = PlayerPedId()
+
+    if bpConfig.isClothing or itemName == "doctor_bag" then
+        -- VESTE BOLSA LATERAL / TRANSVERSAL
+        if currentSatchelObject and DoesEntityExist(currentSatchelObject) then
+            DeleteEntity(currentSatchelObject)
+            currentSatchelObject = nil
+        end
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+        Citizen.InvokeNative(0x704C908E9C405136, ped)
+        Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+        Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+
+        if bpConfig.isClothing then
+            local hash = IsPedMale(ped) and bpConfig.hashMale or bpConfig.hashFemale
+            if hash then
+                Citizen.InvokeNative(0xD3A7B003ED343FD9, ped, hash, false, true, true)
+            elseif bpConfig.customClothing then
+                local data = IsPedMale(ped) and bpConfig.customClothing.male or bpConfig.customClothing.female
+                if data then
+                    Citizen.InvokeNative(0xBC6DF00D7A4A6819, ped, data.drawable, data.albedo, data.normal, data.material, data.palette, data.tint0 or 0, data.tint1 or 0, data.tint2 or 0)
+                end
+            end
+            Citizen.InvokeNative(0x704C908E9C405136, ped)
+            Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+            Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+        else
+            -- doctor_bag (prop na mão)
+            local modelHash = GetHashKey(bpConfig.model)
+            RequestModel(modelHash)
+            while not HasModelLoaded(modelHash) do Wait(0) end
+
+            local bag = CreateObject(modelHash, 0, 0, 0, false, false, false)
+            SetEntityRotation(bag, bpConfig.rot.x, bpConfig.rot.y, bpConfig.rot.z, 2)
+            SetEntityAsMissionEntity(bag, true, true)
+            
+            local boneIndex = GetEntityBoneIndexByName(ped, bpConfig.bone or 'SKEL_L_Hand')
+            AttachEntityToEntity(bag, ped, boneIndex, 
+                bpConfig.pos.x, bpConfig.pos.y, bpConfig.pos.z, 
+                bpConfig.rot.x, bpConfig.rot.y, bpConfig.rot.z, 
+                false, true, true, false, 2, true, false, false)
+
+            currentSatchelObject = bag
+        end
+        isAttaching = false
+        return
+    end
+
+    -- VESTE MOCHILA DE COSTAS
     if currentBackpackObject and DoesEntityExist(currentBackpackObject) then
         DeleteEntity(currentBackpackObject)
         currentBackpackObject = nil
     end
 
-    local ped = PlayerPedId()
     local modelHash = GetHashKey(bpConfig.model)
     
     RequestModel(modelHash)
     while not HasModelLoaded(modelHash) do Wait(0) end
 
-    -- Local client-only object (prevents ghost/floating network issues)
     local bag = CreateObject(modelHash, 0, 0, 0, false, false, false)
     SetEntityRotation(bag, bpConfig.rot.x, bpConfig.rot.y, bpConfig.rot.z, 2)
     SetEntityAsMissionEntity(bag, true, true)
@@ -53,13 +113,7 @@ RegisterNetEvent('rsg-backpacks:client:attachToBack', function(stashId, itemName
     AttachEntityToEntity(bag, ped, boneIndex, 
         bpConfig.pos.x, bpConfig.pos.y, bpConfig.pos.z, 
         bpConfig.rot.x, bpConfig.rot.y, bpConfig.rot.z, 
-        false, 
-        bpConfig.softping ~= nil and bpConfig.softping or true, 
-        bpConfig.collision ~= nil and bpConfig.collision or true, 
-        false, 
-        bpConfig.vertex or 2, 
-        bpConfig.fixedRot ~= nil and bpConfig.fixedRot or true, 
-        false, false)
+        false, true, true, false, 2, true, false, false)
 
     currentBackpackObject = bag
     currentBackpackStashId = stashId
@@ -69,12 +123,57 @@ RegisterNetEvent('rsg-backpacks:client:attachToBack', function(stashId, itemName
     isAttaching = false
 end)
 
--- Detach backpack from player's back
+-- Veste diretamente (usado para satchels/bolsas de roupa que equipam sem ir pro chão)
+RegisterNetEvent('rsg-backpacks:client:attachDirectly', function(stashId, itemName)
+    PlayEquipAnimation(function()
+        TriggerEvent('rsg-backpacks:client:attachToBack', stashId, itemName)
+    end)
+end)
+
+-- Detach backpack from player's back (apenas mochila de lona)
 RegisterNetEvent('rsg-backpacks:client:detachFromBack', function()
     if currentBackpackObject and DoesEntityExist(currentBackpackObject) then
         DeleteEntity(currentBackpackObject)
         currentBackpackObject = nil
     end
+
+    currentBackpackStashId = nil
+    LocalPlayer.state:set("currentBackpackStashId", nil, false)
+    currentBackpackModel = nil
+    currentBackpackWeightLimit = 0
+    currentBackpackWeight = 0
+    speedBlendRatio = 3.0
+end)
+
+-- Detach satchel (retira a bolsa lateral/transversal)
+RegisterNetEvent('rsg-backpacks:client:detachSatchel', function()
+    if currentSatchelObject and DoesEntityExist(currentSatchelObject) then
+        DeleteEntity(currentSatchelObject)
+        currentSatchelObject = nil
+    end
+
+    local ped = PlayerPedId()
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+    Citizen.InvokeNative(0x704C908E9C405136, ped)
+    Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+    Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+end)
+
+-- Detach backpack without dropping (remove a mochila das costas para o bolso)
+RegisterNetEvent('rsg-backpacks:client:detachBackpack', function()
+    if currentBackpackObject and DoesEntityExist(currentBackpackObject) then
+        DeleteEntity(currentBackpackObject)
+        currentBackpackObject = nil
+    end
+
+    local ped = PlayerPedId()
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+    Citizen.InvokeNative(0x704C908E9C405136, ped)
+    Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+    Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+    
     currentBackpackStashId = nil
     LocalPlayer.state:set("currentBackpackStashId", nil, false)
     currentBackpackModel = nil
@@ -134,29 +233,37 @@ RegisterNetEvent('rsg-backpacks:client:removeGroundBackpack', function(stashId, 
     end
 end)
 
--- Auto-detect equipped backpack on player load or script start
+-- Auto-detect equipped backpack and satchel on player load or script start
 local function checkEquippedBackpack()
     local PlayerData = RSGCore.Functions.GetPlayerData()
-    if PlayerData and PlayerData.metadata and PlayerData.metadata.equippedBackpack then
-        local eq = PlayerData.metadata.equippedBackpack
-        if eq.stashId then
+    if PlayerData and PlayerData.metadata then
+        -- 1. Carrega Mochila de Costas
+        local eq = PlayerData.metadata.equipmentSlots and PlayerData.metadata.equipmentSlots.backpack
+        if eq and eq.stashId then
             currentBackpackStashId = eq.stashId
             LocalPlayer.state:set("currentBackpackStashId", eq.stashId, false)
             local bpConfig = Config.Backpacks[eq.itemName]
             if bpConfig then
                 currentBackpackModel = bpConfig.model
                 currentBackpackWeightLimit = bpConfig.weight
-                
-                -- Se o objeto físico não existir, recria o attach
                 if not currentBackpackObject or not DoesEntityExist(currentBackpackObject) then
                     TriggerEvent('rsg-backpacks:client:attachToBack', eq.stashId, eq.itemName)
                 end
             end
             print(("[rsg-backpacks] Auto-detected equipped backpack: %s"):format(eq.stashId))
-            return
+        else
+            LocalPlayer.state:set("currentBackpackStashId", nil, false)
+        end
+
+        -- 2. Carrega Bolsa Lateral / Transversal
+        local eqSatchel = PlayerData.metadata.equipmentSlots and PlayerData.metadata.equipmentSlots.satchel
+        if eqSatchel and eqSatchel.stashId then
+            if not currentSatchelObject or not DoesEntityExist(currentSatchelObject) then
+                TriggerEvent('rsg-backpacks:client:attachToBack', eqSatchel.stashId, eqSatchel.itemName)
+            end
+            print(("[rsg-backpacks] Auto-detected equipped satchel: %s"):format(eqSatchel.stashId))
         end
     end
-    LocalPlayer.state:set("currentBackpackStashId", nil, false)
 end
 
 AddEventHandler('RSGCore:Client:OnPlayerLoaded', function()
@@ -190,11 +297,24 @@ local function cleanupAttachedObjects()
         currentBackpackObject = nil
     end
 
+    if currentSatchelObject and DoesEntityExist(currentSatchelObject) then
+        DeleteEntity(currentSatchelObject)
+        currentSatchelObject = nil
+    end
+
+    -- Clear clothing satchels category when doing a cleanup
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+    Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+    Citizen.InvokeNative(0x704C908E9C405136, ped)
+    Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+    Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+
     local models = {
         `p_ambpack04x`,
         `p_ambpack05x`,
         `p_ambpack02x`,
-        `p_ambpack01x`
+        `p_ambpack01x`,
+        `p_bag01x`
     }
     
     for _, model in ipairs(models) do
@@ -211,7 +331,8 @@ end)
 
 RegisterCommand('limparmochilacorpo', function()
     cleanupAttachedObjects()
-    TriggerEvent('ox_lib:notify', { title = 'Mochila', description = 'Mochilas fantasmas removidas do seu corpo!', type = 'success' })
+    TriggerServerEvent('rsg-backpacks:server:clearBackpackMetadata')
+    TriggerEvent('ox_lib:notify', { title = 'Mochila', description = 'Mochilas e bolsas limpas do seu corpo e perfil!', type = 'success' })
 end)
 
 

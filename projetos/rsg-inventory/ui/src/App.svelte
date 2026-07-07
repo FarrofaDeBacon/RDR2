@@ -9,7 +9,10 @@
   // --- Svelte 5 States ---
   let isInventoryOpen = $state(false);
   let backpack = $state(null);
-  let isBackpackDrawerOpen = $state(false);
+  let backpackData = $state(null);
+  let isBackpackOpen = $state(false);
+  let satchelData = $state(null);
+  let isSatchelOpen = $state(false);
   let playerInventory = $state({});
   let otherInventory = $state({});
   let maxWeight = $state(0);
@@ -267,16 +270,10 @@
         items: itemsMap
       };
       
-      if (data.backpack.autoOpen) {
-        isBackpackDrawerOpen = true;
-      } else {
-        isBackpackDrawerOpen = false;
-      }
     } else {
       backpack = null;
-      isBackpackDrawerOpen = false;
     }
-    if (data.equipmentSlots) {
+    if (data.equipmentSlots && !Array.isArray(data.equipmentSlots)) {
       equipmentSlots = data.equipmentSlots;
     } else {
       equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
@@ -307,8 +304,10 @@
         }
       }
     }
-    if (data.equipmentSlots) {
+    if (data.equipmentSlots && !Array.isArray(data.equipmentSlots)) {
       equipmentSlots = data.equipmentSlots;
+    } else if (data.equipmentSlots && Array.isArray(data.equipmentSlots)) {
+      equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
     }
   }
 
@@ -347,7 +346,10 @@
     isTradeActive = false;
     selectedItem = null;
     backpack = null;
-    isBackpackDrawerOpen = false;
+    backpackData = null;
+    isBackpackOpen = false;
+    satchelData = null;
+    isSatchelOpen = false;
     equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
 
     try {
@@ -364,10 +366,13 @@
   }
 
   async function unequipBackpack() {
-    closeInventory();
-    post("unequipBackpack").catch((error) => {
-      console.error("Error unequipping backpack:", error);
-    });
+    if (busy) return;
+    busy = true;
+    post("unequipBackpack", {})
+      .then(() => {
+        closeInventory();
+        busy = false;
+      })
   }
 
   function clearTransferAmount() {
@@ -381,6 +386,10 @@
       return otherInventory[slot] || null;
     } else if (inventoryType === "equipment") {
       return equipmentSlots[slot] || null;
+    } else if (inventoryType === "satchel") {
+      return (satchelData && satchelData.items && satchelData.items[slot]) || null;
+    } else if (inventoryType === "backpack") {
+      return (backpackData && backpackData.items && backpackData.items[slot]) || null;
     }
     return null;
   }
@@ -497,10 +506,46 @@
     showContextMenu = false;
   }
 
+  async function unequipItem(item) {
+    if (!item || item.inventory !== 'equipment') return;
+    try {
+      await post("UnequipItem", {
+        equipmentType: item.slot,
+      });
+    } catch (error) {
+      console.error("Error unequipping item: ", error);
+    }
+    showContextMenu = false;
+  }
+
+  async function dropEquipmentItem(item) {
+    if (!item || item.inventory !== 'equipment') return;
+    try {
+      await post("DropEquipmentItem", {
+        equipmentType: item.slot,
+      });
+    } catch (error) {
+      console.error("Error dropping equipment item: ", error);
+    }
+    showContextMenu = false;
+  }
+
   async function giveItem(item, quantity) {
     if (item && item.name) {
-      const playerHasItem = Object.values(playerInventory).some((invItem) => invItem && invItem.name === item.name);
-      if (playerHasItem) {
+      // Detect which inventory the item comes from
+      const invType = item.inventory || 'player';
+      let sourceInventory = playerInventory;
+      let sourceInventoryName = 'player';
+      if (invType === 'satchel' && satchelData) {
+        sourceInventory = satchelData.items;
+        sourceInventoryName = satchelData.uid;
+      } else if (invType === 'backpack' && backpackData) {
+        sourceInventory = backpackData.items;
+        sourceInventoryName = backpackData.uid;
+      }
+
+      const itemExists = Object.values(sourceInventory).some((invItem) => invItem && invItem.name === item.name);
+      if (itemExists) {
         let amountToGive;
         if (typeof quantity === "string") {
           switch (quantity) {
@@ -533,12 +578,13 @@
             amount: amountToGive,
             slot: item.slot,
             info: item.info,
+            fromInventory: sourceInventoryName,
           });
           if (!response) return;
 
-          playerInventory[item.slot].amount -= amountToGive;
-          if (playerInventory[item.slot].amount === 0) {
-            delete playerInventory[item.slot];
+          sourceInventory[item.slot].amount -= amountToGive;
+          if (sourceInventory[item.slot].amount === 0) {
+            delete sourceInventory[item.slot];
           }
         } catch (error) {
           console.error("An error occurred while giving the item:", error);
@@ -550,11 +596,23 @@
 
   async function dropItem(item, quantity) {
     if (item && item.name) {
-      const playerItemKey = Object.keys(playerInventory).find((key) =>
-        playerInventory[key] && playerInventory[key].slot === item.slot
+      // Detect which inventory the item comes from
+      const invType = item.inventory || 'player';
+      let sourceInventory = playerInventory;
+      let sourceInventoryName = 'player';
+      if (invType === 'satchel' && satchelData) {
+        sourceInventory = satchelData.items;
+        sourceInventoryName = satchelData.uid;
+      } else if (invType === 'backpack' && backpackData) {
+        sourceInventory = backpackData.items;
+        sourceInventoryName = backpackData.uid;
+      }
+
+      const itemKey = Object.keys(sourceInventory).find((key) =>
+        sourceInventory[key] && sourceInventory[key].slot === item.slot
       );
 
-      if (playerItemKey) {
+      if (itemKey) {
         let amountToGive;
         if (typeof quantity === "string") {
           switch (quantity) {
@@ -591,14 +649,15 @@
           const response = await post("DropItem", {
             ...newItem,
             fromSlot: item.slot,
+            fromInventory: sourceInventoryName,
           });
 
           if (response) {
-            const remainingAmount = playerInventory[playerItemKey].amount - amountToGive;
+            const remainingAmount = sourceInventory[itemKey].amount - amountToGive;
             if (remainingAmount <= 0) {
-              delete playerInventory[playerItemKey];
+              delete sourceInventory[itemKey];
             } else {
-              playerInventory[playerItemKey].amount = remainingAmount;
+              sourceInventory[itemKey].amount = remainingAmount;
             }
 
             otherInventory[1] = newItem;
@@ -654,8 +713,8 @@
 
   function postInventoryData(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount) {
     busy = true;
-    let fromInventoryName = fromInventory === "other" ? otherInventoryName : (fromInventory === "backpack" && backpack ? backpack.uid : fromInventory);
-    let toInventoryName = toInventory === "other" ? otherInventoryName : (toInventory === "backpack" && backpack ? backpack.uid : toInventory);
+    let fromInventoryName = fromInventory === "other" ? otherInventoryName : (fromInventory === "backpack" && backpackData ? backpackData.uid : (fromInventory === "satchel" && satchelData ? satchelData.uid : fromInventory));
+    let toInventoryName = toInventory === "other" ? otherInventoryName : (toInventory === "backpack" && backpackData ? backpackData.uid : (toInventory === "satchel" && satchelData ? satchelData.uid : toInventory));
 
     post("SetInventoryData", {
       fromInventory: fromInventoryName,
@@ -778,7 +837,7 @@
         handlePurchase(itemInSlot.slot, itemInSlot, 1, inventory);
         return;
       }
-      if (!isOtherInventoryEmpty) {
+      if (!isOtherInventoryEmpty && inventory !== 'satchel' && inventory !== 'backpack') {
         moveItemBetweenInventories(itemInSlot, inventory);
       } else {
         showContextMenuOptions(event, itemInSlot);
@@ -828,11 +887,15 @@
           }
         }
 
-        const targetOtherItemSlotElement = event.target.closest(".other-inventory .item-slot");
-        if (targetOtherItemSlotElement && dragStartInventoryType !== "equipment") {
-          const targetSlot = Number(targetOtherItemSlotElement.dataset.slot);
-          if (targetSlot && !(targetSlot === currentlyDraggingSlot && dragStartInventoryType === "other")) {
-            handleDropOnOtherSlot(targetSlot);
+        const targetSecondaryItemSlotElement = event.target.closest(".other-inventory .item-slot, .satchel-inventory .item-slot, .backpack-inventory .item-slot");
+        if (targetSecondaryItemSlotElement && dragStartInventoryType !== "equipment") {
+          const targetSlot = Number(targetSecondaryItemSlotElement.dataset.slot);
+          const isSatchelDrop = !!targetSecondaryItemSlotElement.closest(".satchel-inventory");
+          const isBackpackDrop = !!targetSecondaryItemSlotElement.closest(".backpack-inventory");
+          const targetInvType = isSatchelDrop ? "satchel" : (isBackpackDrop ? "backpack" : "other");
+
+          if (targetSlot && !(targetSlot === currentlyDraggingSlot && dragStartInventoryType === targetInvType)) {
+            handleItemDrop(targetInvType, targetSlot);
           }
         }
 
@@ -842,7 +905,7 @@
           addItemToTrade(currentlyDraggingItem, amount);
         } else {
           const targetInventoryContainer = event.target.closest(".inventory-container");
-          if (targetInventoryContainer && !targetPlayerItemSlotElement && !targetOtherItemSlotElement && !targetEquipmentSlotElement) {
+          if (targetInventoryContainer && !targetPlayerItemSlotElement && !targetSecondaryItemSlotElement && !targetEquipmentSlotElement) {
             handleDropOnInventoryContainer();
           }
         }
@@ -923,8 +986,8 @@
       const targetSlotNumber = parseInt(targetSlot, 10);
       if (isNaN(targetSlotNumber)) return;
 
-      const sourceInventory = dragStartInventoryType === "player" ? playerInventory : (dragStartInventoryType === "backpack" ? backpack.items : otherInventory);
-      const targetInventory = targetInventoryType === "player" ? playerInventory : (targetInventoryType === "backpack" ? backpack.items : otherInventory);
+      const sourceInventory = dragStartInventoryType === "player" ? playerInventory : (dragStartInventoryType === "backpack" && backpackData ? backpackData.items : (dragStartInventoryType === "satchel" && satchelData ? satchelData.items : otherInventory));
+      const targetInventory = targetInventoryType === "player" ? playerInventory : (targetInventoryType === "backpack" && backpackData ? backpackData.items : (targetInventoryType === "satchel" && satchelData ? satchelData.items : otherInventory));
 
       const sourceItem = sourceInventory[currentlyDraggingSlot];
       if (!sourceItem) return;
@@ -953,10 +1016,16 @@
           if (totalWeightAfterTransfer > maxWeight) {
             throw new Error("Weight capacity exceeded");
           }
-        } else if (targetInventoryType === "backpack" && backpack) {
-          const currentBackpackWeight = Object.values(backpack.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
+        } else if (targetInventoryType === "backpack" && backpackData) {
+          const currentBackpackWeight = Object.values(backpackData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
           const totalWeightAfterTransfer = currentBackpackWeight + sourceItem.weight * amountToTransfer;
-          if (totalWeightAfterTransfer > backpack.maxweight) {
+          if (totalWeightAfterTransfer > backpackData.maxweight) {
+            throw new Error("Weight capacity exceeded");
+          }
+        } else if (targetInventoryType === "satchel" && satchelData) {
+          const currentSatchelWeight = Object.values(satchelData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
+          const totalWeightAfterTransfer = currentSatchelWeight + sourceItem.weight * amountToTransfer;
+          if (totalWeightAfterTransfer > satchelData.maxweight) {
             throw new Error("Weight capacity exceeded");
           }
         }
@@ -1181,15 +1250,19 @@
   }
 
   async function searchBackpack(item) {
-    if (item && item.name.startsWith("backpack_") && item.info && item.info.uid) {
-      try {
-        const data = await post("GetBackpackStashData", { uid: item.info.uid, model: item.info.model || "p_ambpack02x" });
-        if (data) {
+    if (item && (item.name.startsWith("backpack_") || item.name.startsWith("satchel_")) && item.info) {
+      const uid = item.info.uid || item.info.stashId;
+      if (uid) {
+        try {
+          const data = await post("GetBackpackStashData", { uid: uid, model: item.name });
+          if (data) {
           const itemsMap = {};
+          const isSatchel = item.name.startsWith("satchel_");
+          const invType = isSatchel ? "satchel" : "backpack";
           if (Array.isArray(data.items)) {
             data.items.forEach((it) => {
               if (it && it.slot) {
-                it.inventory = "backpack";
+                it.inventory = invType;
                 itemsMap[it.slot] = it;
               }
             });
@@ -1197,20 +1270,24 @@
             for (const key in data.items) {
               const it = data.items[key];
               if (it && it.slot) {
-                it.inventory = "backpack";
+                it.inventory = invType;
                 itemsMap[it.slot] = it;
               }
             }
           }
-          backpack = {
-            ...data,
-            items: itemsMap
-          };
-          isBackpackDrawerOpen = true;
+          
+          if (isSatchel) {
+            satchelData = { ...data, items: itemsMap, uid: uid };
+            isSatchelOpen = true;
+          } else {
+            backpackData = { ...data, items: itemsMap, uid: uid };
+            isBackpackOpen = true;
+          }
         }
       } catch (error) {
         console.error("Error searching backpack:", error);
       }
+    }
     }
     showContextMenu = false;
   }
@@ -1320,17 +1397,52 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="inventory-container" onclick={() => { showContextMenu = false; hideItemInfo(); }}>
     
-    <!-- Backpack Drawer (Slides left of Player Satchel) - Disabled in current phase -->
-    {#if false}
-      <BackpackDrawer
-        backpack={backpack}
-        isOpen={isBackpackDrawerOpen}
-        toggleDrawer={() => { isBackpackDrawerOpen = !isBackpackDrawerOpen; }}
+    <!-- Satchel (Esquerdo) -->
+    {#if isSatchelOpen && satchelData}
+      <InventoryPanel
+        inventoryType="satchel"
+        inventoryLabel={satchelData.label || t.satchel}
+        inventoryWeight={(satchelData.items ? Object.values(satchelData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0)}
+        inventoryMaxWeight={satchelData.maxweight}
+        inventorySlots={satchelData.slots}
+        inventoryItems={satchelData.items}
+        isShopInventory={false}
+        shouldCenterInventory={false}
+        t={t}
+        playerMoney={0}
         getItemInSlot={getItemInSlot}
+        useItem={useItem}
         handleMouseDown={handleMouseDown}
         showItemInfo={showItemInfo}
         hideItemInfo={hideItemInfo}
-        unequipBackpack={unequipBackpack}
+        selectedItem={selectedItem}
+        showContextMenu={showContextMenu}
+        errorSlot={errorSlot}
+      />
+    {/if}
+
+    <!-- Backpack (Direito) -->
+    {#if isBackpackOpen && backpackData}
+      <InventoryPanel
+        inventoryType="backpack"
+        inventoryLabel={backpackData.label || "Mochila"}
+        inventoryWeight={(backpackData.items ? Object.values(backpackData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0)}
+        inventoryMaxWeight={backpackData.maxweight}
+        inventorySlots={backpackData.slots}
+        inventoryItems={backpackData.items}
+        isShopInventory={false}
+        shouldCenterInventory={false}
+        t={t}
+        playerMoney={0}
+        getItemInSlot={getItemInSlot}
+        useItem={useItem}
+        handleMouseDown={handleMouseDown}
+        showItemInfo={showItemInfo}
+        hideItemInfo={hideItemInfo}
+        selectedItem={selectedItem}
+        showContextMenu={showContextMenu}
+        errorSlot={errorSlot}
+        hasOtherInventory={!isOtherInventoryEmpty}
       />
     {/if}
 
@@ -1370,9 +1482,9 @@
       {t.close}
     </div>
 
-    <!-- Input quantity panel (if other inventory active) -->
-    {#if !isOtherInventoryEmpty && !isTradeActive}
-      <div class="input-container">
+    <!-- Input quantity panel -->
+    {#if (!isOtherInventoryEmpty || isSatchelOpen || isBackpackOpen) && !isTradeActive}
+      <div class="input-container" class:centered-input-container={shouldCenterInventory}>
         <div class="input-wrapper">
           <input type="number" bind:value={transferAmount} min="1" placeholder={transferAmount === null ? t.amount_placeholder : ''} />
           <button onclick={clearTransferAmount} class="clear-button">
@@ -1436,6 +1548,8 @@
         isTradeActive={isTradeActive}
         t={t}
         useItem={useItem}
+        unequipItem={unequipItem}
+        dropEquipmentItem={dropEquipmentItem}
         addItemToTrade={addItemToTrade}
         addItemToTradeWithPrompt={addItemToTradeWithPrompt}
         giveItem={giveItem}

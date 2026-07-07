@@ -98,7 +98,7 @@ function Validation.NoDuplication(source, uid)
         if tonumber(playerId) ~= tonumber(source) then
             local targetPlayer = RSGCore.Functions.GetPlayer(playerId)
             if targetPlayer then
-                local eq = targetPlayer.PlayerData.metadata.equippedBackpack
+                local eq = targetPlayer.PlayerData.metadata.equipmentSlots and targetPlayer.PlayerData.metadata.equipmentSlots.backpack
                 if eq and eq.stashId then
                     local eqUid = eq.stashId:sub(1, 3) == "bp_" and eq.stashId:sub(4) or eq.stashId
                     if eqUid == uid then

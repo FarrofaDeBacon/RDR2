@@ -55,7 +55,7 @@ RegisterNetEvent('rsg-backpacks:server:damageBackpack', function(damageType)
     if not Player then return end
 
     -- 1. Verifica se está vestindo uma mochila
-    local eqBackpack = Player.PlayerData.metadata.equippedBackpack
+    local eqBackpack = Player.PlayerData.metadata.equipmentSlots and Player.PlayerData.metadata.equipmentSlots.backpack
     if not eqBackpack or not eqBackpack.stashId then return end
 
     local stashId = eqBackpack.stashId

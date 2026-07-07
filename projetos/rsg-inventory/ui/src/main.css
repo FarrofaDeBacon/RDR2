@@ -14,6 +14,7 @@
     --divider-mt: 0.8vh;
     --header-gap: 0.8vh;
     --bg-width: 25vw;
+    --satchel-bg-width: calc((var(--bg-width) - var(--bg-padding) * 2) * 4 / 5 + var(--bg-padding) * 2);
     --side-gap: 18vw; 
     --bg-padding: 1.6vw;
     --tooltip-pad-x: 1.2vw;
@@ -71,12 +72,10 @@ div {
     --divider-mt: var(--grid-pt);
     --bottom-reserved: calc(var(--divider-h) + var(--divider-mt));
     width: var(--panel-width);
-    height: calc(((var(--panel-width) - (var(--slot-gap) * (var(--columns) - 1)) - (var(--slot-pad) * 2)) / var(--columns)) * var(--visible-rows) + (var(--slot-gap) * (var(--visible-rows) - 1)) + (var(--slot-pad) * 2) + var(--grid-pt) + var(--divider-h));
-    overflow-x: hidden;
-    overflow-y: auto;
+    height: auto;
+    overflow: visible;
     transform: translate(-50%, 0);
     z-index: 1;
-    max-height: calc(100vh - calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)) - 2vh);  
 }
 
 
@@ -1039,6 +1038,11 @@ div {
     z-index: 9;
 }
 
+.centered-input-container {
+    left: 50vw;
+    transform: translateX(-50%);
+}
+
 .input-wrapper {
     display: flex;
     align-items: center;
@@ -1802,11 +1806,6 @@ div {
 }
 
 /* Equipment Inventory Layout Styles */
-.player-inventory .item-grid {
-    height: auto !important;
-    overflow-y: visible !important;
-}
-
 .equipment-inventory {
     width: 100%;
     margin-top: 1.0vh;
@@ -1815,14 +1814,18 @@ div {
 
 .equipment-grid {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     justify-content: center;
-    gap: 0.3vw;
-    padding: 0 0.5vw;
+    gap: var(--slot-gap);
+    padding: 0 var(--slot-pad);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .equipment-grid .item-slot {
-    width: calc((var(--panel-width) - (var(--slot-gap) * 4) - (var(--slot-pad) * 2)) / 5);
-    height: calc((var(--panel-width) - (var(--slot-gap) * 4) - (var(--slot-pad) * 2)) / 5);
+    flex: 0 0 calc((100% - (var(--slot-gap) * (5 - 1)) - (var(--slot-pad) * 2)) / 5);
+    aspect-ratio: 1 / 1;
     background: rgba(10, 10, 10, 0.45) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-sizing: border-box;
@@ -1835,5 +1838,137 @@ div {
     width: 100%;
     height: 100%;
     color: rgba(255, 255, 255, 0.25);
-    font-size: 1.5vw;
-}
+    font-size: 1.0vw;
+}/* SATCHEL STYLES (LEFT OF PLAYER INVENTORY) */
+.satchel-inventory-bg {
+    position: absolute;
+    top: 19.4vh;  
+    right: calc(50vw + (var(--bg-width) / 2) + 0.5vw); /* Attached to the left of centered player */
+    width: var(--satchel-bg-width);
+    height: 58.5vh; 
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 80%),
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px),
+        linear-gradient(135deg, #0f0e0d 0%, #151413 100%) !important;
+    border: 2px solid #2e2922 !important;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.98), 0 10px 35px rgba(0, 0, 0, 0.85);
+    border-radius: 4px;
+    z-index: 0;
+    outline: 1px solid rgba(235, 220, 185, 0.12) !important;
+    outline-offset: -5px;
+}
+
+.satchel-inventory-header {
+    box-sizing: border-box;
+    position: absolute;
+    top: calc(19.4vh + 2.2vh); 
+    right: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--satchel-bg-width) / 2);
+    transform: translateX(50%);
+    width: calc(var(--satchel-bg-width) - (var(--bg-padding) * 2));
+    height: fit-content;
+    font-weight: bolder;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 10;  
+    gap: var(--header-gap);  
+}
+
+.satchel-inventory {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    position: absolute;
+    top: calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)); 
+    right: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--satchel-bg-width) / 2);
+    transform: translateX(50%);
+    --panel-width: calc(var(--satchel-bg-width) - (var(--bg-padding) * 2));
+    --columns: 4;
+    --visible-rows: 4;
+    --slot-gap: 0.1vw;
+    --slot-pad: 0.18vw;
+    --divider-h: 0.25vh;
+    --grid-pt: 0.8vh;
+    width: var(--panel-width);
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1;
+    margin-left: calc(var(--bg-padding) * 0.9);
+    max-height: calc(100vh - calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)) - 2vh); 
+}
+
+/* BACKPACK STYLES (RIGHT SIDE) */
+.backpack-inventory-bg {
+    position: absolute;
+    top: 19.4vh;  
+    left: calc(50vw + (var(--bg-width) / 2) + 0.5vw); /* Attached to the right of centered player */
+    width: var(--bg-width);
+    height: 58.5vh; 
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 80%),
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px),
+        linear-gradient(135deg, #0f0e0d 0%, #151413 100%) !important;
+    border: 2px solid #2e2922 !important;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.98), 0 10px 35px rgba(0, 0, 0, 0.85);
+    border-radius: 4px;
+    z-index: 0;
+    outline: 1px solid rgba(235, 220, 185, 0.12) !important;
+    outline-offset: -5px;
+}
+
+.backpack-inventory-header {
+    box-sizing: border-box;
+    position: absolute;
+    top: calc(19.4vh + 2.2vh);
+    left: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--bg-width) / 2);
+    transform: translateX(-50%);
+    width: calc(var(--bg-width) - (var(--bg-padding) * 2));
+    height: fit-content;
+    font-weight: bolder;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 10;  
+    gap: var(--header-gap); 
+}
+
+.backpack-inventory {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    position: absolute;
+    top: calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)); 
+    left: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--bg-width) / 2);
+    transform: translateX(-50%);
+    --panel-width: calc(var(--bg-width) - (var(--bg-padding) * 2));
+    --columns: 5;
+    --visible-rows: 4;
+    --slot-gap: 0.1vw;
+    --slot-pad: 0.18vw;
+    --divider-h: 0.25vh;
+    --grid-pt: 0.8vh;
+    width: var(--panel-width);
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1;
+    max-height: calc(100vh - calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)) - 2vh); 
+}
+
+/* Close buttons positioning for Satchel and Backpack */
+.satchel-close-btn {
+    right: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--satchel-bg-width) / 2);
+    transform: translateX(50%);
+    top: calc(19.4vh + 58.5vh - 4.2vh - 2.0vh);
+    width: calc(var(--satchel-bg-width) - (var(--bg-padding) * 2));
+}
+
+.backpack-close-btn {
+    left: calc(50vw + (var(--bg-width) / 2) + 0.5vw + var(--bg-width) / 2);
+    transform: translateX(-50%);
+    top: calc(19.4vh + 58.5vh - 4.2vh - 2.0vh);
+    width: calc(var(--bg-width) - (var(--bg-padding) * 2));
+}

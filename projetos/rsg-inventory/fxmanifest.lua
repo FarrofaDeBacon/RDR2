@@ -41,12 +41,13 @@ server_scripts {
     'server/shops/events/*.lua',
     'server/commands.lua',
     'server/versionchecker.lua',
+    'server/wipe_equipment_data.lua',
 }
 
-ui_page 'ui/dist/index_v2.html'
+ui_page 'ui/dist/index.html'
 
 files {
-    'ui/dist/index_v2.html',
+    'ui/dist/index.html',
     'ui/dist/assets/*',
     'ui/dist/images/*',
     "shared/*.lua", --- for lib.load

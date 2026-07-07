@@ -8,7 +8,8 @@ RegisterNetEvent('rsg-backpacks:client:placeBackpack', function(itemName, stashI
         local heading = GetEntityHeading(ped)
 
         local bpConfig = Config.Backpacks[itemName]
-        local modelHash = GetHashKey(bpConfig.model)
+        local model = bpConfig.model or 'p_cs_satchel01x' -- Se for roupa, usa um prop de satchel padrão para o chão
+        local modelHash = GetHashKey(model)
         
         RequestModel(modelHash)
         while not HasModelLoaded(modelHash) do Wait(0) end
@@ -24,6 +25,7 @@ RegisterNetEvent('rsg-backpacks:client:placeBackpack', function(itemName, stashI
         end
         SetEntityHeading(backpackEntity, heading)
         FreezeEntityPosition(backpackEntity, true)
+        SetEntityCollision(backpackEntity, true, true)
         SetEntityAsMissionEntity(backpackEntity, true, true)
 
         local netId = NetworkGetNetworkIdFromEntity(backpackEntity)
@@ -42,7 +44,18 @@ RegisterNetEvent('rsg-backpacks:client:doffAndPlaceOnGround', function(stashId, 
             DeleteEntity(currentBackpackObject)
             currentBackpackObject = nil
         end
+        if currentSatchelObject and DoesEntityExist(currentSatchelObject) then
+            DeleteEntity(currentSatchelObject)
+            currentSatchelObject = nil
+        end
         
+        -- Garante que se for roupa, ela é limpa do corpo
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchels"), 0)
+        Citizen.InvokeNative(0xD710A5007C2AC539, ped, GetHashKey("satchel_straps"), 0)
+        Citizen.InvokeNative(0x704C908E9C405136, ped)
+        Citizen.InvokeNative(0xCC8CA3E88256E58F, ped, false, true, true, true, false)
+        Citizen.InvokeNative(0xAAB86462966168CE, ped, true)
+
         currentBackpackStashId = nil
         LocalPlayer.state:set("currentBackpackStashId", nil, false)
         currentBackpackModel = nil
@@ -53,7 +66,8 @@ RegisterNetEvent('rsg-backpacks:client:doffAndPlaceOnGround', function(stashId, 
         local coords = GetEntityCoords(ped)
         local heading = GetEntityHeading(ped)
         local bpConfig = Config.Backpacks[itemName]
-        local modelHash = GetHashKey(bpConfig.model)
+        local model = bpConfig.model or 'p_cs_satchel01x' -- Fallback para o chão
+        local modelHash = GetHashKey(model)
 
         RequestModel(modelHash)
         while not HasModelLoaded(modelHash) do Wait(0) end
@@ -69,6 +83,7 @@ RegisterNetEvent('rsg-backpacks:client:doffAndPlaceOnGround', function(stashId, 
         end
         SetEntityHeading(backpackEntity, heading)
         FreezeEntityPosition(backpackEntity, true)
+        SetEntityCollision(backpackEntity, true, true)
         SetEntityAsMissionEntity(backpackEntity, true, true)
 
         local netId = NetworkGetNetworkIdFromEntity(backpackEntity)

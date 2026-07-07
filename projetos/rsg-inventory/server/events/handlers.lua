@@ -29,6 +29,26 @@ AddEventHandler('RSGCore:Server:PlayerLoaded', function(Player)
     -- Migrate legacy metadata
     local metadata = Player.PlayerData.metadata
     local changed = false
+
+    -- Detect ANY corrupted equipmentSlots format.
+    -- Valid structure only has keys: backpack, satchel, wallet, holster.
+    -- If any other key is found (e.g. name, stash, info, slot, amount) the data is corrupt.
+    local validEquipKeys = { backpack = true, satchel = true, wallet = true, holster = true }
+    if metadata.equipmentSlots then
+        local isCorrupted = false
+        for k, _ in pairs(metadata.equipmentSlots) do
+            if not validEquipKeys[k] then
+                isCorrupted = true
+                break
+            end
+        end
+        if isCorrupted then
+            print(('[rsg-inventory] [MIGRATION] Player ' .. tostring(src) .. ' had corrupted equipmentSlots (key: ' .. tostring(next(metadata.equipmentSlots)) .. '). Resetting.'))
+            metadata.equipmentSlots = { backpack = nil, satchel = nil, wallet = nil, holster = nil }
+            changed = true
+        end
+    end
+
     if not metadata.equipmentSlots then
         metadata.equipmentSlots = { backpack = nil, satchel = nil, wallet = nil, holster = nil }
         changed = true
@@ -88,33 +108,46 @@ AddEventHandler('RSGCore:Server:PlayerLoaded', function(Player)
 
     -- Robust post-migration check for players who already have equipmentSlots but with incomplete objects
     if metadata.equipmentSlots then
-        if metadata.equipmentSlots.backpack and not metadata.equipmentSlots.backpack.name and metadata.equipmentSlots.backpack.itemName then
-            local bpName = metadata.equipmentSlots.backpack.itemName
-            local lookup = backpackItemsLookup[bpName] or { label = 'Mochila', image = 'p_ambpack02x.png' }
-            metadata.equipmentSlots.backpack = {
-                name = bpName,
-                label = lookup.label,
-                amount = 1,
-                image = lookup.image,
-                weight = 1000,
-                info = { quality = 100, stashId = metadata.equipmentSlots.backpack.stashId },
-                slot = 'backpack'
-            }
-            changed = true
+        if metadata.equipmentSlots.backpack then
+            local bpName = metadata.equipmentSlots.backpack.itemName or metadata.equipmentSlots.backpack.name
+            local stash = metadata.equipmentSlots.backpack.stashId or (metadata.equipmentSlots.backpack.info and metadata.equipmentSlots.backpack.info.stashId)
+            
+            if bpName and stash and (not metadata.equipmentSlots.backpack.name or not metadata.equipmentSlots.backpack.stashId) then
+                local lookup = backpackItemsLookup[bpName] or { label = 'Mochila', image = 'p_ambpack02x.png' }
+                metadata.equipmentSlots.backpack = {
+                    name = bpName,
+                    label = lookup.label,
+                    amount = 1,
+                    image = lookup.image,
+                    weight = 1000,
+                    info = { quality = 100, stashId = stash },
+                    slot = 'backpack',
+                    stashId = stash,
+                    itemName = bpName
+                }
+                changed = true
+            end
         end
-        if metadata.equipmentSlots.satchel and not metadata.equipmentSlots.satchel.name and metadata.equipmentSlots.satchel.itemName then
-            local satName = metadata.equipmentSlots.satchel.itemName
-            local lookup = satchelItemsLookup[satName] or { label = 'Bolsa', image = 'backpack_medium.png' }
-            metadata.equipmentSlots.satchel = {
-                name = satName,
-                label = lookup.label,
-                amount = 1,
-                image = lookup.image,
-                weight = 1000,
-                info = { quality = 100, stashId = metadata.equipmentSlots.satchel.stashId },
-                slot = 'satchel'
-            }
-            changed = true
+
+        if metadata.equipmentSlots.satchel then
+            local satName = metadata.equipmentSlots.satchel.itemName or metadata.equipmentSlots.satchel.name
+            local stash = metadata.equipmentSlots.satchel.stashId or (metadata.equipmentSlots.satchel.info and metadata.equipmentSlots.satchel.info.stashId)
+
+            if satName and stash and (not metadata.equipmentSlots.satchel.name or not metadata.equipmentSlots.satchel.stashId) then
+                local lookup = satchelItemsLookup[satName] or { label = 'Bolsa', image = 'backpack_medium.png' }
+                metadata.equipmentSlots.satchel = {
+                    name = satName,
+                    label = lookup.label,
+                    amount = 1,
+                    image = lookup.image,
+                    weight = 1000,
+                    info = { quality = 100, stashId = stash },
+                    slot = 'satchel',
+                    stashId = stash,
+                    itemName = satName
+                }
+                changed = true
+            end
         end
     end
 

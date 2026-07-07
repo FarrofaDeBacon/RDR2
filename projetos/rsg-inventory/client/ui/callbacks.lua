@@ -111,6 +111,9 @@ end)
 --- NUI callback to unequip backpack
 RegisterNUICallback('unequipBackpack', function(data, cb)
     if not validateToken(data and data.token) then cb('ok') return end
+    -- Fecha o inventário imediatamente
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close', invToken = _G.GenerateInventoryCbToken() })
     TriggerServerEvent("rsg-backpacks:server:unequipBackpack")
     cb('ok')
 end)
@@ -162,7 +165,7 @@ RegisterNUICallback('GiveItem', function(data, cb)
         if pid ~= -1 and dist < 3.0 then
             local targetSid = GetPlayerServerId(pid)
             local success = lib.callback.await('rsg-inventory:server:giveItem', false,
-                targetSid, data.item.name, data.amount, data.slot, data.info
+                targetSid, data.item.name, data.amount, data.slot, data.info, data.fromInventory
             )
             cb(success)
         else
@@ -182,7 +185,7 @@ RegisterNUICallback('GiveItem', function(data, cb)
         local pid, dist = GetClosestPlayerWithin(3.0)
         if pid ~= -1 and dist < 3.0 and GetPlayerServerId(pid) == typedSid then
             local success = lib.callback.await('rsg-inventory:server:giveItem', false,
-                typedSid, data.item.name, data.amount, data.slot, data.info
+                typedSid, data.item.name, data.amount, data.slot, data.info, data.fromInventory
             )
             cb(success)
         else
@@ -208,7 +211,7 @@ RegisterNUICallback('GiveItem', function(data, cb)
         local dist = #(GetEntityCoords(GetPlayerPed(selectedPid)) - GetEntityCoords(cache.ped))
         if dist < 3.0 then
             local success = lib.callback.await('rsg-inventory:server:giveItem', false,
-                selectedSid, data.item.name, data.amount, data.slot, data.info
+                selectedSid, data.item.name, data.amount, data.slot, data.info, data.fromInventory
             )
             cb(success)
         else
@@ -237,7 +240,7 @@ RegisterNUICallback('GetBackpackStashData', function(data, cb)
     if not validateToken(data and data.token) then cb(false) return end
     if data and data.uid then
         local model = data.model or "p_ambpack02x"
-        local backpackData = lib.callback.await('rsg-inventory:server:getBackpackStash', data.uid, model)
+        local backpackData = lib.callback.await('rsg-inventory:server:getBackpackStash', false, data.uid, model)
         cb(backpackData)
     else
         cb(false)
@@ -253,5 +256,14 @@ end)
 RegisterNUICallback('UnequipItem', function(data, cb)
     if not validateToken(data and data.token) then cb(false) return end
     TriggerServerEvent('rsg-inventory:server:UnequipItem', data.equipmentType, data.slot)
+    cb(true)
+end)
+
+RegisterNUICallback('DropEquipmentItem', function(data, cb)
+    if not validateToken(data and data.token) then cb(false) return end
+    -- Close inventory immediately so cursor disappears and player can move
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close', invToken = _G.GenerateInventoryCbToken() })
+    TriggerServerEvent('rsg-inventory:server:DropEquipmentItem', data.equipmentType)
     cb(true)
 end)
