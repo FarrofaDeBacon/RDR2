@@ -38,7 +38,7 @@
 <div 
   class="{inventoryType}-inventory-bg" 
   class:centered-player-inventory-bg={inventoryType === 'player' && shouldCenterInventory}
-  style={['satchel', 'backpack'].includes(inventoryType) ? `height: calc(9vh + ${Math.ceil(inventorySlots / (inventoryType === 'satchel' ? 4 : 5))} * ((var(--bg-width) - (var(--bg-padding) * 2)) / 5));` : ''}
+  style={['satchel', 'backpack', 'wallet', 'holster'].includes(inventoryType) ? `height: calc(10vh + ${Math.ceil(inventorySlots / (['satchel', 'wallet', 'holster'].includes(inventoryType) ? 4 : 5))} * 5.0vw);` : ''}
 ></div>
 
 <div class="{inventoryType}-inventory-header" class:centered-inventory-header={inventoryType === 'player' && shouldCenterInventory}>

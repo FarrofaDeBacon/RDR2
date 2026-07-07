@@ -1039,12 +1039,16 @@ lib.callback.register('rsg-inventory:server:getBackpackStash', function(source, 
         if dbResult then
             stash.items = json.decode(dbResult) or {}
         end
-    else
-        -- Se já existia em memória, atualiza a capacidade caso a durabilidade tenha mudado
-        stash.maxweight = maxWeight
-        stash.slots = slots
-        stash.label = label
     end
+    
+    if stash then
+        stash.model = model
+    end
+
+    -- Se já existia em memória, atualiza a capacidade caso a durabilidade tenha mudado
+    stash.maxweight = maxWeight
+    stash.slots = slots
+    stash.label = label
     
     return {
         uid = uid,

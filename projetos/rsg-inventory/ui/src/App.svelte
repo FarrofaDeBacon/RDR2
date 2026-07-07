@@ -937,14 +937,6 @@
       if (isDragging && currentlyDraggingItem) {
         isDragging = false;
 
-        console.log("[NUI App.svelte Debug] handleMouseUp target element:", event.target);
-        console.log("[NUI App.svelte Debug] target class list:", event.target.className, "id:", event.target.id);
-        const parentSlot = event.target.closest(".item-slot");
-        console.log("[NUI App.svelte Debug] closest item-slot found:", parentSlot !== null);
-        if (parentSlot) {
-          console.log("[NUI App.svelte Debug] parent slot parent elements class list:", parentSlot.parentElement ? parentSlot.parentElement.className : "none", "grandparent:", parentSlot.parentElement && parentSlot.parentElement.parentElement ? parentSlot.parentElement.parentElement.className : "none");
-        }
-
         const targetEquipmentSlotElement = event.target.closest(".equipment-inventory .item-slot");
         if (targetEquipmentSlotElement) {
           const equipmentType = targetEquipmentSlotElement.dataset.slot;

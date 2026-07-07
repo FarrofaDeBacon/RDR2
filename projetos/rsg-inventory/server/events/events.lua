@@ -231,28 +231,29 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
         end
     end
 
-    print(("[rsg-inventory DEBUG] SetInventoryData - fromInventory: %s, toInventory: %s, fromSlot: %s, toSlot: %s, fromAmount: %s, toAmount: %s"):format(tostring(fromInventory), tostring(toInventory), tostring(fromSlot), tostring(toSlot), tostring(fromAmount), tostring(toAmount)))
-
     local fromItem = Inventory.GetItem(fromInventory, src, fromSlot)
     local toItem = Inventory.GetItem(toInventory, src, toSlot)
 
     if fromItem then
-        print(("[rsg-inventory DEBUG] fromItem found: name=%s, amount=%d"):format(tostring(fromItem.name), tonumber(fromItem.amount)))
         -- Item restrictions for specific stashes (e.g. Wallet only accepts money, holster only accepts weapons/ammo)
         if toInventory:sub(1, 3) == "bp_" then
-            local targetUid = toInventory:sub(4)
-            local bpData = exports['rsg-backpacks']:GetBackpackByUid(targetUid)
-            print(("[rsg-inventory DEBUG] Target is backpack stash: targetUid=%s, bpData found=%s"):format(tostring(targetUid), tostring(bpData ~= nil)))
-            if bpData then
-                local model = bpData.model
+            local stash = Inventories[toInventory]
+            local model = stash and stash.model
+            if not model then
+                local targetUid = toInventory:sub(4)
+                local bpData = exports['rsg-backpacks']:GetBackpackByUid(targetUid)
+                if bpData then
+                    model = bpData.model
+                end
+            end
+
+            if model then
                 local isWalletModel = (model == "p_wallet01x" or model == "p_wallet02x" or model:sub(1, 7) == "wallet_")
                 local isHolsterModel = (model == "p_holster01x" or model == "p_holster02x" or model:sub(1, 8) == "holster_")
-                print(("[rsg-inventory DEBUG] Stash Model: %s, isWalletModel=%s, isHolsterModel=%s"):format(tostring(model), tostring(isWalletModel), tostring(isHolsterModel)))
                 
                 -- Wallet restriction: Only accepts money items
                 if isWalletModel then
                     local allowed = (fromItem.name == "cash" or fromItem.name == "money" or fromItem.name == "dollar" or fromItem.name == "cent" or fromItem.name == "blood_dollar" or fromItem.name == "blood_cent" or fromItem.name == "gold_bar" or fromItem.name == "gold_chunk" or fromItem.name:find("money") or fromItem.name:find("cash") or fromItem.name:find("dollar") or fromItem.name:find("cent"))
-                    print(("[rsg-inventory DEBUG] Wallet check - allowed: %s"):format(tostring(allowed)))
                     if not allowed then
                         TriggerClientEvent('ox_lib:notify', src, {
                             title = 'Carteira',
@@ -267,7 +268,6 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                 if isHolsterModel then
                     local isWeapon = (fromItem.type == "weapon" or fromItem.name:sub(1, 7) == "weapon_")
                     local isAmmo = (fromItem.type == "ammo" or fromItem.name:sub(1, 5) == "ammo_" or fromItem.name:find("ammo"))
-                    print(("[rsg-inventory DEBUG] Holster check - isWeapon=%s, isAmmo=%s"):format(tostring(isWeapon), tostring(isAmmo)))
                     if not (isWeapon or isAmmo) then
                         TriggerClientEvent('ox_lib:notify', src, {
                             title = 'Cinto/Coldre',
@@ -281,10 +281,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
             end
         end
 
-        if not toItem and toAmount > fromItem.amount then 
-            print("[rsg-inventory DEBUG] SetInventoryData failed: toAmount > fromItem.amount")
-            return 
-        end
+        if not toItem and toAmount > fromItem.amount then return end
 
         if fromInventory == 'player' and toInventory ~= 'player' then
             isMove = true
