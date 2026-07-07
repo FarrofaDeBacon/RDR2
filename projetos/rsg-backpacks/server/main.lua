@@ -903,3 +903,5 @@ RegisterNetEvent('rsg-backpacks:server:clearBackpackMetadata', function()
         print(("[rsg-backpacks] Limpeza completa de metadados e solo executada por citizenid: %s"):format(Player.PlayerData.citizenid))
     end
 end)
+
+exports('GetBackpackByUid', GetBackpackByUid)

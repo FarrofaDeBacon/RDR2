@@ -235,6 +235,42 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
     local toItem = Inventory.GetItem(toInventory, src, toSlot)
 
     if fromItem then
+        -- Item restrictions for specific stashes (e.g. Wallet only accepts money, holster only accepts weapons/ammo)
+        if toInventory:sub(1, 3) == "bp_" then
+            local targetUid = toInventory:sub(4)
+            local bpData = exports['rsg-backpacks']:GetBackpackByUid(targetUid)
+            if bpData then
+                local model = bpData.model
+                -- Wallet restriction: Only accepts money items
+                if model:sub(1, 7) == "wallet_" then
+                    local allowed = (fromItem.name == "cash" or fromItem.name == "money" or fromItem.name == "gold_bar" or fromItem.name == "gold_chunk" or fromItem.name:find("money") or fromItem.name:find("cash"))
+                    if not allowed then
+                        TriggerClientEvent('ox_lib:notify', src, {
+                            title = 'Carteira',
+                            description = 'Esta carteira só aceita dinheiro!',
+                            type = 'error',
+                            duration = 5000
+                        })
+                        return
+                    end
+                end
+                -- Holster restriction: Only accepts weapons and ammunition
+                if model:sub(1, 8) == "holster_" then
+                    local isWeapon = (fromItem.type == "weapon" or fromItem.name:sub(1, 7) == "weapon_")
+                    local isAmmo = (fromItem.type == "ammo" or fromItem.name:sub(1, 5) == "ammo_" or fromItem.name:find("ammo"))
+                    if not (isWeapon or isAmmo) then
+                        TriggerClientEvent('ox_lib:notify', src, {
+                            title = 'Cinto/Coldre',
+                            description = 'Este coldre só aceita armas e munição!',
+                            type = 'error',
+                            duration = 5000
+                        })
+                        return
+                    end
+                end
+            end
+        end
+
         if not toItem and toAmount > fromItem.amount then return end
 
         if fromInventory == 'player' and toInventory ~= 'player' then
