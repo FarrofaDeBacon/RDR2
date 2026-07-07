@@ -246,8 +246,6 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     model = bpData.model
                 end
             end
-            print(("[rsg-inventory DEBUG] toInventory: %s, resolved model: %s"):format(toInventory, tostring(model)))
-
             if model then
                 local isWalletModel = (model == "p_wallet01x" or model == "p_wallet02x" or model:sub(1, 7) == "wallet_")
                 local isHolsterModel = (model == "p_holster01x" or model == "p_holster02x" or model:sub(1, 8) == "holster_")
@@ -262,6 +260,8 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
+                        Inventory.CloseInventory(src, fromId)
+                        Inventory.CloseInventory(src, toId)
                         return
                     end
                 end
@@ -276,6 +276,8 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
+                        Inventory.CloseInventory(src, fromId)
+                        Inventory.CloseInventory(src, toId)
                         return
                     end
                 end
