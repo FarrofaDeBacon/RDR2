@@ -239,5 +239,5 @@ AddEventHandler("rsg-inventory:client:openBackpackDrawer", function(backpackUid,
     autoOpenBackpack = true
     tempBackpackUid = backpackUid
     tempBackpackModel = backpackModel
-    TriggerServerEvent("inventory:server:OpenInventory")
+    ExecuteCommand("inventory")
 end)

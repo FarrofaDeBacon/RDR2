@@ -1,5 +1,6 @@
 <script>
   import ItemDetails from './ItemDetails.svelte';
+  import ItemSlot from './ItemSlot.svelte';
 
   let {
     inventoryType = 'player',
@@ -92,53 +93,20 @@
       {@const slot = idx + 1}
       {@const item = getItemInSlot(slot, inventoryType)}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div 
-        id="slot-{slot}"
-        class="item-slot" 
-        data-slot={slot} 
-        class:invalid-slot-highlight={errorSlot === slot}
-        ondblclick={() => item && useItem(item)}
-        onmousedown={(event) => handleMouseDown(event, slot, inventoryType)}
-        onmouseenter={() => item && showItemInfo(item, inventoryType)}
-        onmouseleave={hideItemInfo}
-        ondragover={(event) => event.preventDefault()}
-      >
-        {#if inventoryType === 'player' && slot <= 5}
-          <div class="item-slot-key">
-            <p>{slot}</p>
-          </div>
-        {/if}
-
-        {#if item}
-          <div class="item-slot-img">
-            <img src="images/{item.image}" alt="" />
-          </div>
-          <div class="item-slot-amount">
-            <p>x{item.amount}</p>
-          </div>
-          {#if isShopInventory && item.price}
-            <div class="item-price">
-              <p>${Number(item.price).toFixed(2)}</p>
-            </div>
-          {/if}
-          {#if isShopInventory && item.buyPrice}
-            <div class="item-sell-price">
-              <p>{t.sell}: ${Number(item.buyPrice).toFixed(2)}</p>
-            </div>
-          {/if}
-          {#if item.info && typeof item.info === 'object' && 'quality' in item.info}
-            <div class="item-slot-durability">
-              <div 
-                class="item-slot-durability-fill"
-                style="width: {item.info.quality}%"
-                class:high={item.info.quality > 75}
-                class:medium={item.info.quality <= 75 && item.info.quality > 25}
-                class:low={item.info.quality <= 25}
-              ></div>
-            </div>
-          {/if}
-        {/if}
-      </div>
+      <ItemSlot
+        item={item}
+        slot={slot}
+        inventoryType={inventoryType}
+        showSlotKey={inventoryType === 'player' && slot <= 5}
+        enableDoubleClickUse={true}
+        showShopPrice={isShopInventory}
+        errorSlot={errorSlot}
+        t={t}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={showItemInfo}
+        onMouseLeave={hideItemInfo}
+        onDoubleClick={useItem}
+      />
     {/each}
   </div>
   <div class="divider below-grid"></div>
@@ -148,36 +116,16 @@
       <div class="item-grid equipment-grid">
         {#each ['backpack', 'satchel', 'wallet', 'holster'] as equipType}
           {@const item = equipmentSlots?.[equipType] || null}
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div 
-            class="item-slot"
-            data-slot={equipType}
-            onmousedown={(event) => handleMouseDown(event, equipType, 'equipment')}
-            onmouseenter={() => item && showItemInfo(item, 'equipment')}
-            onmouseleave={hideItemInfo}
-            ondragover={(event) => event.preventDefault()}
-          >
-            {#if item && item.image}
-              <div class="item-slot-img">
-                <img src="images/{item.image}" alt="" />
-              </div>
-              {#if equipType !== 'wallet' && item.info && typeof item.info === 'object' && 'quality' in item.info}
-                <div class="item-slot-durability">
-                  <div 
-                    class="item-slot-durability-fill"
-                    style="width: {item.info.quality}%"
-                    class:high={item.info.quality > 75}
-                    class:medium={item.info.quality <= 75 && item.info.quality > 25}
-                    class:low={item.info.quality <= 25}
-                  ></div>
-                </div>
-              {/if}
-            {:else}
-              <div class="equipment-placeholder">
-                <i class="fas {equipmentIcons[equipType]}"></i>
-              </div>
-            {/if}
-          </div>
+          <ItemSlot
+            item={item}
+            slot={equipType}
+            inventoryType="equipment"
+            placeholderIcon={equipmentIcons[equipType]}
+            t={t}
+            onMouseDown={handleMouseDown}
+            onMouseEnter={showItemInfo}
+            onMouseLeave={hideItemInfo}
+          />
         {/each}
       </div>
 

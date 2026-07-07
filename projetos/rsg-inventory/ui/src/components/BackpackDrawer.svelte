@@ -1,5 +1,6 @@
 <script>
   import { slide } from 'svelte/transition';
+  import ItemSlot from './ItemSlot.svelte';
 
   let {
     backpack,
@@ -9,8 +10,16 @@
     handleMouseDown,
     showItemInfo,
     hideItemInfo,
-    unequipBackpack
+    unequipBackpack,
+    t = {}
   } = $props();
+
+  const isSatchel = $derived(
+    backpack && backpack.model && (
+      backpack.model.includes('satchel') || 
+      backpack.model.startsWith('satchel_')
+    )
+  );
 
   function handleSlotMouseDown(event, slot) {
     handleMouseDown(event, slot, 'backpack');
@@ -29,14 +38,14 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="backpack-strap-handle" onclick={toggleDrawer} class:active={isOpen}>
     <div class="strap-buckle"></div>
-    <div class="strap-text">MOCHILA</div>
+    <div class="strap-text">{isSatchel ? (t.satchel || 'BOLSA') : 'MOCHILA'}</div>
   </div>
 
   {#if isOpen}
     <div class="backpack-drawer-content" transition:slide={{ axis: 'x', duration: 300 }}>
       <div class="backpack-drawer-inner-border">
         <div class="backpack-header">
-          <h3>MOCHILA</h3>
+          <h3>{isSatchel ? (t.satchel || 'BOLSA') : 'MOCHILA'}</h3>
           <p class="backpack-weight">
             {((backpack.items ? Object.values(backpack.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0) / 1000).toFixed(1)} / {(backpack.maxweight / 1000).toFixed(1)} Kg
           </p>
@@ -46,36 +55,15 @@
           {#each Array(backpack.slots) as _, idx}
             {@const slot = idx + 1}
             {@const item = backpack.items[slot] || null}
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div 
-              id="backpack-slot-{slot}"
-              class="item-slot" 
-              data-slot={slot}
-              onmousedown={(event) => handleSlotMouseDown(event, slot)}
-              onmouseenter={() => handleSlotMouseEnter(item)}
-              onmouseleave={hideItemInfo}
-              ondragover={(event) => event.preventDefault()}
-            >
-              {#if item}
-                <div class="item-slot-img">
-                  <img src="images/{item.image}" alt="" />
-                </div>
-                <div class="item-slot-amount">
-                  <p>x{item.amount}</p>
-                </div>
-                {#if item.info && typeof item.info === 'object' && 'quality' in item.info}
-                  <div class="item-slot-durability">
-                    <div 
-                      class="item-slot-durability-fill"
-                      style="width: {item.info.quality}%"
-                      class:high={item.info.quality > 75}
-                      class:medium={item.info.quality <= 75 && item.info.quality > 25}
-                      class:low={item.info.quality <= 25}
-                    ></div>
-                  </div>
-                {/if}
-              {/if}
-            </div>
+            <ItemSlot
+              item={item}
+              slot={slot}
+              inventoryType="backpack"
+              t={t}
+              onMouseDown={handleSlotMouseDown}
+              onMouseEnter={handleSlotMouseEnter}
+              onMouseLeave={hideItemInfo}
+            />
           {/each}
         </div>
         {#if backpack.durability !== undefined}
