@@ -267,3 +267,8 @@ RegisterNUICallback('DropEquipmentItem', function(data, cb)
     TriggerServerEvent('rsg-inventory:server:DropEquipmentItem', data.equipmentType)
     cb(true)
 end)
+
+RegisterNUICallback('LogDebug', function(data, cb)
+    print("^3[NUI JS LOG] " .. tostring(data.msg) .. "^0")
+    cb(true)
+end)

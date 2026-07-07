@@ -155,6 +155,10 @@
     }
   }
 
+  function logDebug(msg) {
+    post("LogDebug", { msg: msg }).catch(() => {});
+  }
+
   async function validateToken(csrfToken) {
     try {
       const response = await fetch("https://rsg-core/validateCSRF", {
@@ -1315,6 +1319,7 @@
 
   function showContextMenuOptions(event, item) {
     event.preventDefault();
+    logDebug("[NUI App.svelte] showContextMenuOptions item: " + JSON.stringify(item));
     if (contextMenuItem && contextMenuItem.name === item.name && showContextMenu) {
       showContextMenu = false;
       contextMenuItem = null;
