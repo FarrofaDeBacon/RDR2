@@ -38,7 +38,9 @@ for itemName, _ in pairs(Config.Backpacks) do
             tostring(bpConfig ~= nil)
         ))
 
-        local isSatchel = bpConfig and (bpConfig.isClothing or usedItemName == "doctor_bag")
+        local isSatchel = bpConfig and (bpConfig.isClothing or usedItemName == "doctor_bag" or usedItemName:sub(1, 8) == "satchel_")
+        local isWallet = usedItemName:sub(1, 7) == "wallet_"
+        local isHolster = usedItemName:sub(1, 8) == "holster_"
 
         -- Validação: Impede de vestir se já tiver outra do mesmo tipo equipada
         if isSatchel then
@@ -46,6 +48,26 @@ for itemName, _ in pairs(Config.Backpacks) do
                 TriggerClientEvent('ox_lib:notify', src, {
                     title = 'Bolsa',
                     description = 'Você já está usando uma bolsa lateral! Retire a atual primeiro.',
+                    type = 'error',
+                    duration = 5000
+                })
+                return
+            end
+        elseif isWallet then
+            if Player.PlayerData.metadata.equipmentSlots and Player.PlayerData.metadata.equipmentSlots.wallet then
+                TriggerClientEvent('ox_lib:notify', src, {
+                    title = 'Carteira',
+                    description = 'Você já está usando uma carteira! Retire a atual primeiro.',
+                    type = 'error',
+                    duration = 5000
+                })
+                return
+            end
+        elseif isHolster then
+            if Player.PlayerData.metadata.equipmentSlots and Player.PlayerData.metadata.equipmentSlots.holster then
+                TriggerClientEvent('ox_lib:notify', src, {
+                    title = 'Cinto',
+                    description = 'Você já está usando um coldre/cinto! Retire o atual primeiro.',
                     type = 'error',
                     duration = 5000
                 })
@@ -92,10 +114,10 @@ for itemName, _ in pairs(Config.Backpacks) do
         local stashId = item.info.stashId
 
         -- ========================================================
-        -- FLUXO: Se for bolsa nativa/roupa ou maleta de mão, veste
+        -- FLUXO: Se for bolsa nativa/roupa, carteira, cinto ou maleta de mão, veste
         -- diretamente do inventário sem precisar jogar no chão.
         -- ========================================================
-        if bpConfig.isClothing or usedItemName == "doctor_bag" then
+        if isSatchel or isWallet or isHolster then
             -- Inicializa o stash no inventário
             exports['rsg-inventory']:CreateInventory(stashId, {
                 label = RSGCore.Shared.Items[usedItemName].label or "Mochila",
@@ -106,26 +128,30 @@ for itemName, _ in pairs(Config.Backpacks) do
             -- Grava metadados e atualiza estado para equipado
             local eq = Player.PlayerData.metadata.equipmentSlots or {backpack=nil,satchel=nil,wallet=nil,holster=nil}
             local lookup = RSGCore.Shared.Items[usedItemName]
-            eq.satchel = {
+            local targetSlot = isSatchel and 'satchel' or (isWallet and 'wallet' or 'holster')
+            
+            eq[targetSlot] = {
                 name = usedItemName,
-                label = lookup and lookup.label or "Satchel",
+                label = lookup and lookup.label or targetSlot,
                 amount = 1,
-                image = lookup and lookup.image or "satchel.png",
+                image = lookup and lookup.image or (targetSlot .. ".png"),
                 weight = lookup and lookup.weight or 1000,
                 info = { quality = 100, stashId = stashId, uid = item.info and item.info.uid or nil },
-                slot = 'satchel',
+                slot = targetSlot,
                 stashId = stashId,
                 itemName = usedItemName
             }
-        Player.Functions.SetMetaData('equipmentSlots', eq)
+            Player.Functions.SetMetaData('equipmentSlots', eq)
             UpdateBackpack(item.info.uid, { state = 'equipped', coords = nil, rotation = 0.0 })
 
             -- Remove dos bolsos (pockets) pois agora está equipada
             Player.Functions.RemoveItem(usedItemName, 1, item.slot)
             TriggerClientEvent("inventory:client:ItemBox", src, RSGCore.Shared.Items[usedItemName], "remove")
 
-            -- Anexa diretamente no corpo do jogador com animação
-            TriggerClientEvent('rsg-backpacks:client:attachDirectly', src, stashId, usedItemName)
+            -- Anexa diretamente no corpo do jogador com animação (apenas para roupas físicas, carteira/cinto não precisam de bone attach)
+            if isSatchel then
+                TriggerClientEvent('rsg-backpacks:client:attachDirectly', src, stashId, usedItemName)
+            end
             
             -- Atualiza a UI do inventário para refletir o slot
             TriggerClientEvent('rsg-inventory:client:updateInventory', src)
