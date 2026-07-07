@@ -1117,7 +1117,7 @@ Config.Backpacks = {
     ['wallet_small'] = {
         model = 'p_wallet01x',
         weight = 1000,
-        slots = 5
+        slots = 4
     },
     ['wallet_large'] = {
         model = 'p_wallet02x',
