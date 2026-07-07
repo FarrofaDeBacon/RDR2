@@ -172,3 +172,14 @@ RegisterNetEvent('rsg-inventory:server:DropEquipmentItem', function(equipmentTyp
         TriggerEvent('rsg-backpacks:server:unequipSatchelToGround', src)
     end
 end)
+
+RSGCore.Commands.Add("clearequip", "Limpar slots de equipamentos corrompidos", {}, false, function(source, args)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if Player then
+        local metadata = Player.PlayerData.metadata
+        metadata.equipmentSlots = { backpack = nil, satchel = nil, wallet = nil, holster = nil }
+        Player.Functions.SetMetaData('equipmentSlots', metadata.equipmentSlots)
+        TriggerClientEvent('rsg-inventory:client:updateInventory', source)
+        TriggerClientEvent('RSGCore:Notify', source, "Slots de equipamento limpos!", "success")
+    end
+end)
