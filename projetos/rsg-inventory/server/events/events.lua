@@ -241,9 +241,12 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
             local bpData = exports['rsg-backpacks']:GetBackpackByUid(targetUid)
             if bpData then
                 local model = bpData.model
+                local isWalletModel = (model == "p_wallet01x" or model == "p_wallet02x" or model:sub(1, 7) == "wallet_")
+                local isHolsterModel = (model == "p_holster01x" or model == "p_holster02x" or model:sub(1, 8) == "holster_")
+                
                 -- Wallet restriction: Only accepts money items
-                if model:sub(1, 7) == "wallet_" then
-                    local allowed = (fromItem.name == "cash" or fromItem.name == "money" or fromItem.name == "gold_bar" or fromItem.name == "gold_chunk" or fromItem.name:find("money") or fromItem.name:find("cash"))
+                if isWalletModel then
+                    local allowed = (fromItem.name == "cash" or fromItem.name == "money" or fromItem.name == "dollar" or fromItem.name == "cent" or fromItem.name == "blood_dollar" or fromItem.name == "blood_cent" or fromItem.name == "gold_bar" or fromItem.name == "gold_chunk" or fromItem.name:find("money") or fromItem.name:find("cash") or fromItem.name:find("dollar") or fromItem.name:find("cent"))
                     if not allowed then
                         TriggerClientEvent('ox_lib:notify', src, {
                             title = 'Carteira',
@@ -255,7 +258,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     end
                 end
                 -- Holster restriction: Only accepts weapons and ammunition
-                if model:sub(1, 8) == "holster_" then
+                if isHolsterModel then
                     local isWeapon = (fromItem.type == "weapon" or fromItem.name:sub(1, 7) == "weapon_")
                     local isAmmo = (fromItem.type == "ammo" or fromItem.name:sub(1, 5) == "ammo_" or fromItem.name:find("ammo"))
                     if not (isWeapon or isAmmo) then
