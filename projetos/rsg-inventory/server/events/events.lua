@@ -246,6 +246,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     model = bpData.model
                 end
             end
+            print(("[rsg-inventory DEBUG] toInventory: %s, resolved model: %s"):format(toInventory, tostring(model)))
 
             if model then
                 local isWalletModel = (model == "p_wallet01x" or model == "p_wallet02x" or model:sub(1, 7) == "wallet_")
