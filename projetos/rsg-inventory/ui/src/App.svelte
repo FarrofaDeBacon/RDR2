@@ -13,6 +13,10 @@
   let isBackpackOpen = $state(false);
   let satchelData = $state(null);
   let isSatchelOpen = $state(false);
+  let walletData = $state(null);
+  let isWalletOpen = $state(false);
+  let holsterData = $state(null);
+  let isHolsterOpen = $state(false);
   let playerInventory = $state({});
   let otherInventory = $state({});
   let maxWeight = $state(0);
@@ -331,8 +335,32 @@
     }
     if (data.equipmentSlots && !Array.isArray(data.equipmentSlots)) {
       equipmentSlots = data.equipmentSlots;
+      if (isSatchelOpen && !equipmentSlots.satchel) {
+        isSatchelOpen = false;
+        satchelData = null;
+      }
+      if (isBackpackOpen && !equipmentSlots.backpack) {
+        isBackpackOpen = false;
+        backpackData = null;
+      }
+      if (isWalletOpen && !equipmentSlots.wallet) {
+        isWalletOpen = false;
+        walletData = null;
+      }
+      if (isHolsterOpen && !equipmentSlots.holster) {
+        isHolsterOpen = false;
+        holsterData = null;
+      }
     } else if (data.equipmentSlots && Array.isArray(data.equipmentSlots)) {
       equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
+      isSatchelOpen = false;
+      satchelData = null;
+      isBackpackOpen = false;
+      backpackData = null;
+      isWalletOpen = false;
+      walletData = null;
+      isHolsterOpen = false;
+      holsterData = null;
     }
   }
 
@@ -375,6 +403,10 @@
     isBackpackOpen = false;
     satchelData = null;
     isSatchelOpen = false;
+    walletData = null;
+    isWalletOpen = false;
+    holsterData = null;
+    isHolsterOpen = false;
     equipmentSlots = { backpack: null, satchel: null, wallet: null, holster: null };
 
     try {
@@ -415,6 +447,10 @@
       return (satchelData && satchelData.items && satchelData.items[slot]) || null;
     } else if (inventoryType === "backpack") {
       return (backpackData && backpackData.items && backpackData.items[slot]) || null;
+    } else if (inventoryType === "wallet") {
+      return (walletData && walletData.items && walletData.items[slot]) || null;
+    } else if (inventoryType === "holster") {
+      return (holsterData && holsterData.items && holsterData.items[slot]) || null;
     }
     return null;
   }
@@ -862,7 +898,7 @@
         handlePurchase(itemInSlot.slot, itemInSlot, 1, inventory);
         return;
       }
-      if (!isOtherInventoryEmpty && inventory !== 'satchel' && inventory !== 'backpack') {
+      if (!isOtherInventoryEmpty && inventory !== 'satchel' && inventory !== 'backpack' && inventory !== 'wallet' && inventory !== 'holster') {
         moveItemBetweenInventories(itemInSlot, inventory);
       } else {
         showContextMenuOptions(event, itemInSlot);
@@ -1011,8 +1047,29 @@
       const targetSlotNumber = parseInt(targetSlot, 10);
       if (isNaN(targetSlotNumber)) return;
 
-      const sourceInventory = dragStartInventoryType === "player" ? playerInventory : (dragStartInventoryType === "backpack" && backpackData ? backpackData.items : (dragStartInventoryType === "satchel" && satchelData ? satchelData.items : otherInventory));
-      const targetInventory = targetInventoryType === "player" ? playerInventory : (targetInventoryType === "backpack" && backpackData ? backpackData.items : (targetInventoryType === "satchel" && satchelData ? satchelData.items : otherInventory));
+      const sourceInventory = dragStartInventoryType === "player"
+        ? playerInventory
+        : (dragStartInventoryType === "backpack" && backpackData
+          ? backpackData.items
+          : (dragStartInventoryType === "satchel" && satchelData
+            ? satchelData.items
+            : (dragStartInventoryType === "wallet" && walletData
+              ? walletData.items
+              : (dragStartInventoryType === "holster" && holsterData
+                ? holsterData.items
+                : otherInventory))));
+      
+      const targetInventory = targetInventoryType === "player"
+        ? playerInventory
+        : (targetInventoryType === "backpack" && backpackData
+          ? backpackData.items
+          : (targetInventoryType === "satchel" && satchelData
+            ? satchelData.items
+            : (targetInventoryType === "wallet" && walletData
+              ? walletData.items
+              : (targetInventoryType === "holster" && holsterData
+                ? holsterData.items
+                : otherInventory))));
 
       const sourceItem = sourceInventory[currentlyDraggingSlot];
       if (!sourceItem) return;
@@ -1051,6 +1108,18 @@
           const currentSatchelWeight = Object.values(satchelData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
           const totalWeightAfterTransfer = currentSatchelWeight + sourceItem.weight * amountToTransfer;
           if (totalWeightAfterTransfer > satchelData.maxweight) {
+            throw new Error("Weight capacity exceeded");
+          }
+        } else if (targetInventoryType === "wallet" && walletData) {
+          const currentWalletWeight = Object.values(walletData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
+          const totalWeightAfterTransfer = currentWalletWeight + sourceItem.weight * amountToTransfer;
+          if (totalWeightAfterTransfer > walletData.maxweight) {
+            throw new Error("Weight capacity exceeded");
+          }
+        } else if (targetInventoryType === "holster" && holsterData) {
+          const currentHolsterWeight = Object.values(holsterData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0);
+          const totalWeightAfterTransfer = currentHolsterWeight + sourceItem.weight * amountToTransfer;
+          if (totalWeightAfterTransfer > holsterData.maxweight) {
             throw new Error("Weight capacity exceeded");
           }
         }
@@ -1274,46 +1343,156 @@
     });
   }
 
+  async function handleEquipmentClick(equipType) {
+    if (busy) return;
+    const item = equipmentSlots[equipType];
+    if (!item) return;
+
+    const uid = item.info && (item.info.uid || item.info.stashId);
+    if (!uid) return;
+
+    if (equipType === 'satchel') {
+      if (isSatchelOpen) {
+        isSatchelOpen = false;
+        satchelData = null;
+      } else {
+        try {
+          const data = await post("GetBackpackStashData", { uid: uid, model: item.name || item.itemName });
+          if (data) {
+            const itemsMap = {};
+            const itemsList = Array.isArray(data.items) ? data.items : Object.values(data.items || {});
+            itemsList.forEach((it) => {
+              if (it && it.slot) {
+                it.inventory = "satchel";
+                itemsMap[it.slot] = it;
+              }
+            });
+            satchelData = { ...data, items: itemsMap, uid: uid };
+            isSatchelOpen = true;
+            isBackpackOpen = false;
+            isWalletOpen = false;
+            isHolsterOpen = false;
+          }
+        } catch (err) {
+          console.error("Error opening satchel:", err);
+        }
+      }
+    } else if (equipType === 'wallet') {
+      if (isWalletOpen) {
+        isWalletOpen = false;
+        walletData = null;
+      } else {
+        try {
+          const data = await post("GetBackpackStashData", { uid: uid, model: item.name || item.itemName });
+          if (data) {
+            const itemsMap = {};
+            const itemsList = Array.isArray(data.items) ? data.items : Object.values(data.items || {});
+            itemsList.forEach((it) => {
+              if (it && it.slot) {
+                it.inventory = "wallet";
+                itemsMap[it.slot] = it;
+              }
+            });
+            walletData = { ...data, items: itemsMap, uid: uid };
+            isWalletOpen = true;
+            isSatchelOpen = false;
+            isBackpackOpen = false;
+            isHolsterOpen = false;
+          }
+        } catch (err) {
+          console.error("Error opening wallet:", err);
+        }
+      }
+    } else if (equipType === 'holster') {
+      if (isHolsterOpen) {
+        isHolsterOpen = false;
+        holsterData = null;
+      } else {
+        try {
+          const data = await post("GetBackpackStashData", { uid: uid, model: item.name || item.itemName });
+          if (data) {
+            const itemsMap = {};
+            const itemsList = Array.isArray(data.items) ? data.items : Object.values(data.items || {});
+            itemsList.forEach((it) => {
+              if (it && it.slot) {
+                it.inventory = "holster";
+                itemsMap[it.slot] = it;
+              }
+            });
+            holsterData = { ...data, items: itemsMap, uid: uid };
+            isHolsterOpen = true;
+            isSatchelOpen = false;
+            isBackpackOpen = false;
+            isWalletOpen = false;
+          }
+        } catch (err) {
+          console.error("Error opening holster:", err);
+        }
+      }
+    }
+  }
+
   async function searchBackpack(item) {
     const nameVal = item ? (item.name || item.itemName || '') : '';
-    if (item && (nameVal.startsWith("backpack_") || nameVal.startsWith("satchel_")) && item.info) {
+    if (item && (nameVal.startsWith("backpack_") || nameVal.startsWith("satchel_") || nameVal.startsWith("wallet_") || nameVal.startsWith("holster_")) && item.info) {
       const uid = item.info.uid || item.info.stashId;
       if (uid) {
         try {
           const data = await post("GetBackpackStashData", { uid: uid, model: nameVal });
           if (data) {
-          const itemsMap = {};
-          const isSatchel = nameVal.startsWith("satchel_");
-          const invType = isSatchel ? "satchel" : "backpack";
-          if (Array.isArray(data.items)) {
-            data.items.forEach((it) => {
-              if (it && it.slot) {
-                it.inventory = invType;
-                itemsMap[it.slot] = it;
-              }
-            });
-          } else if (typeof data.items === "object") {
-            for (const key in data.items) {
-              const it = data.items[key];
-              if (it && it.slot) {
-                it.inventory = invType;
-                itemsMap[it.slot] = it;
+            const itemsMap = {};
+            const isSatchel = nameVal.startsWith("satchel_");
+            const isWallet = nameVal.startsWith("wallet_");
+            const isHolster = nameVal.startsWith("holster_");
+            const invType = isSatchel ? "satchel" : (isWallet ? "wallet" : (isHolster ? "holster" : "backpack"));
+            
+            if (Array.isArray(data.items)) {
+              data.items.forEach((it) => {
+                if (it && it.slot) {
+                  it.inventory = invType;
+                  itemsMap[it.slot] = it;
+                }
+              });
+            } else if (typeof data.items === "object") {
+              for (const key in data.items) {
+                const it = data.items[key];
+                if (it && it.slot) {
+                  it.inventory = invType;
+                  itemsMap[it.slot] = it;
+                }
               }
             }
+            
+            if (isSatchel) {
+              satchelData = { ...data, items: itemsMap, uid: uid };
+              isSatchelOpen = true;
+              isBackpackOpen = false;
+              isWalletOpen = false;
+              isHolsterOpen = false;
+            } else if (isWallet) {
+              walletData = { ...data, items: itemsMap, uid: uid };
+              isWalletOpen = true;
+              isSatchelOpen = false;
+              isBackpackOpen = false;
+              isHolsterOpen = false;
+            } else if (isHolster) {
+              holsterData = { ...data, items: itemsMap, uid: uid };
+              isHolsterOpen = true;
+              isSatchelOpen = false;
+              isBackpackOpen = false;
+              isWalletOpen = false;
+            } else {
+              backpackData = { ...data, items: itemsMap, uid: uid };
+              isBackpackOpen = true;
+              isSatchelOpen = false;
+              isWalletOpen = false;
+              isHolsterOpen = false;
+            }
           }
-          
-          if (isSatchel) {
-            satchelData = { ...data, items: itemsMap, uid: uid };
-            isSatchelOpen = true;
-          } else {
-            backpackData = { ...data, items: itemsMap, uid: uid };
-            isBackpackOpen = true;
-          }
+        } catch (error) {
+          console.error("Error searching container:", error);
         }
-      } catch (error) {
-        console.error("Error searching backpack:", error);
       }
-    }
     }
     showContextMenu = false;
   }
@@ -1473,6 +1652,55 @@
       />
     {/if}
 
+    <!-- Wallet (Esquerdo) -->
+    {#if isWalletOpen && walletData}
+      <InventoryPanel
+        inventoryType="wallet"
+        inventoryLabel={walletData.label || "CARTEIRA"}
+        inventoryWeight={(walletData.items ? Object.values(walletData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0)}
+        inventoryMaxWeight={walletData.maxweight}
+        inventorySlots={walletData.slots}
+        inventoryItems={walletData.items}
+        isShopInventory={false}
+        shouldCenterInventory={false}
+        t={t}
+        playerMoney={0}
+        getItemInSlot={getItemInSlot}
+        useItem={useItem}
+        handleMouseDown={handleMouseDown}
+        showItemInfo={showItemInfo}
+        hideItemInfo={hideItemInfo}
+        selectedItem={selectedItem}
+        showContextMenu={showContextMenu}
+        errorSlot={errorSlot}
+      />
+    {/if}
+
+    <!-- Holster (Direito) -->
+    {#if isHolsterOpen && holsterData}
+      <InventoryPanel
+        inventoryType="holster"
+        inventoryLabel={holsterData.label || "CINTO"}
+        inventoryWeight={(holsterData.items ? Object.values(holsterData.items).reduce((acc, it) => acc + (it ? (it.weight * it.amount) : 0), 0) : 0)}
+        inventoryMaxWeight={holsterData.maxweight}
+        inventorySlots={holsterData.slots}
+        inventoryItems={holsterData.items}
+        isShopInventory={false}
+        shouldCenterInventory={false}
+        t={t}
+        playerMoney={0}
+        getItemInSlot={getItemInSlot}
+        useItem={useItem}
+        handleMouseDown={handleMouseDown}
+        showItemInfo={showItemInfo}
+        hideItemInfo={hideItemInfo}
+        selectedItem={selectedItem}
+        showContextMenu={showContextMenu}
+        errorSlot={errorSlot}
+        hasOtherInventory={!isOtherInventoryEmpty}
+      />
+    {/if}
+
     <!-- Player Satchel (Esquerdo) -->
     <InventoryPanel
       inventoryType="player"
@@ -1498,6 +1726,7 @@
       backpack={backpack}
       unequipBackpack={unequipBackpack}
       equipmentSlots={equipmentSlots}
+      handleEquipmentClick={handleEquipmentClick}
     />
 
     <!-- Close button left satchel -->
@@ -1510,7 +1739,7 @@
     </div>
 
     <!-- Input quantity panel -->
-    {#if (!isOtherInventoryEmpty || isSatchelOpen || isBackpackOpen) && !isTradeActive}
+    {#if (!isOtherInventoryEmpty || isSatchelOpen || isBackpackOpen || isWalletOpen || isHolsterOpen) && !isTradeActive}
       <div class="input-container" class:centered-input-container={shouldCenterInventory}>
         <div class="input-wrapper">
           <input type="number" bind:value={transferAmount} min="1" placeholder={transferAmount === null ? t.amount_placeholder : ''} />

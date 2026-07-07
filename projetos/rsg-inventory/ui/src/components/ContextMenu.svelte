@@ -21,7 +21,7 @@
 </script>
 
 <ul class="context-menu" style="top: {contextMenuPosition.top}; left: {contextMenuPosition.left}">
-  {#if itemName.startsWith("satchel_") && contextMenuItem.inventory === 'equipment' && contextMenuItem.info && (contextMenuItem.info.uid || contextMenuItem.info.stashId)}
+  {#if (itemName.startsWith("satchel_") || itemName.startsWith("wallet_") || itemName.startsWith("holster_")) && contextMenuItem.inventory === 'equipment' && contextMenuItem.info && (contextMenuItem.info.uid || contextMenuItem.info.stashId)}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <li onclick={() => searchBackpack(contextMenuItem)}>{t.search_backpack || 'Vasculhar'}</li>

@@ -12,7 +12,8 @@
     onMouseDown = null,
     onMouseEnter = null,
     onMouseLeave = null,
-    onDoubleClick = null
+    onDoubleClick = null,
+    onClick = null
   } = $props();
 </script>
 
@@ -22,6 +23,9 @@
   class="item-slot" 
   data-slot={slot} 
   class:invalid-slot-highlight={errorSlot === slot}
+  onclick={(event) => {
+    if (onClick) onClick(event);
+  }}
   ondblclick={() => {
     if (item && onDoubleClick) {
       onDoubleClick(item);

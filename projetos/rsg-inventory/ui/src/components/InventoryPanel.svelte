@@ -125,6 +125,7 @@
             onMouseDown={handleMouseDown}
             onMouseEnter={showItemInfo}
             onMouseLeave={hideItemInfo}
+            onClick={() => handleEquipmentClick && handleEquipmentClick(equipType)}
           />
         {/each}
       </div>
