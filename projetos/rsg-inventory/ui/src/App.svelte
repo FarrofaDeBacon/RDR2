@@ -174,6 +174,7 @@
 
   // --- Core Methods ---
   function openInventory(data) {
+    console.log("[NUI App.svelte] openInventory called. backpack data present:", data.backpack != null);
     if (showHotbar) {
       wasHotbarEnabled = true;
       toggleHotbar(false);
@@ -247,11 +248,15 @@
 
     // Backpack NUI data mapping
     if (data.backpack) {
+      console.log("[NUI App.svelte] Mapping backpack data:", JSON.stringify(data.backpack));
       const itemsMap = {};
+      const isSatchel = data.backpack.model && (data.backpack.model.includes("satchel") || data.backpack.model.startsWith("satchel_"));
+      const invType = isSatchel ? "satchel" : "backpack";
+
       if (Array.isArray(data.backpack.items)) {
         data.backpack.items.forEach((item) => {
           if (item && item.slot) {
-            item.inventory = "backpack";
+            item.inventory = invType;
             itemsMap[item.slot] = item;
           }
         });
@@ -259,19 +264,35 @@
         for (const key in data.backpack.items) {
           const item = data.backpack.items[key];
           if (item && item.slot) {
-            item.inventory = "backpack";
+            item.inventory = invType;
             itemsMap[item.slot] = item;
           }
         }
       }
       
-      backpack = {
-        ...data.backpack,
-        items: itemsMap
-      };
-      
+      if (isSatchel) {
+        satchelData = {
+          ...data.backpack,
+          items: itemsMap
+        };
+        if (data.backpack.autoOpen) {
+          isSatchelOpen = true;
+          console.log("[NUI App.svelte] Satchel auto-opened!");
+        }
+      } else {
+        backpackData = {
+          ...data.backpack,
+          items: itemsMap
+        };
+        if (data.backpack.autoOpen) {
+          isBackpackOpen = true;
+          console.log("[NUI App.svelte] Backpack auto-opened!");
+        }
+      }
+      console.log("[NUI App.svelte] Backpack mapping finished. isBackpackOpen:", isBackpackOpen, "isSatchelOpen:", isSatchelOpen);
     } else {
-      backpack = null;
+      backpackData = null;
+      satchelData = null;
     }
     if (data.equipmentSlots && !Array.isArray(data.equipmentSlots)) {
       equipmentSlots = data.equipmentSlots;
