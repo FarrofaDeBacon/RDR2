@@ -774,8 +774,17 @@
 
   function postInventoryData(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount) {
     busy = true;
-    let fromInventoryName = fromInventory === "other" ? otherInventoryName : (fromInventory === "backpack" && backpackData ? backpackData.uid : (fromInventory === "satchel" && satchelData ? satchelData.uid : fromInventory));
-    let toInventoryName = toInventory === "other" ? otherInventoryName : (toInventory === "backpack" && backpackData ? backpackData.uid : (toInventory === "satchel" && satchelData ? satchelData.uid : toInventory));
+    let fromInventoryName = fromInventory === "other" ? otherInventoryName 
+      : (fromInventory === "backpack" && backpackData ? backpackData.uid 
+        : (fromInventory === "satchel" && satchelData ? satchelData.uid 
+          : (fromInventory === "wallet" && walletData ? walletData.uid 
+            : (fromInventory === "holster" && holsterData ? holsterData.uid : fromInventory))));
+
+    let toInventoryName = toInventory === "other" ? otherInventoryName 
+      : (toInventory === "backpack" && backpackData ? backpackData.uid 
+        : (toInventory === "satchel" && satchelData ? satchelData.uid 
+          : (toInventory === "wallet" && walletData ? walletData.uid 
+            : (toInventory === "holster" && holsterData ? holsterData.uid : toInventory))));
 
     post("SetInventoryData", {
       fromInventory: fromInventoryName,
@@ -1350,8 +1359,9 @@
     const item = equipmentSlots[equipType];
     if (!item) return;
 
-    const uid = item.info && (item.info.uid || item.info.stashId);
-    if (!uid) return;
+    let rawUid = item.info && (item.info.stashId || item.info.uid);
+    if (!rawUid) return;
+    const uid = rawUid.startsWith("bp_") ? rawUid : "bp_" + rawUid;
 
     if (equipType === 'satchel') {
       if (isSatchelOpen) {
@@ -1437,8 +1447,9 @@
   async function searchBackpack(item) {
     const nameVal = item ? (item.name || item.itemName || '') : '';
     if (item && (nameVal.startsWith("backpack_") || nameVal.startsWith("satchel_") || nameVal.startsWith("wallet_") || nameVal.startsWith("holster_")) && item.info) {
-      const uid = item.info.uid || item.info.stashId;
-      if (uid) {
+      let rawUid = item.info.stashId || item.info.uid;
+      if (!rawUid) return;
+      const uid = rawUid.startsWith("bp_") ? rawUid : "bp_" + rawUid;
         try {
           const data = await post("GetBackpackStashData", { uid: uid, model: nameVal });
           if (data) {
@@ -1495,7 +1506,6 @@
           console.error("Error searching container:", error);
         }
       }
-    }
     showContextMenu = false;
   }
 
