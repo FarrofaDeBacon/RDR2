@@ -948,12 +948,14 @@
           }
         }
 
-        const targetSecondaryItemSlotElement = event.target.closest(".other-inventory .item-slot, .satchel-inventory .item-slot, .backpack-inventory .item-slot");
+        const targetSecondaryItemSlotElement = event.target.closest(".other-inventory .item-slot, .satchel-inventory .item-slot, .backpack-inventory .item-slot, .wallet-inventory .item-slot, .holster-inventory .item-slot");
         if (targetSecondaryItemSlotElement && dragStartInventoryType !== "equipment") {
           const targetSlot = Number(targetSecondaryItemSlotElement.dataset.slot);
           const isSatchelDrop = !!targetSecondaryItemSlotElement.closest(".satchel-inventory");
           const isBackpackDrop = !!targetSecondaryItemSlotElement.closest(".backpack-inventory");
-          const targetInvType = isSatchelDrop ? "satchel" : (isBackpackDrop ? "backpack" : "other");
+          const isWalletDrop = !!targetSecondaryItemSlotElement.closest(".wallet-inventory");
+          const isHolsterDrop = !!targetSecondaryItemSlotElement.closest(".holster-inventory");
+          const targetInvType = isSatchelDrop ? "satchel" : (isBackpackDrop ? "backpack" : (isWalletDrop ? "wallet" : (isHolsterDrop ? "holster" : "other")));
 
           if (targetSlot && !(targetSlot === currentlyDraggingSlot && dragStartInventoryType === targetInvType)) {
             handleItemDrop(targetInvType, targetSlot);
