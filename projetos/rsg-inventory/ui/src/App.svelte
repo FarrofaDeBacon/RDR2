@@ -101,6 +101,7 @@
     copy_serial: 'Copy Serial',
     sell: 'Sell',
     satchel: 'Satchel',
+    pocket: 'Pocket',
     weight: 'Weight',
     id: 'ID',
     cash: 'Cash',
@@ -754,9 +755,14 @@
         const newItem = { ...item, amount: amount };
         const nextSlot = findNextAvailableSlot(inventoryRef);
         if (nextSlot !== null) {
+          const backupInventory = JSON.parse(JSON.stringify(inventoryRef));
           inventoryRef[nextSlot] = newItem;
           inventoryRef[originalSlot] = { ...item, amount: item.amount - amount };
-          postInventoryData(inventoryType, inventoryType, originalSlot, nextSlot, item.amount, newItem.amount);
+          const success = await postInventoryData(inventoryType, inventoryType, originalSlot, nextSlot, item.amount, newItem.amount);
+          if (!success) {
+            restoreInventory(inventoryType, backupInventory);
+            inventoryError(originalSlot);
+          }
         }
       }
     }
@@ -772,7 +778,23 @@
     return null;
   }
 
-  function postInventoryData(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount) {
+  function restoreInventory(type, backupState) {
+    if (type === "player") {
+      playerInventory = backupState;
+    } else if (type === "other") {
+      otherInventory = backupState;
+    } else if (type === "backpack" && backpackData) {
+      backpackData.items = backupState;
+    } else if (type === "satchel" && satchelData) {
+      satchelData.items = backupState;
+    } else if (type === "wallet" && walletData) {
+      walletData.items = backupState;
+    } else if (type === "holster" && holsterData) {
+      holsterData.items = backupState;
+    }
+  }
+
+  async function postInventoryData(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount) {
     busy = true;
     let fromInventoryName = fromInventory === "other" ? otherInventoryName 
       : (fromInventory === "backpack" && backpackData ? backpackData.uid 
@@ -786,25 +808,27 @@
           : (toInventory === "wallet" && walletData ? walletData.uid 
             : (toInventory === "holster" && holsterData ? holsterData.uid : toInventory))));
 
-    post("SetInventoryData", {
-      fromInventory: fromInventoryName,
-      toInventory: toInventoryName,
-      fromSlot,
-      toSlot,
-      fromAmount,
-      toAmount,
-    })
-    .then(() => {
+    try {
+      const response = await post("SetInventoryData", {
+        fromInventory: fromInventoryName,
+        toInventory: toInventoryName,
+        fromSlot,
+        toSlot,
+        fromAmount,
+        toAmount,
+      });
       clearDragData();
       busy = false;
-    })
-    .catch((error) => {
+      return response && response.success;
+    } catch (error) {
       console.error("Error posting inventory data:", error);
+      clearDragData();
       busy = false;
-    });
+      return false;
+    }
   }
 
-  function moveItemBetweenInventories(item, sourceInventoryType) {
+  async function moveItemBetweenInventories(item, sourceInventoryType) {
     if (busy) return;
     busy = true;
     const sourceInventory = sourceInventoryType === "player" ? playerInventory : otherInventory;
@@ -833,6 +857,10 @@
         return;
       }
     }
+
+    // Save backup snapshots
+    const backupSource = JSON.parse(JSON.stringify(sourceInventory));
+    const backupTarget = JSON.parse(JSON.stringify(targetInventory));
 
     if (item.unique) {
       targetSlot = findNextAvailableSlot(targetInventory);
@@ -882,7 +910,12 @@
       delete sourceInventory[item.slot];
     }
 
-    postInventoryData(sourceInventoryType, sourceInventoryType === "player" ? "other" : "player", item.slot, targetSlot, sourceItem.amount, amountToTransfer);
+    const success = await postInventoryData(sourceInventoryType, sourceInventoryType === "player" ? "other" : "player", item.slot, targetSlot, sourceItem.amount, amountToTransfer);
+    if (!success) {
+      restoreInventory(sourceInventoryType, backupSource);
+      restoreInventory(sourceInventoryType === "player" ? "other" : "player", backupTarget);
+      inventoryError(item.slot);
+    }
   }
 
   // --- Drag & Drop Core Handlers ---
@@ -1048,7 +1081,7 @@
     clearDragData();
   }
 
-  function handleItemDrop(targetInventoryType, targetSlot) {
+  async function handleItemDrop(targetInventoryType, targetSlot) {
     try {
       const isShop = otherInventoryName.indexOf("shop-");
       if (dragStartInventoryType === "other" && targetInventoryType === "other" && isShop !== -1) {
@@ -1159,6 +1192,10 @@
         }
       }
 
+      // Save backup snapshots
+      const backupSource = JSON.parse(JSON.stringify(sourceInventory));
+      const backupTarget = JSON.parse(JSON.stringify(targetInventory));
+
       const targetItem = targetInventory[targetSlotNumber];
 
       if (targetItem) {
@@ -1174,7 +1211,12 @@
           if (sourceItem.amount <= 0) {
             delete sourceInventory[currentlyDraggingSlot];
           }
-          postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, amountToTransfer);
+          const success = await postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, amountToTransfer);
+          if (!success) {
+            restoreInventory(dragStartInventoryType, backupSource);
+            restoreInventory(targetInventoryType, backupTarget);
+            inventoryError(currentlyDraggingSlot);
+          }
         } else {
           sourceInventory[currentlyDraggingSlot] = targetItem;
           targetInventory[targetSlotNumber] = sourceItem;
@@ -1182,7 +1224,12 @@
           sourceInventory[currentlyDraggingSlot].inventory = dragStartInventoryType;
           targetInventory[targetSlotNumber].slot = targetSlotNumber;
           targetInventory[targetSlotNumber].inventory = targetInventoryType;
-          postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, targetItem.amount);
+          const success = await postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, targetItem.amount);
+          if (!success) {
+            restoreInventory(dragStartInventoryType, backupSource);
+            restoreInventory(targetInventoryType, backupTarget);
+            inventoryError(currentlyDraggingSlot);
+          }
         }
       } else {
         sourceItem.amount -= amountToTransfer;
@@ -1190,7 +1237,12 @@
           delete sourceInventory[currentlyDraggingSlot];
         }
         targetInventory[targetSlotNumber] = { ...sourceItem, amount: amountToTransfer, slot: targetSlotNumber, inventory: targetInventoryType };
-        postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, amountToTransfer);
+        const success = await postInventoryData(dragStartInventoryType, targetInventoryType, currentlyDraggingSlot, targetSlotNumber, sourceItem.amount, amountToTransfer);
+        if (!success) {
+          restoreInventory(dragStartInventoryType, backupSource);
+          restoreInventory(targetInventoryType, backupTarget);
+          inventoryError(currentlyDraggingSlot);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -1739,7 +1791,7 @@
     <!-- Player Satchel (Esquerdo) -->
     <InventoryPanel
       inventoryType="player"
-      inventoryLabel={t.satchel}
+      inventoryLabel={t.pocket}
       inventoryWeight={playerWeight}
       inventoryMaxWeight={maxWeight}
       inventorySlots={10}

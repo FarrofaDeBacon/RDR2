@@ -24,7 +24,8 @@
     errorSlot,
     backpack = null,
     unequipBackpack = null,
-    equipmentSlots = null
+    equipmentSlots = null,
+    handleEquipmentClick = null
   } = $props();
 
   const equipmentIcons = {

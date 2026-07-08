@@ -31,12 +31,12 @@ for itemName, _ in pairs(Config.Backpacks) do
         local usedItemName = itemName  -- usa a variável do closure que é garantidamente correta
         local bpConfig = Config.Backpacks[usedItemName]
 
-        print(("[rsg-backpacks] USAR ITEM: itemName=%s | item.name=%s | isClothing=%s | bpConfig=%s"):format(
-            tostring(usedItemName),
-            tostring(item and item.name or "nil"),
-            tostring(bpConfig and bpConfig.isClothing or "nil"),
-            tostring(bpConfig ~= nil)
-        ))
+        -- print(("[rsg-backpacks] USAR ITEM: itemName=%s | item.name=%s | isClothing=%s | bpConfig=%s"):format(
+        --     tostring(usedItemName),
+        --     tostring(item and item.name or "nil"),
+        --     tostring(bpConfig and bpConfig.isClothing or "nil"),
+        --     tostring(bpConfig ~= nil)
+        -- ))
 
         local isSatchel = bpConfig and (bpConfig.isClothing or usedItemName == "doctor_bag" or usedItemName:sub(1, 8) == "satchel_")
         local isWallet = usedItemName:sub(1, 7) == "wallet_"

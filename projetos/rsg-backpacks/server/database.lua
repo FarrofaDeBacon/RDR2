@@ -52,7 +52,7 @@ function UpdateBackpack(uid, data)
     table.insert(params, uid)
 
     local rowsAffected = MySQL.update.await(query, params)
-    print(("[rsg-backpacks Debug] UpdateBackpack uid=%s -> rowsAffected: %s"):format(uid, tostring(rowsAffected)))
+    -- print(("[rsg-backpacks Debug] UpdateBackpack uid=%s -> rowsAffected: %s"):format(uid, tostring(rowsAffected)))
     return rowsAffected and rowsAffected > 0
 end
 

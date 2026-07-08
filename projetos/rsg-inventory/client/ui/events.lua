@@ -147,6 +147,7 @@ function buildLabels()
         copy_serial = L('ui.copy_serial', 'Copy Serial'),
         sell    = L('ui.sell', 'Sell'),
         satchel = L('ui.satchel', 'Satchel'),
+        pocket  = L('ui.pocket', 'Pocket'),
         weight  = L('ui.weight', 'Weight'),
         id      = L('ui.id', 'ID'),
         cash    = L('ui.cash', 'Cash'),
@@ -212,7 +213,7 @@ RegisterNetEvent('rsg-inventory:client:openInventory', function(items, other)
                 print("[rsg-inventory] WARNING: getBackpackStash returned nil")
             end
         else
-            print("[rsg-inventory] No uid or model for backpack search. uid: " .. tostring(uid) .. ", model: " .. tostring(model))
+            -- print("[rsg-inventory] No uid or model for backpack search. uid: " .. tostring(uid) .. ", model: " .. tostring(model))
         end
 
         autoOpenBackpack = false -- reset state

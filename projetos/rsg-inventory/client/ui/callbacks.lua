@@ -129,15 +129,17 @@ end)
 
 --- NUI callback to move items between inventories
 RegisterNUICallback('SetInventoryData', function(data, cb)
-    if not validateToken(data and data.token) then cb('ok') return end
+    if not validateToken(data and data.token) then cb({success = false}) return end
     if data then
-        TriggerServerEvent('rsg-inventory:server:SetInventoryData',
+        local success, reason = lib.callback.await('rsg-inventory:server:SetInventoryData', false,
             data.fromInventory, data.toInventory,
             data.fromSlot, data.toSlot,
             data.fromAmount, data.toAmount
         )
+        cb({success = success, reason = reason})
+    else
+        cb({success = false})
     end
-    cb('ok')
 end)
 
 --- NUI callback to give an item to another player

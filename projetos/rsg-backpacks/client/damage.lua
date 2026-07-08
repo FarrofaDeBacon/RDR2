@@ -7,7 +7,7 @@ CreateThread(function()
         local currentHealth = GetEntityHealth(ped)
         
         if currentHealth ~= lastHealth then
-            print(("[rsg-backpacks Debug] Player HP changed: %s -> %s (Wearing: %s)"):format(lastHealth, currentHealth, tostring(LocalPlayer.state.currentBackpackStashId)))
+            -- print(("[rsg-backpacks Debug] Player HP changed: %s -> %s (Wearing: %s)"):format(lastHealth, currentHealth, tostring(LocalPlayer.state.currentBackpackStashId)))
         end
         
         if currentHealth < lastHealth then
@@ -20,7 +20,7 @@ CreateThread(function()
                     damageType = 'fall'
                 end
 
-                print(("[rsg-backpacks Debug] Reporting player damage: %s"):format(damageType))
+                -- print(("[rsg-backpacks Debug] Reporting player damage: %s"):format(damageType))
                 TriggerServerEvent('rsg-backpacks:server:damageBackpack', damageType)
             end
         end

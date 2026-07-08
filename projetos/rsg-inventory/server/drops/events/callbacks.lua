@@ -29,14 +29,10 @@ local function CreateItemDrop(coords, itemData, shouldRemoveFromInventory, sourc
     -- Remove item from inventory only after confirming the drop entity exists
     if shouldRemoveFromInventory and source then
         local fromInv = itemData.fromInventory
-        print(("[rsg-inventory Drop Debug] fromInv = %s, fromSlot = %s, item = %s"):format(tostring(fromInv), tostring(itemData.fromSlot), tostring(itemData.name)))
-
         if fromInv and fromInv ~= 'player' then
             -- Item is from a stash (bolsa/mochila)
             realItem = Inventory.GetItem(fromInv, source, itemData.fromSlot)
-            print(("[rsg-inventory Drop Debug] Stash GetItem result: %s"):format(realItem and realItem.name or "nil"))
             if not realItem or realItem.name:lower() ~= itemData.name:lower() or realItem.amount < itemData.amount then
-                print("[rsg-inventory Drop Debug] Real item mismatch or not found in stash")
                 DeleteEntity(bag)
                 return false
             end
@@ -49,9 +45,7 @@ local function CreateItemDrop(coords, itemData, shouldRemoveFromInventory, sourc
             itemData.weight = realItem.weight
 
             local fromId = Inventory.GetIdentifier(fromInv, source)
-            print(("[rsg-inventory Drop Debug] fromId = %s"):format(tostring(fromId)))
             if not Inventory.RemoveItem(fromId, realItem.name, itemData.amount, itemData.fromSlot, 'dropped item from stash', false) then
-                print("[rsg-inventory Drop Debug] RemoveItem from stash failed")
                 DeleteEntity(bag)
                 return false
             end

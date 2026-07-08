@@ -132,19 +132,19 @@ local setInventoryCooldowns = {}
     Server Event: Move or swap items between inventories
     Handles stacking, splitting, moving, and swapping items between inventories
 --]]
-RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
+lib.callback.register('rsg-inventory:server:SetInventoryData', function(source, fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
     -- Rate limit per player (100ms)
     local src = source
     local now = GetGameTimer()
-    if setInventoryCooldowns[src] and now - setInventoryCooldowns[src] < 100 then return end
+    if setInventoryCooldowns[src] and now - setInventoryCooldowns[src] < 100 then return false, 'cooldown' end
     setInventoryCooldowns[src] = now
 
     -- Prevent moving items to shops
-    if toInventory:find('shop-') then return end
-    if not fromInventory or not toInventory or not fromSlot or not toSlot or not fromAmount or not toAmount then return end
+    if toInventory:find('shop-') then return false, 'shop' end
+    if not fromInventory or not toInventory or not fromSlot or not toSlot or not fromAmount or not toAmount then return false, 'invalid_args' end
 
     local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not Player then return false, 'no_player' end
 
     local isMove = false
     fromSlot, toSlot, fromAmount, toAmount = tonumber(fromSlot), tonumber(toSlot), tonumber(fromAmount), tonumber(toAmount)
@@ -161,27 +161,27 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
         if not Target then
             Inventory.CloseInventory(src, fromInventory)
             Inventory.CloseInventory(src, toInventory)
-            return
+            return false, 'no_target'
         end
         local srcPed, targetPed = GetPlayerPed(src), GetPlayerPed(targetId)
         if #(GetEntityCoords(srcPed) - GetEntityCoords(targetPed)) > 3.0 then
             Inventory.CloseInventory(src, fromInventory)
             Inventory.CloseInventory(src, toInventory)
             TriggerClientEvent('ox_lib:notify', src, { title = 'Error', description = locale('error.player_too_far'), type = 'error', duration = 5000 })
-            return
+            return false, 'target_too_far'
         end
         local targetMeta = Target.PlayerData.metadata
         if not targetMeta.isdead and not targetMeta.ishandcuffed then
             Inventory.CloseInventory(src, fromInventory)
             Inventory.CloseInventory(src, toInventory)
             TriggerClientEvent('ox_lib:notify', src, { title = 'Error', description = locale('error.target_needs_restrained'), type = 'error', duration = 5000 })
-            return
+            return false, 'target_not_restrained'
         end
         local hasPerm = RSGCore.Functions.HasPermission(src, 'police') or Player.PlayerData.job.name == 'police' or Player.PlayerData.job.name == 'marshal'
         if not hasPerm and not targetMeta.isdead then
             Inventory.CloseInventory(src, fromInventory)
             Inventory.CloseInventory(src, toInventory)
-            return
+            return false, 'no_permission'
         end
     end
 
@@ -203,7 +203,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                 if not hasAccess then
                     Inventory.CloseInventory(src, invName)
                     TriggerClientEvent('ox_lib:notify', src, { title = 'Access Denied', description = 'No permission', type = 'error', duration = 5000 })
-                    return
+                    return false, 'restricted_access'
                 end
             end
         end
@@ -227,7 +227,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
             Inventory.CloseInventory(src, toId)
             local message = fromTooFar and locale('error.source_inv_too_far') or locale('error.target_inv_too_far')
             TriggerClientEvent('ox_lib:notify', src, { title = message, type = 'error', duration = 5000 })
-            return
+            return false, 'too_far'
         end
     end
 
@@ -260,7 +260,7 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
-                        return
+                        return false, 'wallet_restriction'
                     end
                 end
                 -- Holster restriction: Only accepts weapons and ammunition
@@ -274,13 +274,13 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             type = 'error',
                             duration = 5000
                         })
-                        return
+                        return false, 'holster_restriction'
                     end
                 end
             end
         end
 
-        if not toItem and toAmount > fromItem.amount then return end
+        if not toItem and toAmount > fromItem.amount then return false, 'invalid_amount' end
 
         if fromInventory == 'player' and toInventory ~= 'player' then
             isMove = true
@@ -294,17 +294,27 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'stacked item', isMove) then
                         if not Inventory.AddItem(toId, toItem.name, toAmount, toSlot, toItem.info, 'stacked item') then
                             Inventory.AddItem(fromId, fromItem.name, toAmount, fromSlot, fromItem.info, 'rollback stacked item')
+                            return false, 'add_failed'
                         end
+                        return true
                     end
+                    return false, 'remove_failed'
                 else
                     Inventory.SaveStash(fromId)
-                    Inventory.CloseInventory(src, fromId)
-                    Inventory.CloseInventory(src, toId)
+                    TriggerClientEvent('ox_lib:notify', src, {
+                        title = 'Cheio',
+                        description = 'Este container está cheio!',
+                        type = 'error',
+                        duration = 5000
+                    })
+                    return false, 'slots'
                 end
             else
                 if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'stacked item', isMove) then
                     Inventory.AddItem(toId, toItem.name, toAmount, toSlot, toItem.info, 'stacked item')
+                    return true
                 end
+                return false, 'remove_failed'
             end
 
         -- Split items if moving part of the stack
@@ -314,17 +324,27 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'split item', isMove) then
                         if not Inventory.AddItem(toId, fromItem.name, toAmount, toSlot, fromItem.info, 'split item') then
                             Inventory.AddItem(fromId, fromItem.name, toAmount, fromSlot, fromItem.info, 'rollback split item')
+                            return false, 'add_failed'
                         end
+                        return true
                     end
+                    return false, 'remove_failed'
                 else
                     Inventory.SaveStash(fromId)
-                    Inventory.CloseInventory(src, fromId)
-                    Inventory.CloseInventory(src, toId)
+                    TriggerClientEvent('ox_lib:notify', src, {
+                        title = 'Cheio',
+                        description = 'Este container está cheio!',
+                        type = 'error',
+                        duration = 5000
+                    })
+                    return false, 'slots'
                 end
             else
                 if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'split item', isMove) then
                     Inventory.AddItem(toId, fromItem.name, toAmount, toSlot, fromItem.info, 'split item')
+                    return true
                 end
+                return false, 'remove_failed'
             end
 
         -- Swap items between slots
@@ -339,8 +359,13 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
 
                     if not addSuccessFrom or not addSuccessTo then
                         Inventory.SaveStash(fromId)
-                        Inventory.CloseInventory(src, fromId)
-                        Inventory.CloseInventory(src, toId)
+                        TriggerClientEvent('ox_lib:notify', src, {
+                            title = 'Cheio',
+                            description = 'Este container está cheio!',
+                            type = 'error',
+                            duration = 5000
+                        })
+                        return false, 'slots'
                     end
 
                     if addSuccessFrom and addSuccessTo then
@@ -349,19 +374,25 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                             if not Inventory.AddItem(toId, fromItem.name, fromItemAmount, toSlot, fromItem.info, 'swapped item') then
                                 Inventory.AddItem(fromId, fromItem.name, fromItemAmount, fromSlot, fromItem.info, 'swap rollback')
                                 Inventory.AddItem(toId, toItem.name, toItemAmount, toSlot, toItem.info, 'swap rollback')
+                                return false, 'add_failed'
                             elseif not Inventory.AddItem(fromId, toItem.name, toItemAmount, fromSlot, toItem.info, 'swapped item') then
                                 Inventory.RemoveItem(toId, fromItem.name, fromItemAmount, toSlot, 'swap rollback', true)
                                 Inventory.AddItem(fromId, fromItem.name, fromItemAmount, fromSlot, fromItem.info, 'swap rollback')
                                 Inventory.AddItem(toId, toItem.name, toItemAmount, toSlot, toItem.info, 'swap rollback')
+                                return false, 'add_failed'
                             end
+                            return true
                         end
+                        return false, 'remove_failed'
                     end
                 else
                     if Inventory.RemoveItem(fromId, fromItem.name, fromItemAmount, fromSlot, 'swapped item', isMove) and
                        Inventory.RemoveItem(toId, toItem.name, toItemAmount, toSlot, 'swapped item', isMove) then
                         Inventory.AddItem(toId, fromItem.name, fromItemAmount, toSlot, fromItem.info, 'swapped item')
                         Inventory.AddItem(fromId, toItem.name, toItemAmount, fromSlot, toItem.info, 'swapped item')
+                        return true
                     end
+                    return false, 'remove_failed'
                 end
 
             -- Move items to empty slots
@@ -370,23 +401,34 @@ RegisterNetEvent('rsg-inventory:server:SetInventoryData', function(fromInventory
                     local fromItemAmount = fromItem.amount
                     if not Inventory.CanAddItem(toId, fromItem.name, fromItemAmount) then
                         Inventory.SaveStash(fromId)
-                        Inventory.CloseInventory(src, fromId)
-                        Inventory.CloseInventory(src, toId)
+                        TriggerClientEvent('ox_lib:notify', src, {
+                            title = 'Cheio',
+                            description = 'Este container está cheio!',
+                            type = 'error',
+                            duration = 5000
+                        })
+                        return false, 'slots'
                     else
                         if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'moved item', isMove) then
                             if not Inventory.AddItem(toId, fromItem.name, toAmount, toSlot, fromItem.info, 'moved item') then
                                 Inventory.AddItem(fromId, fromItem.name, toAmount, fromSlot, fromItem.info, 'rollback moved item')
+                                return false, 'add_failed'
                             end
+                            return true
                         end
+                        return false, 'remove_failed'
                     end
                 else
                     if Inventory.RemoveItem(fromId, fromItem.name, toAmount, fromSlot, 'moved item', isMove) then
                         Inventory.AddItem(toId, fromItem.name, toAmount, toSlot, fromItem.info, 'moved item')
+                        return true
                     end
+                    return false, 'remove_failed'
                 end
             end
         end
     end
+    return false, 'no_from_item'
 end)
 RegisterNetEvent('rsg-inventory:server:openPlayerInventory', function(targetId)
     local src = source

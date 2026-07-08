@@ -27,7 +27,7 @@ CreateThread(function()
             end)
             if success and weight then
                 equippedWeight = weight
-                print(("[Backpack Weight] Stash: %s | Peso Atual: %s g (%0.2f Kg)"):format(stashId, equippedWeight, equippedWeight / 1000))
+                -- print(("[Backpack Weight] Stash: %s | Peso Atual: %s g (%0.2f Kg)"):format(stashId, equippedWeight, equippedWeight / 1000))
             end
         else
             equippedWeight = 0
