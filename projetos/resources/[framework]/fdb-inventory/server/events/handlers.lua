@@ -166,7 +166,7 @@ AddEventHandler('RSGCore:Server:PlayerLoaded', function(Player)
             return Inventory.AddItem(src, item, amount, slot, info, reason)
         end,
         RemoveItem = function(item, amount, slot, reason)
-            return Inventory.RemoveItem(src, item, amount, slot, reason)
+            return Inventory.RemoveItem(src, item, amount, slot, reason, true)
         end,
         GetItemBySlot = function(slot)
             return Inventory.GetItemBySlot(src, slot)
@@ -201,7 +201,7 @@ AddEventHandler('onResourceStart', function(resourceName)
                 return Inventory.AddItem(k, item, amount, slot, info)
             end,
             RemoveItem = function(item, amount, slot)
-                return Inventory.RemoveItem(k, item, amount, slot)
+                return Inventory.RemoveItem(k, item, amount, slot, nil, true)
             end,
             GetItemBySlot = function(slot)
                 return Inventory.GetItemBySlot(k, slot)

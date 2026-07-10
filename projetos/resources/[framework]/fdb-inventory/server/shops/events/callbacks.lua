@@ -69,7 +69,7 @@ lib.callback.register('fdb-inventory:server:attemptPurchase', function(source, d
                 local buyPrice = shopItem.buyPrice * amount * (realQuality / 100)
                 buyPrice = math.max(0.01, math.round(buyPrice, 2))
 
-                Inventory.RemoveItem(source, itemInfo.name, amount, itemInfo.slot, 'shop-sell')
+                Inventory.RemoveItem(source, itemInfo.name, amount, itemInfo.slot, 'shop-sell', true)
                 Player.Functions.AddMoney('cash', buyPrice, 'shop-sell')
                 TriggerClientEvent('fdb-inventory:client:updateInventory', source)
                 return true
