@@ -34,10 +34,9 @@ RegisterNetEvent('rsg-spawn:client:existingplayer', function()
     FreezeEntityPosition(playerPed, false)
     SetEntityVisible(playerPed, true)
 
-    if Config.AutoDualWield then
-        Wait(2000)
-        TriggerEvent('rsg-weapons:client:AutoDualWield')
-    end
+    -- [fdb-weapons] AutoDualWield: chamada removida.
+    -- O evento 'rsg-weapons:client:AutoDualWield' nunca teve handler no rsg-weapons
+    -- original nem no fdb-weapons. Feature não implementada — decisão pendente.
 
     ShutdownLoadingScreen()
     DoScreenFadeIn(1000)
@@ -73,10 +72,9 @@ local function SpawnChar(coords)
     FreezeEntityPosition(ped, false)
     FreezeEntityPosition(ped, false)
     SetEntityVisible(ped, true)
-    if Config.AutoDualWield then
-        Wait(2000)
-        TriggerEvent('rsg-weapons:client:AutoDualWield')
-    end
+    -- [fdb-weapons] AutoDualWield: chamada removida.
+    -- O evento 'rsg-weapons:client:AutoDualWield' nunca teve handler no rsg-weapons
+    -- original nem no fdb-weapons. Feature não implementada — decisão pendente.
     ShutdownLoadingScreen()
     ExecuteCommand('revive')
     DoScreenFadeIn(1000)

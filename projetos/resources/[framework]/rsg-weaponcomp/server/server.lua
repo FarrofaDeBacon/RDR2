@@ -199,7 +199,7 @@ AddEventHandler('rsg-weaponcomp:server:createnewprop', function(propmodel, item,
 
     table.insert(Config.PlayerProps, PropData)
     Player.Functions.RemoveItem(Config.Gunsmithitem, 1)
-    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.Gunsmithitem], 'remove', 1)
+    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.Gunsmithitem], 'remove', 1)
     TriggerEvent('rsg-weaponcomp:server:updateProps', src)
 
 end)
@@ -261,7 +261,7 @@ AddEventHandler('rsg-weaponcomp:server:removeitem', function(item, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.RemoveItem(item, amount)
-    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
+    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)
 
 -- remove gunsite props

@@ -5,7 +5,7 @@ for _itemName, _ammoType in pairs(Config.BoxAmmo) do
         local src = source
         local Player = RSGCore.Functions.GetPlayer(src)
         if not Player then return end
-        TriggerClientEvent('rsg-ammo:client:openAmmoBox', src, item.name, _ammoType, Config.AmmoTypes[_ammoType].refill)
+        TriggerClientEvent('rsg-ammo:client:openAmmoBox', src, item.name, _ammoType, Config.AmmoTypes[_ammoType].refill, item.slot)
     end)
 end
 
@@ -21,7 +21,7 @@ local function useArrowItem(source, item, ammoType)
     local canAddAmmo = lib.callback.await('rsg-ammo:client:CanAddAmmo', src, ammoType, amount)
     if canAddAmmo then
         TriggerClientEvent('rsg-ammo:client:AddAmmo', src, ammoType, amount)
-        Player.Functions.RemoveItem(item.name, 1)
+        Player.Functions.RemoveItem(item.name, 1, item.slot)
     end
 end
 
@@ -48,19 +48,19 @@ AddEventHandler('rsg-ammo:server:removeitem', function(item, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.RemoveItem(item, amount)
-    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
+    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)
 
 ---------------------------------------------
 -- open ammo box
 ---------------------------------------------
 RegisterServerEvent('rsg-ammo:server:openAmmoBox')
-AddEventHandler('rsg-ammo:server:openAmmoBox', function(ammoBoxItem, ammoType, amount)
+AddEventHandler('rsg-ammo:server:openAmmoBox', function(ammoBoxItem, ammoType, amount, slot)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-    Player.Functions.RemoveItem(ammoBoxItem, 1)
-    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[ammoBoxItem], 'remove', 1)
+    Player.Functions.RemoveItem(ammoBoxItem, 1, slot)
+    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[ammoBoxItem], 'remove', 1)
     TriggerClientEvent('rsg-ammo:client:AddAmmo', src, ammoType, amount)
 
 end)

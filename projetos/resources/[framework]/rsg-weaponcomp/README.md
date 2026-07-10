@@ -87,7 +87,7 @@ Config.distFov  = 60.0
 
 ---
 ## change inventory/html/app.js
-- https://github.com/Rexshack-RedM/rsg-inventory/blob/main/html/app.js#L992C1-L1016C11
+- https://github.com/Rexshack-RedM/fdb-inventory/blob/main/html/app.js#L992C1-L1016C11
 ```js
 generateTooltipContent(item) {
     if (!item) {

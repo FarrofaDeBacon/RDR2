@@ -14,7 +14,7 @@
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️ *(locales, progress bars, UI)*
 - [**oxmysql**](https://github.com/overextended/oxmysql) 🗄️ *(logs where applicable)*
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(for certain inventory interactions)*
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(for certain inventory interactions)*
 - [**ox_target**](https://github.com/overextended/ox_target) 🎯 *(for water pump interaction)*
 - [**weathersync**](https://github.com/Rexshack-RedM/weathersync) 🌦️
 - [**rsg-weapons**](https://github.com/Rexshack-RedM/rsg-weapons) 🔫 *(for weapon check/remove events)*

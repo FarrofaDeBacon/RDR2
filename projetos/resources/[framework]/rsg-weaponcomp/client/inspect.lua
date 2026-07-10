@@ -37,7 +37,7 @@ RegisterNetEvent("rsg-weaponcomp:client:InspectionWeapon")
 AddEventHandler("rsg-weaponcomp:client:InspectionWeapon", function()
     local wHash = GetPedCurrentHeldWeapon(PlayerPedId())
     local weaponType = GetWeaponType(wHash)
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     local object = GetObjectIndexFromEntityIndex(GetCurrentPedWeaponEntityIndex(cache.ped, 0))
     local cleaning = false
 
@@ -77,7 +77,7 @@ AddEventHandler("rsg-weaponcomp:client:InspectionWeapon", function()
                 Citizen.InvokeNative(0x72F52AA2D2B172CC, cache.ped, 1242464081, Cloth, PropId, act, 1, 0, -1.0) -- TaskItemInteraction2
                 Wait(9500)
                 TriggerServerEvent('rsg-weaponcomp:server:inspectkitConsume')
-                TriggerServerEvent('rsg-weapons:server:repairweapon', serial)
+                TriggerServerEvent('fdb-weapons:server:repairweapon', serial)
                 ClearPedTasks(cache.ped, 1, 1)
 
                 if Config.showStats then

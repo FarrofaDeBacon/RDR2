@@ -72,7 +72,7 @@ AddEventHandler("rsg-weaponcomp:client:reloadWeapon", function()
     local wHash   = GetPedCurrentHeldWeapon(ped)
     if wHash == GetHashKey("WEAPON_UNARMED") then return end
 
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     if not serial then return end
 
     RSGCore.Functions.TriggerCallback('rsg-weaponcomp:server:getPlayerWeaponComponents', function(result)
@@ -101,7 +101,7 @@ RegisterCommand(Config.Commandequipscope, function()
     local wHash   = GetPedCurrentHeldWeapon(ped)
     if wHash == GetHashKey("WEAPON_UNARMED") then return end
 
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     if not serial then return end
 
     RSGCore.Functions.TriggerCallback('rsg-weaponcomp:server:equipScope', function(success)
@@ -126,7 +126,7 @@ RegisterCommand(Config.Commanddesequipscope, function()
     local wHash   = GetPedCurrentHeldWeapon(ped)
     if wHash == GetHashKey("WEAPON_UNARMED") then return end
 
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     if not serial then return end
 
     RSGCore.Functions.TriggerCallback('rsg-weaponcomp:server:unequipScope', function(success)
@@ -172,7 +172,7 @@ RegisterNetEvent('rsg-weaponcomp:client:equipScope', function(scopeName)
     local ped     = PlayerPedId()
     local wHash   = GetPedCurrentHeldWeapon(ped)
     if wHash == GetHashKey("WEAPON_UNARMED") then return end
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     if not serial then return end
 
     playScopeAnim(ped)
@@ -187,7 +187,7 @@ RegisterNetEvent('rsg-weaponcomp:client:unequipScope', function(scopeName)
     local ped     = PlayerPedId()
     local wHash   = GetPedCurrentHeldWeapon(ped)
     if wHash == GetHashKey("WEAPON_UNARMED") then return end
-    local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+    local serial = exports['fdb-weapons']:weaponInHands()[wHash]
     if not serial then return end
 
     playScopeAnim(ped)

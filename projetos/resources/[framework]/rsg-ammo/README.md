@@ -7,14 +7,14 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 
 > Allows players to use ammo boxes to replenish weapon ammunition.  
-> Fully integrated with `rsg-core`, `rsg-inventory`, and `ox_lib` notifications/locales.
+> Fully integrated with `rsg-core`, `fdb-inventory`, and `ox_lib` notifications/locales.
 
 ---
 
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠  
 - [**ox_lib**](https://github.com/overextended/ox_lib) ⚙️ *(notifications & locales)*  
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(item management)*  
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(item management)*  
 
 **Locales:** `en`, `fr`, `es`, `it`, `pt-br`, `el`, `cs`  
 **License:** GPL‑3.0  
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `player_ammo` (
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-ammo
    ```
 4. Restart your server.

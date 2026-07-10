@@ -801,7 +801,7 @@ Citizen.CreateThread(function()
                             label    = locale('cl_lang_14'),
                             onSelect = function()
                                 local wHash = GetPedCurrentHeldWeapon(PlayerPedId())
-                                local serial = exports['rsg-weapons']:weaponInHands()[wHash]
+                                local serial = exports['fdb-weapons']:weaponInHands()[wHash]
                                 local weaponName = Citizen.InvokeNative(0x89CF5FF3D363311E, wHash, Citizen.ResultAsString())
                                 if not serial then -- or wHash == -1569615261 or not isWeaponOneHanded
                                     return lib.notify({ title = locale('cl_notify_13'), description=locale('cl_notify_14'), type='error' })

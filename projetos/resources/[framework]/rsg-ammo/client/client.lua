@@ -44,7 +44,7 @@ end)
 ------------------------------------------
 -- open ammo box
 ------------------------------------------
-RegisterNetEvent('rsg-ammo:client:openAmmoBox', function(ammoBoxItem, ammoType, amount)
+RegisterNetEvent('rsg-ammo:client:openAmmoBox', function(ammoBoxItem, ammoType, amount, slot)
     if not canAddAmmo(ammoType, amount) then return end
 
     if LocalPlayer.state.inv_busy then return end
@@ -56,7 +56,7 @@ RegisterNetEvent('rsg-ammo:client:openAmmoBox', function(ammoBoxItem, ammoType, 
         useWhileDead = false,
         canCancel = false,
     })
-    TriggerServerEvent('rsg-ammo:server:openAmmoBox', ammoBoxItem, ammoType, amount)
+    TriggerServerEvent('rsg-ammo:server:openAmmoBox', ammoBoxItem, ammoType, amount, slot)
     LocalPlayer.state:set("inv_busy", false, true)
 end)
 

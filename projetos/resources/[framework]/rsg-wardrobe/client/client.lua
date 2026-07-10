@@ -343,7 +343,9 @@ local function removeAllClothing()
     local ped = PlayerPedId()
     local male = IsPedMale(ped)
 
-    TriggerServerEvent('rsg-weapons:server:RemoveAllObjects')
+    -- [fdb-weapons] RemoveAllObjects: chamada removida.
+    -- O evento 'rsg-weapons:server:RemoveAllObjects' nunca teve handler no rsg-weapons
+    -- original nem no fdb-weapons. Feature não implementada — decisão pendente.
 
     for i = 1, #Config.ClothingComponents do
         local category = Config.ClothingComponents[i]
