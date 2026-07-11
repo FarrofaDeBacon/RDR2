@@ -1,7 +1,7 @@
 <img width="2948" height="497" alt="rsg_framework" src="https://github.com/user-attachments/assets/638791d8-296d-4817-a596-785325c1b83a" />
 
 # 🛒 rsg-shops
-**Config‑driven shop system for RedM using RSG Core and rsg-inventory.**
+**Config‑driven shop system for RedM using RSG Core and fdb-inventory.**
 
 ![Platform](https://img.shields.io/badge/platform-RedM-darkred)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️ *(for locales and prompts)*
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(shop UI & persistence)*
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(shop UI & persistence)*
 - [**oxmysql**](https://github.com/overextended/oxmysql) 🗄️ *(if inventory persistence is enabled)*
 
 **Locales:** `locales/en.json, fr.json, es.json, el.json, pt-br.json`.  
@@ -41,7 +41,7 @@
 ### 🧾 Inventory Integration
 - On resource start, server registers each store with **rsg‑inventory**:
   ```lua
-  exports['rsg-inventory']:CreateShop({
+  exports['fdb-inventory']:CreateShop({
       name = shopConfig.name,
       label = shopConfig.label,
       slots = #itemTable,
@@ -51,7 +51,7 @@
   ```
 - When prompted, server opens the shop UI:
   ```lua
-  exports['rsg-inventory']:OpenShop(source, name)
+  exports['fdb-inventory']:OpenShop(source, name)
   ```
 - Supports **persistent stock** with `persistentStock = true`.
 
@@ -114,13 +114,13 @@ Config.StoreLocations = {
 
 ## 📂 Installation
 1. Place `rsg-shops` inside your `resources/[rsg]` folder.
-2. Ensure **rsg-core**, **ox_lib**, **rsg-inventory**, and **oxmysql** are installed.
+2. Ensure **rsg-core**, **ox_lib**, **fdb-inventory**, and **oxmysql** are installed.
 3. Configure `config.lua` (products, locations, prices, persistence).
 4. Add to your `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-shops
    ```
 5. Restart your server.

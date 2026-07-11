@@ -37,7 +37,7 @@ CreateThread(function()
     if not setupValidated() then return end
     for _, shopConfig in pairs(Config.StoreLocations) do
         local itemTable = Config.Products[shopConfig.products]
-        local success, err = pcall(exports['rsg-inventory'].CreateShop, exports['rsg-inventory'], {
+        local success, err = pcall(exports['fdb-inventory'].CreateShop, exports['fdb-inventory'], {
             name = shopConfig.name,
             label = shopConfig.label,
             slots = #itemTable,
@@ -53,7 +53,7 @@ end)
 -------------------------
 -- open shop
 -------------------------
-RegisterNetEvent('rsg-shops:server:openstore', function(products, name, label)
+RegisterNetEvent('fdb-shops:server:openstore', function(products, name, label)
     local src = source
 
     if cooldowns[src] and os.time() - cooldowns[src] < 1 then return end
@@ -103,8 +103,8 @@ RegisterNetEvent('rsg-shops:server:openstore', function(products, name, label)
     end
 
     local success, err
-    if not exports['rsg-inventory']:DoesShopExist(name) then
-        success, err = pcall(exports['rsg-inventory'].CreateShop, exports['rsg-inventory'], {
+    if not exports['fdb-inventory']:DoesShopExist(name) then
+        success, err = pcall(exports['fdb-inventory'].CreateShop, exports['fdb-inventory'], {
             name = name,
             label = label,
             slots = #itemTable,
@@ -116,7 +116,7 @@ RegisterNetEvent('rsg-shops:server:openstore', function(products, name, label)
         end
     end
 
-    success, err = pcall(exports['rsg-inventory'].OpenShop, exports['rsg-inventory'], src, name)
+    success, err = pcall(exports['fdb-inventory'].OpenShop, exports['fdb-inventory'], src, name)
     if not success then
         logError(locale('shop_open_failed', name, Player.PlayerData.citizenid, tostring(err)))
     end

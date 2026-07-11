@@ -62,7 +62,7 @@ local function SetupNPCTarget(npc, shopData)
             icon = 'fa-solid fa-basket-shopping',
             distance = 3.0,
             onSelect = function()
-                TriggerServerEvent('rsg-shops:server:openstore', shopData.products, shopData.name, shopData.label)
+                TriggerServerEvent('fdb-shops:server:openstore', shopData.products, shopData.name, shopData.label)
             end
         }
     })
@@ -94,7 +94,7 @@ CreateThread(function()
                 v.name, v.shopcoords, keybind,
                 locale('lang_1') .. v.label, {
                     type = 'server',
-                    event = 'rsg-shops:server:openstore',
+                    event = 'fdb-shops:server:openstore',
                     args = {v.products, v.name, v.label},
                 })
         end

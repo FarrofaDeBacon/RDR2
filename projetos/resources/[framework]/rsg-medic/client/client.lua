@@ -417,7 +417,7 @@ end)
 AddEventHandler('rsg-medic:client:OpenMedicSupplies', function()
     local job = RSGCore.Functions.GetPlayerData().job.name
     if job ~= Config.JobRequired then return end
-    TriggerServerEvent('rsg-shops:server:openstore', 'medic', 'medic', locale('cl_medical_supplies'))
+    TriggerServerEvent('fdb-shops:server:openstore', 'medic', 'medic', locale('cl_medical_supplies'))
 end)
 
 ---------------------------------------------------------------------

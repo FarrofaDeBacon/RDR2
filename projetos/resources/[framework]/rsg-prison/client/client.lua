@@ -103,7 +103,7 @@ end)
 --------------------------
 RegisterNetEvent('rsg-prison:client:shop')
 AddEventHandler('rsg-prison:client:shop', function()
-    TriggerServerEvent('rsg-shops:server:openstore', 'prison', 'prison', locale('cl_prison_shop'))
+    TriggerServerEvent('fdb-shops:server:openstore', 'prison', 'prison', locale('cl_prison_shop'))
 end)
 
 --------------------------
