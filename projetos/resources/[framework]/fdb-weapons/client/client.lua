@@ -264,7 +264,7 @@ RegisterNetEvent('fdb-weapons:client:UseThrownWeapon', function(weaponData)
     local weaponName = tostring(weaponData.name)
     local hash = joaat(weaponData.name)
     local ammoType = Config.ThrowableWeaponAmmoTypes[weaponName]
-    local ammoDefinition = exports['rsg-ammo']:GetAmmoTypes()[ammoType]
+    local ammoDefinition = exports['fdb-ammo']:GetAmmoTypes()[ammoType]
     if not ammoDefinition then 
         --notify
         lib.print.info('neni defi', ammoType, weaponName)
