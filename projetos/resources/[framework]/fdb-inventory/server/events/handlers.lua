@@ -166,6 +166,12 @@ AddEventHandler('RSGCore:Server:PlayerLoaded', function(Player)
             return Inventory.AddItem(src, item, amount, slot, info, reason)
         end,
         RemoveItem = function(item, amount, slot, reason)
+            -- Server-side authoritative deequip for weapons; isMove=true is a client-side fallback.
+            local itemDef = RSGCore.Shared.Items[item:lower()]
+            if itemDef and itemDef['type'] == 'weapon' then
+                local invItem = Inventory.GetItemBySlot(src, slot) or Inventory.GetItemByName(src, item)
+                Inventory.CheckWeapon(src, invItem or item)
+            end
             return Inventory.RemoveItem(src, item, amount, slot, reason, true)
         end,
         GetItemBySlot = function(slot)
@@ -201,6 +207,12 @@ AddEventHandler('onResourceStart', function(resourceName)
                 return Inventory.AddItem(k, item, amount, slot, info)
             end,
             RemoveItem = function(item, amount, slot)
+                -- Server-side authoritative deequip for weapons; isMove=true is a client-side fallback.
+                local itemDef = RSGCore.Shared.Items[item:lower()]
+                if itemDef and itemDef['type'] == 'weapon' then
+                    local invItem = Inventory.GetItemBySlot(k, slot) or Inventory.GetItemByName(k, item)
+                    Inventory.CheckWeapon(k, invItem or item)
+                end
                 return Inventory.RemoveItem(k, item, amount, slot, nil, true)
             end,
             GetItemBySlot = function(slot)

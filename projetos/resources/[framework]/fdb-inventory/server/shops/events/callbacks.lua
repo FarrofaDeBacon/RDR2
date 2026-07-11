@@ -69,6 +69,13 @@ lib.callback.register('fdb-inventory:server:attemptPurchase', function(source, d
                 local buyPrice = shopItem.buyPrice * amount * (realQuality / 100)
                 buyPrice = math.max(0.01, math.round(buyPrice, 2))
 
+                -- Server-side weapon deequip (CheckWeapon) before removing from inventory
+                -- This is authoritative and does not depend on the client receiving any event.
+                -- isMove=true below is kept as a redundant client-side fallback.
+                local itemDef = RSGCore.Shared.Items[itemInfo.name:lower()]
+                if itemDef and itemDef['type'] == 'weapon' then
+                    Inventory.CheckWeapon(source, realItem)
+                end
                 Inventory.RemoveItem(source, itemInfo.name, amount, itemInfo.slot, 'shop-sell', true)
                 Player.Functions.AddMoney('cash', buyPrice, 'shop-sell')
                 TriggerClientEvent('fdb-inventory:client:updateInventory', source)
