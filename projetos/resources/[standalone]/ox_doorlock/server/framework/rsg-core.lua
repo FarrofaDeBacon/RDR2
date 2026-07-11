@@ -7,46 +7,46 @@ SetTimeout(0, function()
 
     GetPlayer = RSG.Functions.GetPlayer
 
-    if GetResourceState('rsg-inventory') == 'missing' then
-        function RemoveItem(playerId, item, slot)
-            local player = GetPlayer(playerId)
+    -- rsg-inventory foi substituído por fdb-inventory. As funções abaixo
+    -- usam Player.Functions do rsg-core diretamente e são sempre corretas.
+    function RemoveItem(playerId, item, slot)
+        local player = GetPlayer(playerId)
 
-            if player then player.Functions.RemoveItem(item, 1, slot) end
-        end
+        if player then player.Functions.RemoveItem(item, 1, slot) end
+    end
 
-        ---@param player table
-        ---@param items string[] | { name: string, remove?: boolean, metadata?: string }[]
-        ---@param removeItem? boolean
-        ---@return string?
-        function DoesPlayerHaveItem(player, items, removeItem)
-            for i = 1, #items do
-                local item = items[i]
-                local itemName = item.name or item
+    ---@param player table
+    ---@param items string[] | { name: string, remove?: boolean, metadata?: string }[]
+    ---@param removeItem? boolean
+    ---@return string?
+    function DoesPlayerHaveItem(player, items, removeItem)
+        for i = 1, #items do
+            local item = items[i]
+            local itemName = item.name or item
 
-                if item.metadata then
-                    local playerItems = player.Functions.GetItemsByName(itemName)
+            if item.metadata then
+                local playerItems = player.Functions.GetItemsByName(itemName)
 
-                    for j = 1, #playerItems do
-                        local data = playerItems[j]
+                for j = 1, #playerItems do
+                    local data = playerItems[j]
 
-                        if data.info.type == item.metadata then
-                            if removeItem or item.remove then
-                                player.Functions.RemoveItem(itemName, 1, data.slot)
-                            end
-
-                            return itemName
-                        end
-                    end
-                else
-                    local data = player.Functions.GetItemByName(itemName)
-
-                    if data then
-                        if item.remove then
+                    if data.info.type == item.metadata then
+                        if removeItem or item.remove then
                             player.Functions.RemoveItem(itemName, 1, data.slot)
                         end
 
                         return itemName
                     end
+                end
+            else
+                local data = player.Functions.GetItemByName(itemName)
+
+                if data then
+                    if item.remove then
+                        player.Functions.RemoveItem(itemName, 1, data.slot)
+                    end
+
+                    return itemName
                 end
             end
         end
