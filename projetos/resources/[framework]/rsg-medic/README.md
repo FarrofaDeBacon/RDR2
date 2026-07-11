@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠  
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️ *(prompts & notifications)*  
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(Medic stash & bandage itMedic)*  
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(Medic stash & bandage itMedic)*  
 - [**oxmysql**](https://github.com/overextended/oxmysql) 🗄️ *(data persistence)*  
 
 **Locales:** `en`, `fr`, `es`, `el`, `it`, `pt-br`, `ro`  
@@ -58,7 +58,7 @@
 - GPS marker automatically attached for medics if `Config.AddGPSRoute = true`.
 
 ### 💼 Medic Storage
-- Configurable stash for Medic use (via `rsg-inventory`).
+- Configurable stash for Medic use (via `fdb-inventory`).
 - Adjustable slot & weight limits:
   ```lua
   Config.StorageMaxWeight = 4000000
@@ -116,12 +116,12 @@ Config.BandageHealth = 15 -- percent restored
 
 ## 📂 Installation
 1. Place `rsg-medic` in your `resources/[rsg]` folder.  
-2. Ensure `rsg-core`, `rsg-inventory`, `ox_lib`, and `oxmysql` are installed.  
+2. Ensure `rsg-core`, `fdb-inventory`, `ox_lib`, and `oxmysql` are installed.  
 3. Add to your `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-medic
    ```
 4. Restart your server.

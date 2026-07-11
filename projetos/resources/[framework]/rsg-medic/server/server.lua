@@ -18,7 +18,7 @@ RegisterNetEvent('rsg-medic:server:openstash', function(location)
     if not Player then return end
     local data = { label = locale('sv_medical_storage'), maxweight = Config.StorageMaxWeight, slots = Config.StorageMaxSlots }
     local stashName = 'medic_' .. location
-    exports['rsg-inventory']:OpenInventory(src, stashName, data)
+    exports['fdb-inventory']:OpenInventory(src, stashName, data)
 end)
 
 ----------------------------------
@@ -110,7 +110,7 @@ RegisterNetEvent('rsg-medic:server:RevivePlayer', function(playerId)
     end
 
     if Player.Functions.RemoveItem('firstaid', 1) then
-        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['firstaid'], 'remove')
+        TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items['firstaid'], 'remove')
         TriggerClientEvent('rsg-medic:client:playerRevive', Patient.PlayerData.source)
     end
 end)
@@ -129,7 +129,7 @@ RegisterNetEvent('rsg-medic:server:TreatWounds', function(playerId)
     end
 
     if Player.Functions.RemoveItem('bandage', 1) then
-        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['bandage'], 'remove')
+        TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items['bandage'], 'remove')
         TriggerClientEvent('rsg-medic:client:HealInjuries', Patient.PlayerData.source)
     end
 end)
@@ -170,5 +170,5 @@ RegisterServerEvent('rsg-medic:server:removeitem', function(item, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.RemoveItem(item, amount)
-    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
+    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)

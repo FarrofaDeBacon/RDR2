@@ -15,7 +15,7 @@
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️ *(for menus and notifications)*
 - [**oxmysql**](https://github.com/overextended/oxmysql) 🗄️ *(for database storage)*
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(for player search & confiscation)*
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(for player search & confiscation)*
 
 **Interaction:** Prompts are automatically created at each law office defined in `Config.LawOfficeLocations`.  
 **Keybind:** Default interaction key = `'J'`.  
@@ -89,13 +89,13 @@ Config.LawOfficeLocations = {
 
 ## 📂 Installation
 1. Place `rsg-lawman` inside your `resources/[rsg]` folder.
-2. Ensure **rsg-core**, **ox_lib**, **rsg-inventory**, and **oxmysql** are installed.
+2. Ensure **rsg-core**, **ox_lib**, **fdb-inventory**, and **oxmysql** are installed.
 3. Adjust settings and locations in `config.lua`.
 4. Add to your `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-lawman
    ```
 5. Restart your server.

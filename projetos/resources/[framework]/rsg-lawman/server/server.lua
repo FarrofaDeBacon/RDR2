@@ -28,7 +28,7 @@ RegisterNetEvent('rsg-lawman:server:SearchPlayer', function()
     if player ~= -1 and distance < Config.SearchDistance then
         local SearchedPlayer = RSGCore.Functions.GetPlayer(tonumber(player))
         if not SearchedPlayer then return end
-        exports['rsg-inventory']:OpenInventoryById(src, tonumber(player))
+        exports['fdb-inventory']:OpenInventoryById(src, tonumber(player))
         TriggerClientEvent('ox_lib:notify', player,
             { title = locale('sv_info'), description = locale('sv_info_a'), type = 'info', duration = 7000 })
     else
@@ -268,7 +268,7 @@ RegisterServerEvent('rsg-lawman:server:storage', function(jobname)
     if not Player then return end
     local data = { label = locale('sv_storage'), maxweight = Config.StorageMaxWeight, slots = Config.StorageMaxSlots }
     local stashName = 'lawstorage' .. jobname
-    exports['rsg-inventory']:OpenInventory(src, stashName, data)
+    exports['fdb-inventory']:OpenInventory(src, stashName, data)
 end)
 
 ---------------------------------
