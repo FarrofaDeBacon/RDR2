@@ -11,7 +11,7 @@ local function knotsToMph(knots) return knots * 1.15078 end
 
 local function GetSpeed(vehicle)
     local raw = GetEntitySpeed(vehicle) * 1.943844  -- m/s → nós
-    if Config.VehicleHud.speedUnit == 'mph' then
+    if Config.SpeedUnit == 'mph' then
         return math.floor(knotsToMph(raw))
     end
     return math.floor(knotsToKmh(raw))
@@ -20,7 +20,7 @@ end
 CreateThread(function()
     while true do
         Wait(Config.UpdateInterval)
-        if not isLoggedIn or not Config.VehicleHud.enabled then goto continue end
+        if not isLoggedIn or not Config.Elements.vehicle.enabled then goto continue end
 
         local ped     = PlayerPedId()
         local vehicle = GetVehiclePedIsIn(ped, false)
@@ -36,7 +36,7 @@ CreateThread(function()
                 speed    = GetSpeed(vehicle),
                 gear     = GetVehicleCurrentGear(vehicle),
                 rpm      = math.floor(GetVehicleCurrentRpm(vehicle) * 100),
-                unit     = Config.VehicleHud.speedUnit,
+                unit     = Config.SpeedUnit,
             }
             if data.speed ~= (lastVehicleData.speed or -1) then
                 lastVehicleData = data

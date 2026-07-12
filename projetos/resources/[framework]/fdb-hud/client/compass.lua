@@ -15,7 +15,7 @@ local lastHeading = -1
 CreateThread(function()
     while true do
         Wait(Config.UpdateInterval)
-        if not isLoggedIn or not Config.Compass.enabled then goto continue end
+        if not isLoggedIn or not Config.Elements.compass.enabled then goto continue end
 
         local heading = math.floor(GetEntityHeading(PlayerPedId()))
         -- Converte heading do jogo (0=Norte no RedM é 0°, aumenta anti-horario)
@@ -26,7 +26,7 @@ CreateThread(function()
             lastHeading = heading
             SendNUI('updateCompass', {
                 degrees  = heading,
-                cardinal = Config.Compass.showCardinals and GetCardinal(heading) or nil,
+                cardinal = Config.Elements.compass.showCardinals and GetCardinal(heading) or nil,
             })
         end
 
