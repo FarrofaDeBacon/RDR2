@@ -1,4 +1,4 @@
-RSGCore.Functions = {}
+﻿RSGCore.Functions = {}
 
 -- Callbacks
 

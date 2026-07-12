@@ -1,4 +1,4 @@
-RSGCore.Functions = {}
+﻿RSGCore.Functions = {}
 RSGCore.Player_Buckets = {}
 RSGCore.Entity_Buckets = {}
 RSGCore.UsableItems = {}

@@ -76,7 +76,7 @@
 | Resource | Purpose | Link |
 |----------|---------|------|
 | **rsg-core** | Core framework | [GitHub](https://github.com/Rexshack-RedM/rsg-core) |
-| **rsg-inventory** | Inventory system & horse saddlebags | [GitHub](https://github.com/Rexshack-RedM/rsg-inventory) |
+| **fdb-inventory** | Inventory system & horse saddlebags | [GitHub](https://github.com/Rexshack-RedM/fdb-inventory) |
 | **ox_lib** | Menus, prompts, callbacks, locales | [GitHub](https://github.com/overextended/ox_lib) |
 | **oxmysql** | MySQL wrapper | [GitHub](https://github.com/overextended/oxmysql) |
 
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `player_horses` (
 ```
 
 ### Step 3: Add Items to Inventory
-Add these to your `rsg-inventory/shared/items.lua`:
+Add these to your `fdb-inventory/shared/items.lua`:
 ```lua
 ['horse_brush']       = { name = 'horse_brush',       label = 'Horse Brush',      weight = 200,  type = 'item', image = 'horse_brush.png',      unique = false, useable = true, shouldClose = true, description = 'Brush your horse' },
 ['horse_lantern']     = { name = 'horse_lantern',     label = 'Horse Lantern',    weight = 500,  type = 'item', image = 'horse_lantern.png',    unique = false, useable = true, shouldClose = true, description = 'Light for your horse' },
@@ -139,7 +139,7 @@ Add these to your `rsg-inventory/shared/items.lua`:
 ensure ox_lib
 ensure oxmysql
 ensure rsg-core
-ensure rsg-inventory
+ensure fdb-inventory
 ensure rsg-horses
 ```
 
@@ -903,14 +903,14 @@ UPDATE player_horses SET active=1 WHERE id=HORSE_ID;
 #### Horse Inventory Not Opening
 **Symptoms:** Pressing G does nothing  
 **Causes:**
-- `rsg-inventory` not started
+- `fdb-inventory` not started
 - Horse not spawned
 - Inventory key conflict
 
 **Solution:**
 ```lua
--- Check if rsg-inventory is running
-ensure rsg-inventory
+-- Check if fdb-inventory is running
+ensure fdb-inventory
 
 -- Verify horse exists
 local horse = exports['rsg-horses']:CheckActiveHorse()

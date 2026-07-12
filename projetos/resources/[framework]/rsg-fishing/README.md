@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠  
 - [**ox_lib**](https://github.com/overextended/ox_lib) ⚙️ *(locales, notifications)*  
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(items & ItemBox)*  
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(items & ItemBox)*  
 
 **Locales included:** `en`, `fr`, `es`, `it`, `pt-br`, `el`  
 **License:** GPL-3.0
@@ -88,7 +88,7 @@ A_C_FISHCHANNELCATFISH_01_LG = {"Channel Catfish (Large)","PROVISION_FISH_CHANNE
 -- ...
 ```
 
-> ✅ Ensure **every item key** (e.g., `PROVISION_FISH_BLUEGILL`) **exists in `rsg-inventory`** with a proper item definition.
+> ✅ Ensure **every item key** (e.g., `PROVISION_FISH_BLUEGILL`) **exists in `fdb-inventory`** with a proper item definition.
 
 ---
 
@@ -122,12 +122,12 @@ PROVISION_FISH_STEELHEAD_TROUT  = { name = 'PROVISION_FISH_STEELHEAD_TROUT',  la
 
 ## 📂 Installation
 1. Put `rsg-fishing` in `resources/[rsg]`.  
-2. Ensure `rsg-core`, `ox_lib`, and `rsg-inventory` are installed.  
+2. Ensure `rsg-core`, `ox_lib`, and `fdb-inventory` are installed.  
 3. Add to `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-fishing
    ```
 4. Restart your server.

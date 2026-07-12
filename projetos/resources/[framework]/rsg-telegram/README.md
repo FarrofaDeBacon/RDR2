@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠  
 - [**ox_lib**](https://github.com/overextended/ox_lib) ⚙️ *(notifications, prompts, locales)*  
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(for the birdpost item)*  
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(for the birdpost item)*  
 
 **Locales included:** `en`, `fr`, `es`, `it`, `pt-br`, `el`  
 **License:** GPL‑3.0  
@@ -100,7 +100,7 @@ Config.PostOfficeLocations = {
 
 ## 🧺 Inventory Item (one-line format)
 
-Add this to `rsg-inventory/items.lua`:
+Add this to `fdb-inventory/items.lua`:
 ```lua
 birdpost = { name = 'birdpost', label = 'Telegram Bird', weight = 500, type = 'item', image = 'birdspost.png', unique = true, useable = true, shouldClose = true, description = 'A trained bird used to deliver telegrams.' },
 ```
@@ -124,7 +124,7 @@ end)
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-telegram
    ```
 5. Restart your server.

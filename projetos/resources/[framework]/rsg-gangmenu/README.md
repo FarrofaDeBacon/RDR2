@@ -14,7 +14,7 @@
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️
 - [**oxmysql**](https://github.com/overextended/oxmysql) 🗄️ *(required for gang funds)*
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(for the gang stash)*
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(for the gang stash)*
 
 **Interaction:** Context prompt at each `Config.GangLocations[i].coords` opens the main menu (uses `exports['rsg-core']:createPrompt`).  
 **Key text:** Prompt displays the configured key from `RSGCore.Shared.Keybinds[Config.Keybind]`.  
@@ -34,7 +34,7 @@
 - **Hire Gang Members**
   - List **nearby civilians** and recruit them into your gang.
 - **Storage Access**
-  - Open the **shared gang stash** (via `rsg-inventory`), with configurable slots/weight.
+  - Open the **shared gang stash** (via `fdb-inventory`), with configurable slots/weight.
 - **Money Management**
   - View gang **balance** (server callback).
   - **Deposit** and **Withdraw** funds via input dialogs.
@@ -94,14 +94,14 @@ Config.GangLocations = {
 
 ## 📂 Installation
 1. Place `rsg-gangmenu` inside your `resources` (or `resources/[rsg]`) folder.
-2. Ensure **rsg-core**, **ox_lib**, **rsg-inventory**, and **oxmysql** are installed and started.
+2. Ensure **rsg-core**, **ox_lib**, **fdb-inventory**, and **oxmysql** are installed and started.
 3. **Database:** import `rsg-gangmenu.sql` (creates `management_funds` with `type='gang'`).
 4. Edit `config.lua` (keybind, stash sizes, blip & gang locations).
 5. Add to your `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-gangmenu
    ```
 

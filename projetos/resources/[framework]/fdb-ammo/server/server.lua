@@ -1,4 +1,4 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+﻿local RSGCore = exports['rsg-core']:GetCoreObject()
 
 for _itemName, _ammoType in pairs(Config.BoxAmmo) do
     RSGCore.Functions.CreateUseableItem(_itemName, function(source, item)
@@ -50,7 +50,7 @@ AddEventHandler('fdb-ammo:server:removeitem', function(item, amount)
     if not Player then return end
     -- Only notify client if removal actually succeeded
     if not Player.Functions.RemoveItem(item, amount) then return end
-    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
+    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)
 
 ---------------------------------------------
@@ -73,7 +73,7 @@ AddEventHandler('fdb-ammo:server:openAmmoBox', function(ammoBoxItem, ammoType, a
     -- Only grant ammo if item removal actually succeeded
     if not Player.Functions.RemoveItem(ammoBoxItem, 1, slot) then return end
 
-    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[ammoBoxItem], 'remove', 1)
+    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[ammoBoxItem], 'remove', 1)
     TriggerClientEvent('fdb-ammo:client:AddAmmo', src, ammoType, realAmount)
 end)
 

@@ -1,4 +1,4 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+﻿local RSGCore = exports['rsg-core']:GetCoreObject()
 
 lib.locale()
 ------------------------------------
@@ -128,12 +128,12 @@ AddEventHandler('fdb-weapons:server:removeitem', function(item, amount)
     end
     if count < (amount or 1) then return end
     Player.Functions.RemoveItem(item, amount)
-    TriggerClientEvent('fdb-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
+    TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)
 
 ---------------------------------------------
 -- Force remove weapon (called when server-side ownership validation fails,
--- or by fdb-inventory when a weapon item leaves the player's possession
+-- or by rsg-inventory when a weapon item leaves the player's possession
 -- while it is still equipped in-hand)
 ---------------------------------------------
 local function ForceRemoveWeapon(source, serial)
@@ -148,7 +148,7 @@ local function ForceRemoveWeapon(source, serial)
 end
 exports('ForceRemoveWeapon', ForceRemoveWeapon)
 
--- Allows fdb-inventory (or any other resource) to request a forced removal
+-- Allows rsg-inventory (or any other resource) to request a forced removal
 -- without needing a direct export dependency
 RegisterServerEvent('fdb-weapons:server:forceRemoveWeapon')
 AddEventHandler('fdb-weapons:server:forceRemoveWeapon', function(serial)
@@ -178,7 +178,7 @@ RegisterNetEvent('fdb-weapons:server:saveEquippedWeapon', function(weaponData, i
             if metadata.equippedBackpack then table.insert(stashesToCheck, metadata.equippedBackpack.stashId) end
             
             for _, stashId in ipairs(stashesToCheck) do
-                local inv = exports['fdb-inventory']:GetInventory(stashId)
+                local inv = exports['rsg-inventory']:GetInventory(stashId)
                 if inv and inv.items then
                     for _, v in pairs(inv.items) do
                         if v.type == 'weapon' and v.info and v.info.serie == weaponData.info.serie then
@@ -252,7 +252,7 @@ end)
 
 -- FIX: this used to only check the player's pocket items. A near-identical,
 -- more complete version (also checking satchel/holster/backpack stashes)
--- existed in fdb-inventory, but was registered under the dead 'rsg-weapons:'
+-- existed in rsg-inventory, but was registered under the dead 'rsg-weapons:'
 -- prefix and never actually reached by the client. Merged here as the single
 -- source of truth.
 RSGCore.Functions.CreateCallback('fdb-weapons:server:getWeaponBySerial', function(source, cb, serial)
@@ -274,7 +274,7 @@ RSGCore.Functions.CreateCallback('fdb-weapons:server:getWeaponBySerial', functio
     if metadata.equippedBackpack then table.insert(stashesToCheck, metadata.equippedBackpack.stashId) end
 
     for _, stashId in ipairs(stashesToCheck) do
-        local inv = exports['fdb-inventory']:GetInventory(stashId)
+        local inv = exports['rsg-inventory']:GetInventory(stashId)
         if inv and inv.items then
             for _, item in pairs(inv.items) do
                 if item and item.name and item.info and item.info.serie == serial then

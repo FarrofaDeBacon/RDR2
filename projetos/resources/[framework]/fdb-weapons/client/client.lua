@@ -1,4 +1,4 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+﻿local RSGCore = exports['rsg-core']:GetCoreObject()
 lib.locale()
 local UsedWeapons = {}
 local weaponInHands = {}
@@ -215,7 +215,7 @@ end)
 
 ------------------------------------------
 -- SECURITY FIX: forced removal, triggered by the server when it cannot
--- verify ownership of an equipped weapon, or when fdb-inventory reports
+-- verify ownership of an equipped weapon, or when rsg-inventory reports
 -- the weapon item left the player's possession (drop, trade, stash, etc.)
 -- while it was still equipped in-hand.
 ------------------------------------------

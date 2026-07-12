@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - [**rsg-core**](https://github.com/Rexshack-RedM/rsg-core) 🤠  
 - [**ox_lib**](https://github.com/Rexshack-RedM/ox_lib) ⚙️ *(notifications, locales)*  
-- [**rsg-inventory**](https://github.com/Rexshack-RedM/rsg-inventory) 🎒 *(item use integration)*  
+- [**fdb-inventory**](https://github.com/Rexshack-RedM/fdb-inventory) 🎒 *(item use integration)*  
 
 **Locales:** `en`, `fr`, `es`, `el`, `pt-br`, `it`, `ro`  
 **License:** GPL‑3.0  
@@ -134,12 +134,12 @@ coffee  = { name = 'coffee',  label = 'Cup of Coffee',      weight = 80,  type =
 
 ## 📂 Installation
 1. Place `rsg-consume` inside your `resources/[rsg]` folder.  
-2. Ensure `rsg-core`, `rsg-inventory`, and `ox_lib` are installed.  
+2. Ensure `rsg-core`, `fdb-inventory`, and `ox_lib` are installed.  
 3. Add to your `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-consume
    ```
 4. Restart your server.

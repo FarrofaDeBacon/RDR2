@@ -1,4 +1,4 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+﻿local RSGCore = exports['rsg-core']:GetCoreObject()
 local HorseSettings = lib.load('shared.horse_settings')
 local HorseComp = lib.load('shared.horse_comp')
 lib.locale()

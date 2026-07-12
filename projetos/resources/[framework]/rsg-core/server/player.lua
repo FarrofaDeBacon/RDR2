@@ -1,4 +1,4 @@
-RSGCore.Players = {}
+﻿RSGCore.Players = {}
 RSGCore.Player = {}
 
 -- On player login get their data or set defaults

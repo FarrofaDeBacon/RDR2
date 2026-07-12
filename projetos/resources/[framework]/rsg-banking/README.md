@@ -14,7 +14,7 @@
 ## 🛠️ Dependencies
 - **rsg-core** (framework & prompts)  
 - **ox_lib** (locales, dialogs, notifications)  
-- **rsg-inventory** (safe deposit box & items)
+- **fdb-inventory** (safe deposit box & items)
 
 **Locales included:** `en`, `fr`, `es`, `it`, `pt-br`, `el`, `ro`  
 **License:** GPL‑3.0
@@ -165,13 +165,13 @@ blood_money_clip = { name = 'blood_money_clip', label = 'Blood Money Clip',  wei
 
 ## 📋 Installation
 1. Add `rsg-banking` to `resources/[rsg]`.  
-2. Ensure `rsg-core`, `ox_lib`, and `rsg-inventory` are installed.  
+2. Ensure `rsg-core`, `ox_lib`, and `fdb-inventory` are installed.  
 3. (Optional) Add item images to your inventory UI (`money_clip.png`, `blood_money_clip.png`).  
 4. In `server.cfg`:
    ```cfg
    ensure ox_lib
    ensure rsg-core
-   ensure rsg-inventory
+   ensure fdb-inventory
    ensure rsg-banking
    ```
 5. Restart the server.
