@@ -21,7 +21,7 @@ CreateThread(function()
         ped = PlayerPedId()
 
         local health  = GetNormalized(GetEntityHealth(ped) - 100, 200)
-        local stamina = GetNormalized(Citizen.InvokeNative(0x3F validated, ped) or 0, 100)
+        local stamina = GetNormalized(GetPlayerSprintStaminaRemaining(PlayerId()), 100)
         local dead    = IsEntityDead(ped)
 
         -- So envia se algo mudou

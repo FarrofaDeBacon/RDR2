@@ -7,19 +7,19 @@ version '1.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'sh/config.lua',
+    'shared/config.lua',
 }
 
 client_scripts {
-    'c/main.lua',
-    'c/status.lua',
-    'c/vehicle.lua',
-    'c/compass.lua',
-    'c/nui.lua',
+    'client/main.lua',
+    'client/status.lua',
+    'client/vehicle.lua',
+    'client/compass.lua',
+    'client/nui.lua',
 }
 
 server_scripts {
-    's/main.lua',
+    'server/main.lua',
 }
 
 ui_page 'ui/public/index.html'
@@ -36,3 +36,4 @@ dependencies {
 }
 
 lua54 'yes'
+
