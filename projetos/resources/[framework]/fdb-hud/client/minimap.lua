@@ -1,23 +1,20 @@
 -- ============================================================
 -- fdb-hud | client/minimap.lua
--- Controle do minimapa nativo via Config.Minimap
+-- Controle do minimapa via Config.Minimap.enabled
 -- Leitura EXCLUSIVA de Config.Minimap - nunca exposto via
 -- callback, evento ou export ao client/NUI.
 -- ============================================================
 
--- HideHudComponentThisFrame NAO e permanente: precisa rodar
--- todo frame (Wait(0)) para manter o minimapa escondido.
--- Quando enabled=true simplesmente nao interfere (Wait longo).
--- O mapa cheio nativo (tecla padrão) nao e afetado por esta
--- nativa - ela oculta apenas o widget de canto da tela.
+-- DisplayRadar e a nativa correta para mostrar/ocultar o minimapa
+-- no RedM/RDR3. Nao precisa rodar por frame - loop de 1s e
+-- suficiente para sobrepor qualquer resource conflitante que
+-- tente reativar o radar sem a gente perceber.
+-- DisplayRadar(false) nao afeta o mapa cheio nativo (tecla padrao).
 
 CreateThread(function()
     while true do
-        if not Config.Minimap.enabled then
-            HideHudComponentThisFrame(1) -- 1 = HUD_MINIMAP
-            Wait(0)
-        else
-            Wait(1000)
-        end
+        Wait(1000)
+        DisplayRadar(Config.Minimap.enabled)
     end
 end)
+
