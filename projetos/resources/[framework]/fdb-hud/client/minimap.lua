@@ -1,27 +1,26 @@
 -- ============================================================
 -- fdb-hud | client/minimap.lua
--- Controle do minimapa via Config.Minimap.enabled
+-- Controle do minimapa via Config.Minimap.enabled + posse de item
 -- Leitura EXCLUSIVA de Config.Minimap - nunca exposto via
 -- callback, evento ou export ao client/NUI.
 -- ============================================================
 
--- DisplayRadar e a nativa correta para mostrar/ocultar o minimapa
--- no RedM/RDR3. Nao precisa rodar por frame - loop de 1s e
--- suficiente para sobrepor qualquer resource conflitante que
--- tente reativar o radar sem a gente perceber.
--- DisplayRadar(false) nao afeta o mapa cheio nativo (tecla padrao).
+local hasMapItem = not Config.Minimap.requireItem
+
+RegisterNetEvent('fdb-hud:client:itemGatedUpdate', function(data)
+    hasMapItem = data.map
+end)
 
 CreateThread(function()
     while true do
-        Wait(1000)
-        DisplayRadar(Config.Minimap.enabled)
+        Wait(500)
+        if Config.Minimap.enabled and hasMapItem then
+            SetMinimapType(1) -- mapa circular, NUNCA modo 3 (bussola nativa)
+        else
+            SetMinimapType(0)
+        end
     end
 end)
 
--- Comando de teste temporario solicitado pelo usuario
-RegisterCommand('testradar', function()
-    DisplayRadar(true)
-    print('DisplayRadar(true) chamado manualmente')
-end, false)
 
 

@@ -17,7 +17,7 @@ Config.Elements = {
     hunger  = { enabled = true },
     thirst  = { enabled = true },
     stress  = { enabled = false }, -- ainda nao implementado
-    compass = { enabled = true, showCardinals = true },
+    compass = { enabled = true, showCardinals = true, requireItem = true, itemName = 'compass' },
     money   = { enabled = true },
     vehicle = { enabled = true },
 }
@@ -28,8 +28,11 @@ Config.Elements = {
 -- So e lido diretamente por client/minimap.lua.
 -- -------------------------------------------------------
 Config.Minimap = {
-    enabled = true,
+    enabled = true,       -- switch geral do dono
+    requireItem = true,
+    itemName = 'map',
 }
+
 
 -- -------------------------------------------------------
 -- Configuracoes gerais (usadas internamente pelo client)

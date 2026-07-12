@@ -17,6 +17,7 @@ client_scripts {
     'client/compass.lua',
     'client/nui.lua',
     'client/minimap.lua',
+    'client/hidenatives.lua',
 }
 
 

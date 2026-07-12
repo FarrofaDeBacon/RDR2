@@ -62,3 +62,27 @@ AddEventHandler('fdb-hud:server:saveLayout', function(layout)
     layouts[cid] = layout
 end)
 
+-- -------------------------------------------------------
+-- Checagem periodica de posse de itens (7s)
+-- -------------------------------------------------------
+CreateThread(function()
+    while true do
+        Wait(7000)
+        for _, playerId in ipairs(GetPlayers()) do
+            local src = tonumber(playerId)
+            local Player = RSGCore.Functions.GetPlayer(src)
+            if Player then
+                local hasMap = not Config.Minimap.requireItem or
+                    RSGCore.Functions.HasItem(src, Config.Minimap.itemName)
+                local hasCompass = not Config.Elements.compass.requireItem or
+                    RSGCore.Functions.HasItem(src, Config.Elements.compass.itemName)
+                TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
+                    map = hasMap,
+                    compass = hasCompass,
+                })
+            end
+        end
+    end
+end)
+
+
