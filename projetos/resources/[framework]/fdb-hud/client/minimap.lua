@@ -18,3 +18,10 @@ CreateThread(function()
     end
 end)
 
+-- Comando de teste temporario solicitado pelo usuario
+RegisterCommand('testradar', function()
+    DisplayRadar(true)
+    print('DisplayRadar(true) chamado manualmente')
+end, false)
+
+
