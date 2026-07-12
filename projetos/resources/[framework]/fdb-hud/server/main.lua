@@ -63,6 +63,90 @@ AddEventHandler('fdb-hud:server:saveLayout', function(layout)
 end)
 
 -- -------------------------------------------------------
+-- Estado por jogador (equipado ou nao) - server-side
+-- -------------------------------------------------------
+local equipped = {} -- [citizenid] = { map = bool, compass = bool }
+
+-- -------------------------------------------------------
+-- Helper: Verifica posse real do item (bolso ou satchel)
+-- e se o mesmo nao esta arruinado (metadata.ruined)
+-- -------------------------------------------------------
+local function HasValidItem(Player, itemName)
+    -- 1. Procura no inventario principal (bolso)
+    for _, item in pairs(Player.PlayerData.items) do
+        if item and item.name == itemName then
+            if itemName == 'map' and item.info and item.info.ruined then
+                -- ignora item arruinado
+            else
+                return true, 'pocket', item
+            end
+        end
+    end
+
+    -- 2. Procura no satchel equipado
+    local equip = Player.PlayerData.metadata.equipmentSlots or {}
+    if equip.satchel then
+        local stashId = equip.satchel.stashId or (equip.satchel.info and equip.satchel.info.stashId)
+        if stashId then
+            local stashInventory = exports['rsg-inventory']:GetInventory(stashId)
+            local stashItems = stashInventory and stashInventory.items or {}
+            for _, item in pairs(stashItems) do
+                if item and item.name == itemName then
+                    if itemName == 'map' and item.info and item.info.ruined then
+                        -- ignora item arruinado
+                    else
+                        return true, 'satchel', item
+                    end
+                end
+            end
+        end
+    end
+
+    return false, nil, nil
+end
+
+-- -------------------------------------------------------
+-- Registrar os useable items (toggle de equipar)
+-- -------------------------------------------------------
+RSGCore.Functions.CreateUseableItem('map', function(source, item)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return end
+    local cid = Player.PlayerData.citizenid
+    
+    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    
+    -- Só permite equipar se possuir o item válido
+    local hasMap = HasValidItem(Player, 'map')
+    if not hasMap then
+        equipped[cid].map = false
+        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = false })
+        return
+    end
+
+    equipped[cid].map = not equipped[cid].map
+    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = equipped[cid].map })
+end)
+
+RSGCore.Functions.CreateUseableItem('compass', function(source, item)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return end
+    local cid = Player.PlayerData.citizenid
+    
+    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    
+    -- Só permite equipar se possuir o item válido
+    local hasCompass = HasValidItem(Player, 'compass')
+    if not hasCompass then
+        equipped[cid].compass = false
+        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = false })
+        return
+    end
+
+    equipped[cid].compass = not equipped[cid].compass
+    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = equipped[cid].compass })
+end)
+
+-- -------------------------------------------------------
 -- Checagem periodica de posse de itens (7s)
 -- -------------------------------------------------------
 CreateThread(function()
@@ -72,17 +156,68 @@ CreateThread(function()
             local src = tonumber(playerId)
             local Player = RSGCore.Functions.GetPlayer(src)
             if Player then
-                local hasMap = not Config.Minimap.requireItem or
-                    RSGCore.Functions.HasItem(src, Config.Minimap.itemName)
-                local hasCompass = not Config.Elements.compass.requireItem or
-                    RSGCore.Functions.HasItem(src, Config.Elements.compass.itemName)
+                local cid = Player.PlayerData.citizenid
+                equipped[cid] = equipped[cid] or { map = false, compass = false }
+
+                -- Checa se ainda possui os itens validos
+                local hasMap = HasValidItem(Player, 'map')
+                local hasCompass = HasValidItem(Player, 'compass')
+
+                -- Se perdeu o item, desliga forçado
+                if not hasMap then equipped[cid].map = false end
+                if not hasCompass then equipped[cid].compass = false end
+
                 TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
-                    map = hasMap,
-                    compass = hasCompass,
+                    map = hasMap and equipped[cid].map,
+                    compass = hasCompass and equipped[cid].compass,
                 })
             end
         end
     end
 end)
+
+-- -------------------------------------------------------
+-- Mecanica de Molhar o Mapa (checkWet)
+-- -------------------------------------------------------
+RegisterServerEvent('fdb-hud:server:checkWet')
+AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local cid = Player.PlayerData.citizenid
+
+    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    if not equipped[cid].map then return end -- mapa nao esta de fora (equipado)
+
+    local hasMap, mapLoc, mapItem = HasValidItem(Player, 'map')
+    if not hasMap then return end
+
+    -- Se o mapa esta no bolso (pocket), ele fica molhado e estraga.
+    -- Se estiver no satchel, esta protegido.
+    if mapLoc == 'pocket' then
+        mapItem.info = mapItem.info or {}
+        mapItem.info.ruined = true
+        mapItem.info.label = "Mapa Encharcado"
+
+        -- Salva a alteracao no inventario do player
+        Player.Functions.SetInventory(Player.PlayerData.items)
+
+        -- Desequipa o mapa
+        equipped[cid].map = false
+
+        -- Notifica cliente e UI
+        TriggerClientEvent('rsg-inventory:client:updateInventory', src)
+        TriggerClientEvent('fdb-hud:client:equipUpdate', src, { map = false })
+        
+        -- Atualiza gated status imediatamente
+        TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
+            map = false,
+            compass = equipped[cid].compass and HasValidItem(Player, 'compass'),
+        })
+
+        TriggerClientEvent('rsg-core:client:Notify', src, "Seu mapa ficou encharcado e inutilizavel!", "error")
+    end
+end)
+
 
 

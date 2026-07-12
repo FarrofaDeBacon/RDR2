@@ -1,5 +1,5 @@
 -- ============================================================
--- fdb-hud | c/compass.lua
+-- fdb-hud | client/compass.lua
 -- Calcula heading e envia à NUI
 -- ============================================================
 
@@ -13,6 +13,7 @@ end
 local lastHeading = -1
 
 local hasCompassItem = not Config.Elements.compass.requireItem
+local isCompassEquipped = false
 local compassVisible = false
 
 RegisterNetEvent('fdb-hud:client:itemGatedUpdate', function(data)
@@ -24,10 +25,21 @@ RegisterNetEvent('fdb-hud:client:itemGatedUpdate', function(data)
     end
 end)
 
+RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
+    if data.compass ~= nil then
+        isCompassEquipped = data.compass
+        -- Se desequipou a bussola, avisa a NUI imediatamente
+        if not isCompassEquipped and compassVisible then
+            compassVisible = false
+            SendNUI('updateCompass', { degrees = 0, cardinal = 'N', visible = false })
+        end
+    end
+end)
+
 CreateThread(function()
     while true do
         Wait(Config.UpdateInterval)
-        local canShow = isLoggedIn and Config.Elements.compass.enabled and hasCompassItem
+        local canShow = isLoggedIn and Config.Elements.compass.enabled and hasCompassItem and isCompassEquipped
 
         if not canShow then
             if compassVisible then
@@ -55,4 +67,3 @@ CreateThread(function()
         ::continue::
     end
 end)
-
