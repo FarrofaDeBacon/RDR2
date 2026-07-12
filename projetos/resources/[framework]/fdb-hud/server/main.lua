@@ -16,26 +16,27 @@ local layouts = {}
 -- Config.Minimap NAO e incluido aqui - e controle exclusivo
 -- do servidor, nunca exposto via callback.
 -- -------------------------------------------------------
-RSGCore.Functions.CreateCallback('fdb-hud:server:getConfig', function(source, cb)
+lib.callback.register('fdb-hud:server:getConfig', function(source)
     local allowedElements = {}
     for name, data in pairs(Config.Elements) do
         if data.enabled then
             allowedElements[name] = true
         end
     end
-    cb(allowedElements)
+    return allowedElements
 end)
 
 -- -------------------------------------------------------
 -- Callback: getLayout
 -- Retorna o layout salvo do jogador (ou nil se nao houver).
 -- -------------------------------------------------------
-RSGCore.Functions.CreateCallback('fdb-hud:server:getLayout', function(source, cb)
+lib.callback.register('fdb-hud:server:getLayout', function(source)
     local Player = RSGCore.Functions.GetPlayer(source)
-    if not Player then return cb(nil) end
+    if not Player then return nil end
     local cid = Player.PlayerData.citizenid
-    cb(layouts[cid] or nil)
+    return layouts[cid] or nil
 end)
+
 
 -- -------------------------------------------------------
 -- Evento: saveLayout
