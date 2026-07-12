@@ -1,12 +1,12 @@
 -- ============================================================
--- fdb-hud | c/main.lua
+-- fdb-hud | client/main.lua
 -- Inicializacao e loop principal do client
 -- ============================================================
 
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local PlayerData = {}
 local isLoggedIn = false
-local nuiReady = false
+local nuiReady   = false
 
 -- -------------------------------------------------------
 -- Helpers
@@ -16,18 +16,35 @@ local function SendNUI(action, data)
     SendNUIMessage({ action = action, data = data })
 end
 
+local function InitNUI()
+    if not nuiReady then return end
+
+    -- Busca do servidor: elementos permitidos e layout salvo
+    local allowedElements = lib.callback.await('fdb-hud:server:getConfig', false)
+    local savedLayout     = lib.callback.await('fdb-hud:server:getLayout', false)
+
+    -- Envia tudo ao NUI numa unica mensagem init
+    -- Config.Minimap nunca e incluido aqui
+    SendNUIMessage({ action = 'init', data = {
+        allowed    = allowedElements,
+        visibility = savedLayout and savedLayout.visibility or nil,
+        job        = PlayerData.job,
+    }})
+end
+
 -- -------------------------------------------------------
 -- Player loaded / logout
 -- -------------------------------------------------------
 AddEventHandler('RSGCore:Client:OnPlayerLoaded', function()
     PlayerData = RSGCore.Functions.GetPlayerData()
     isLoggedIn = true
+    InitNUI()
     SendNUI('setVisible', true)
 end)
 
 AddEventHandler('RSGCore:Client:OnPlayerLogout', function()
-    PlayerData = {}
-    isLoggedIn = false
+    PlayerData  = {}
+    isLoggedIn  = false
     SendNUI('setVisible', false)
 end)
 
@@ -40,11 +57,7 @@ end)
 -- -------------------------------------------------------
 RegisterNUICallback('hudReady', function(_, cb)
     nuiReady = true
-    -- Envia configuracao inicial
-    SendNUIMessage({ action = 'init', data = {
-        config = Config,
-        job    = PlayerData.job,
-    }})
+    InitNUI()
     cb('ok')
 end)
 
@@ -56,5 +69,7 @@ AddEventHandler('onResourceStart', function(res)
     if LocalPlayer.state.isLoggedIn then
         PlayerData = RSGCore.Functions.GetPlayerData()
         isLoggedIn = true
+        InitNUI()
     end
 end)
+
