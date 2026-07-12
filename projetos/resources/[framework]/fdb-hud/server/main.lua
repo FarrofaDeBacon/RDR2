@@ -199,8 +199,8 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
         mapItem.info.ruined = true
         mapItem.info.label = "Mapa Encharcado"
 
-        -- Salva a alteracao no inventario do player
-        Player.Functions.SetInventory(Player.PlayerData.items)
+        -- Salva a alteracao no inventario do player de forma persistente
+        exports['rsg-inventory']:SaveInventory(src)
 
         -- Desequipa o mapa
         equipped[cid].map = false
@@ -215,9 +215,14 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
             compass = equipped[cid].compass and HasValidItem(Player, 'compass'),
         })
 
-        TriggerClientEvent('rsg-core:client:Notify', src, "Seu mapa ficou encharcado e inutilizavel!", "error")
+        TriggerClientEvent('ox_lib:notify', src, {
+            title = 'Seu mapa ficou encharcado e inutilizavel!',
+            type = 'error',
+            duration = 5000
+        })
     end
 end)
+
 
 
 
