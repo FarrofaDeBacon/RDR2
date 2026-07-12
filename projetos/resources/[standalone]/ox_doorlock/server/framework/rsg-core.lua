@@ -7,7 +7,7 @@ SetTimeout(0, function()
 
     GetPlayer = RSG.Functions.GetPlayer
 
-    -- rsg-inventory foi substituído por fdb-inventory. As funções abaixo
+    -- rsg-inventory foi substituído por rsg-inventory. As funções abaixo
     -- usam Player.Functions do rsg-core diretamente e são sempre corretas.
     function RemoveItem(playerId, item, slot)
         local player = GetPlayer(playerId)
