@@ -17,6 +17,7 @@
   }
 </script>
 
+{#if $compass.visible}
 <div class="compass-wrap" role="region" aria-label="Bússola {$compass.degrees}°">
   <div class="compass-bar">
     <div class="ticks">
@@ -33,6 +34,8 @@
     {$compass.cardinal ?? ''} {$compass.degrees}°
   </div>
 </div>
+{/if}
+
 
 <style>
   .compass-wrap {
