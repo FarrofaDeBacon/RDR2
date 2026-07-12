@@ -5,8 +5,9 @@ RSGShared.Items = {
     -- YOUR CUSTOM ITEMS
     -----------------------------------------------
     -- add your custom items here & check for doubles
-    map        = { name = 'map',        label = 'Map',           weight = 100, type = 'item', image = 'map.png',        unique = false, useable = false, shouldClose = true, description = 'A paper map of the territory' },
-    compass    = { name = 'compass',    label = 'Compass',       weight = 100, type = 'item', image = 'compass.png',    unique = false, useable = false, shouldClose = true, description = 'A brass compass' },
+    map        = { name = 'map',        label = 'Map',           weight = 100, type = 'item', image = 'document_map.png', unique = false, useable = false, shouldClose = true, description = 'A paper map of the territory' },
+    compass    = { name = 'compass',    label = 'Compass',       weight = 100, type = 'item', image = 'compass.png',      unique = false, useable = false, shouldClose = true, description = 'A brass compass' },
+
 
 
     -----------------------------------------------
