@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa RDR2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="map-container" style="display: none;">
+        <div id="map-wrapper">
+            <!-- Imagem de fundo do mapa -->
+            <img id="map-image" src="rose.png" alt="Mapa Mundi RDR2">
+            
+            <!-- Marcador do Jogador -->
+            <div id="player-marker" class="marker">
+                <div class="pin"></div>
+                <div class="pulse"></div>
+            </div>
+        </div>
+        
+        <!-- Dica de como fechar o mapa -->
+        <div class="legend-box">
+            <p>Pressione <strong>ESC</strong> ou clique fora para fechar</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
