@@ -29,6 +29,10 @@ CreateThread(function()
             Citizen.InvokeNative(0x5B53775A884C0F73, false)
             Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Oculta especificamente compass markers
             Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove o anel de direcoes
+            
+            -- Desativa o HUD component compass de forma direta no RDR3
+            Citizen.InvokeNative(0x506540306EB30292, 0x63E72166B0D5B574, false) -- Oculta componente da bussola
+            Citizen.InvokeNative(0x4CC5F2CE8BE63825, 20, false) -- Oculta componente HUD_COMPASS
         else
             SetMinimapType(0) -- Oculta o minimapa completamente
         end
