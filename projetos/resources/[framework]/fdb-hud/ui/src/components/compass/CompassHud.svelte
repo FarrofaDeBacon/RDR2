@@ -1,6 +1,6 @@
 <script>
   import { compass } from '../../stores/hudStore.js'
-  import compassImg from '../../assets/hud_compass.png'
+  import compassImg from '../../assets/compass_hud.svg'
 </script>
 
 {#if $compass.visible}
@@ -8,7 +8,7 @@
   <!-- Máscara circular perfeita -->
   <div class="compass-mask">
     
-    <!-- Mostrador giratório com a imagem enviada pelo usuario -->
+    <!-- Mostrador giratório com a imagem SVG limpa do compasso -->
     <!-- Rotação negativa em relação ao heading para manter a direcao -->
     <div 
       class="compass-dial" 
@@ -62,9 +62,9 @@
   /* Mostrador giratório */
   .compass-dial {
     position: absolute;
-    /* Zoom de 118% para ampliar a face bege central e esconder as alças de metal e argola externa da imagem */
-    width: 118%;
-    height: 118%;
+    /* Ajuste de escala para o SVG caber perfeitamente no circulo */
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     background-size: contain;
     background-position: center;
