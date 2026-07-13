@@ -20,9 +20,9 @@ end)
 CreateThread(function()
     while true do
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
-            SetMinimapType(1) -- Ativa o minimapa circular
+            SetMinimapType(2) -- Ativa o minimapa circular limpo (sem direcoes cardinais na borda)
             
-            -- Oculta os cardinais nativos da borda do radar rodando continuamente (Wait(0))
+            -- Oculta os cardinais nativos adicionais da borda do radar
             Citizen.InvokeNative(0xF80671CB9B7B280F, false) -- Remove a rosa dos ventos
             Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Esconde as marcas cardinais da borda
             Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove direções adicionais
