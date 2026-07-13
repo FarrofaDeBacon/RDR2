@@ -34,6 +34,9 @@ CreateThread(function()
         DisableControlAction(0, 0xE31C6B06, true) -- INPUT_FRONTEND_MAP
         DisableControlAction(0, 0x3B3A5A2B, true) -- INPUT_MAP
         
+        -- Trava a ativacao do menu de pausa nativo/mapa nativo
+        SetPauseMenuActive(false)
+        
         -- Se o jogo por algum motivo abrir o menu de pausa nativo, força fechar
         if IsPauseMenuActive() then
             SetFrontendActive(false)
