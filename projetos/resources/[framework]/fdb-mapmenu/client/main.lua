@@ -30,11 +30,16 @@ CreateThread(function()
     while true do
         Wait(0)
         
-        -- INPUT_FRONTEND_MAP = 0xE31C6B06 (comum no RDR3/RedM)
-        -- Desativa o menu de mapa nativo a cada frame
-        DisableControlAction(0, 0xE31C6B06, true)
+        -- Desativa o menu de mapa nativo e a tecla M (INPUT_FRONTEND_MAP e INPUT_MAP)
+        DisableControlAction(0, 0xE31C6B06, true) -- INPUT_FRONTEND_MAP
+        DisableControlAction(0, 0x3B3A5A2B, true) -- INPUT_MAP
         
-        if IsDisabledControlJustReleased(0, 0xE31C6B06) then
+        -- Se o jogo por algum motivo abrir o menu de pausa nativo, força fechar
+        if IsPauseMenuActive() then
+            SetFrontendActive(false)
+        end
+        
+        if IsDisabledControlJustReleased(0, 0xE31C6B06) or IsDisabledControlJustReleased(0, 0x3B3A5A2B) then
             if not isMapOpen then
                 SetMapActive(true)
             end
