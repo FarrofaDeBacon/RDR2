@@ -20,8 +20,10 @@ local mapVisible = false
 -- Desativa permanentemente o radar nativo
 CreateThread(function()
     while true do
-        Wait(500)
+        Wait(0)
         DisplayRadar(false)
+        -- Força a ocultação nativa do minimapa do RedM a cada frame
+        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
     end
 end)
 
