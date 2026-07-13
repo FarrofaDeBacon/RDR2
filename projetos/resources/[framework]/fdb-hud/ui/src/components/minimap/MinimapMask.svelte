@@ -9,20 +9,20 @@
 <style>
   .minimap-mask {
     position: absolute;
-    /* Posição física exata sobre o minimapa circular clássico */
+    /* Posição e dimensões em pixels para alinhar perfeitamente com o radar */
     bottom: 22px;
     left: 22px;
-    width: 268px;
-    height: 268px;
+    width: 270px;
+    height: 270px;
     border-radius: 50%;
     
-    /* Borda preta opaca para cobrir cardinais e bússola da borda do jogo */
-    border: 9px solid #070403;
+    /* Borda preta bem espessa para garantir a cobertura das letras cardinais */
+    border: 14px solid #0a0705;
     
-    /* Sombra interna para suavizar a borda no minimapa */
+    /* Brilho e sombreamento para integrar com o visual do radar */
     box-shadow: 
-      0 0 6px rgba(0, 0, 0, 0.95),
-      inset 0 0 5px rgba(0, 0, 0, 0.95);
+      0 0 10px rgba(0, 0, 0, 0.95),
+      inset 0 0 8px rgba(0, 0, 0, 0.95);
       
     pointer-events: none;
     z-index: 9999;
