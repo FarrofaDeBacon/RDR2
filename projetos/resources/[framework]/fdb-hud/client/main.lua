@@ -5,8 +5,9 @@
 
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local PlayerData = {}
-local isLoggedIn = false
+isLoggedIn = false
 local nuiReady   = false
+
 
 -- -------------------------------------------------------
 -- Helpers

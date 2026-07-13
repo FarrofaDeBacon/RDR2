@@ -146,6 +146,8 @@ RSGCore.Functions.CreateUseableItem('compass', function(source, item)
     TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = equipped[cid].compass })
 end)
 
+
+
 -- -------------------------------------------------------
 -- Checagem periodica de posse de itens (7s)
 -- -------------------------------------------------------
