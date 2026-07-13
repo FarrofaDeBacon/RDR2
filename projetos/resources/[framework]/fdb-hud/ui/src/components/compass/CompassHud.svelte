@@ -4,29 +4,21 @@
 
 {#if $compass.visible}
 <div class="compass-wrap" role="region" aria-label="Bússola {$compass.degrees}°">
-  <!-- Caixa externa / Aro de latão envelhecido -->
-  <div class="compass-ring">
+  <!-- Aro externo / Mascara circular para esconder a argola de cima e os pinos laterais -->
+  <div class="compass-mask">
     
-    <!-- Face interna da bússola que rotaciona de acordo com os graus -->
-    <!-- Rotação negativa do heading para manter o norte fixo no topo -->
-    <div class="compass-dial" style="transform: rotate(-{$compass.degrees}deg);">
-      <div class="cardinal n">N</div>
-      <div class="cardinal l">L</div>
-      <div class="cardinal s">S</div>
-      <div class="cardinal o">O</div>
-      
-      <!-- Linhas de ticks auxiliares -->
-      <div class="tick-line t-45"></div>
-      <div class="tick-line t-135"></div>
-      <div class="tick-line t-225"></div>
-      <div class="tick-line t-315"></div>
-    </div>
-    
-    <!-- Vidro / Sombra interna -->
-    <div class="glass-reflection"></div>
-    
-    <!-- Ponteiro central fixo (aponta sempre para o Norte) -->
+    <!-- Mostrador giratório que utiliza a imagem real da bussola de ouro -->
+    <!-- Rotaciona de forma contraria ao heading para manter o norte correto -->
+    <div 
+      class="compass-dial" 
+      style="transform: rotate(-{$compass.degrees}deg); background-image: url('images/hud_compass.png');"
+    ></div>
+
+    <!-- Indicador de topo fixo (agulha/marcador) -->
     <div class="needle" aria-hidden="true"></div>
+    
+    <!-- Sombra interna / Brilho do vidro -->
+    <div class="glass-reflection"></div>
   </div>
 
   <div class="heading-label" aria-hidden="true">
@@ -44,81 +36,55 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     pointer-events: none;
     font-family: 'Cinzel', 'Times New Roman', serif;
   }
 
-  .compass-ring {
+  /* Máscara circular para extrair apenas a parte redonda da imagem */
+  .compass-mask {
     position: relative;
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    /* Aro de Latão Envelhecido */
-    background: radial-gradient(circle, #2d2013 40%, #150e08 80%);
-    border: 3px solid #b89047;
+    overflow: hidden;
+    /* Borda dourada em tom de latão para combinar com o estilo */
+    border: 2px solid #b89047;
     box-shadow: 
-      inset 0 0 12px rgba(0,0,0,0.8),
-      0 4px 10px rgba(0,0,0,0.7),
-      0 0 2px 1px rgba(184, 144, 71, 0.4);
+      0 4px 10px rgba(0,0,0,0.8),
+      inset 0 0 10px rgba(0,0,0,0.9),
+      0 0 4px rgba(184, 144, 71, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    background: #000;
   }
 
+  /* Dial giratório */
   .compass-dial {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 104px; /* Ligeiramente maior para esticar a imagem e cortar os pinos externos */
+    height: 104px;
     border-radius: 50%;
-    /* Rotação linear suave */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Transição de rotação linear e suave */
     transition: transform 0.15s linear;
   }
 
-  /* Letras Cardinais */
-  .cardinal {
-    position: absolute;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #e5c185; /* Bege/Dourado desbotado */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
-    width: 20px;
-    text-align: center;
-  }
-
-  .n { top: 4px; left: calc(50% - 10px); color: #ef4444; } /* Norte vermelho rustico */
-  .s { bottom: 4px; left: calc(50% - 10px); }
-  .l { right: 4px; top: calc(50% - 8px); }
-  .o { left: 4px; top: calc(50% - 8px); }
-
-  /* Ticks diagonais (NE, SE, SO, NO) */
-  .tick-line {
-    position: absolute;
-    width: 2px;
-    height: 6px;
-    background: #8b6e3c;
-    left: calc(50% - 1px);
-    top: 2px;
-    transform-origin: 1px 45px;
-  }
-
-  .t-45  { transform: rotate(45deg); }
-  .t-135 { transform: rotate(135deg); }
-  .t-225 { transform: rotate(225deg); }
-  .t-315 { transform: rotate(315deg); }
-
-  /* Ponteiro/Marcador do Topo (Norte) */
+  /* Marcador fixo no Topo (Norte) */
   .needle {
     position: absolute;
-    top: 4px;
+    top: 2px;
+    left: calc(50% - 4px);
     width: 0;
     height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 8px solid #f59e0b; /* Indicador fixo dourado */
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 7px solid #f59e0b; /* Amarelo/Laranja rustico */
     z-index: 5;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
   }
 
   /* Efeito de Reflexo no Vidro */
@@ -129,15 +95,16 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 100%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.3) 100%);
     pointer-events: none;
     z-index: 10;
   }
 
   .heading-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #e5c185;
+    font-weight: bold;
     letter-spacing: 1px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
   }
 </style>
