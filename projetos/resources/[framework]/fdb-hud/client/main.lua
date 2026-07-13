@@ -12,7 +12,7 @@ local nuiReady   = false
 -- -------------------------------------------------------
 -- Helpers
 -- -------------------------------------------------------
-local function SendNUI(action, data)
+function SendNUI(action, data)
     if not nuiReady then return end
     SendNUIMessage({ action = action, data = data })
 end
