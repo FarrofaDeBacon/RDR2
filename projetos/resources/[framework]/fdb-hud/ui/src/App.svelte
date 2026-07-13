@@ -3,6 +3,7 @@
   import VehicleHud  from './components/vehicle/VehicleHud.svelte'
   import CompassHud  from './components/compass/CompassHud.svelte'
   import MoneyHud    from './components/money/MoneyHud.svelte'
+  import MinimapMask from './components/minimap/MinimapMask.svelte'
   import { hudStore } from './stores/hudStore.js'
 
   let visible = false
@@ -30,6 +31,9 @@
       case 'updateCompass':
         hudStore.setCompass(data)
         break
+      case 'updateMinimap':
+        hudStore.setMinimap(data)
+        break
       case 'openMenu':
         // TODO: abrir painel de configuração
         break
@@ -46,6 +50,7 @@
 
 {#if visible}
   <main class="hud-root">
+    <MinimapMask />
     <CompassHud />
     <StatusHud  />
     <VehicleHud />

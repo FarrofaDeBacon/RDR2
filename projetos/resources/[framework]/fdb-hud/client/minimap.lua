@@ -16,19 +16,31 @@ RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
     end
 end)
 
+local mapVisible = false
 -- Loop de controle de exibição do minimapa e ocultação das direções a cada frame
 CreateThread(function()
     while true do
-        if Config.Minimap.enabled and hasMapItem and isMapEquipped then
+        local canShowMap = Config.Minimap.enabled and hasMapItem and isMapEquipped
+        
+        if canShowMap then
             SetMinimapType(1) -- Ativa o minimapa circular no tamanho correto
             
             -- Oculta os cardinais nativos adicionais da borda do radar
-            Citizen.InvokeNative(0xF80671CB9B7B280F, false) -- Remove a rosa dos ventos
-            Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Esconde as marcas cardinais da borda
-            Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove direções adicionais
+            Citizen.InvokeNative(0xF80671CB9B7B280F, false)
+            Citizen.InvokeNative(0x4AD55A03FF264104, false)
+            Citizen.InvokeNative(0x1B86D49132E6A020, false)
+            
+            if not mapVisible then
+                mapVisible = true
+                SendNUI('updateMinimap', { visible = true })
+            end
             Wait(0)
         else
             SetMinimapType(0) -- Oculta o minimapa completamente
+            if mapVisible then
+                mapVisible = false
+                SendNUI('updateMinimap', { visible = false })
+            end
             Wait(500)
         end
     end
