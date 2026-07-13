@@ -4,7 +4,7 @@ game 'rdr3'
 description 'fdb-mapmenu'
 version '1.0.0'
 
-ui_page 'html/index.html'
+ui_page 'ui/public/index.html'
 
 client_scripts {
     'client/main.lua'
@@ -16,10 +16,10 @@ server_scripts {
 }
 
 files {
-    'html/index.html',
-    'html/style.css',
-    'html/script.js',
-    'html/map.svg'
+    'ui/public/index.html',
+    'ui/public/index.js',
+    'ui/public/index.css',
+    'ui/public/map.svg' -- O mapa vetorial compilado do Vite
 }
 
 dependencies {
