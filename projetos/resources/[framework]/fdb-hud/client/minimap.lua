@@ -16,25 +16,20 @@ RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
     end
 end)
 
--- Loop de controle de exibição do minimapa
+-- Loop de controle de exibição do minimapa e ocultação das direções a cada frame
 CreateThread(function()
     while true do
-        Wait(500)
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
             SetMinimapType(1) -- Ativa o minimapa circular
-            -- Oculta todas as marcas cardinais (N, S, E, W), angulos e a bussola da borda do radar nativo
-            Citizen.InvokeNative(0x7E16D1905E59013F, false)
-            Citizen.InvokeNative(0x9E2D87B40A5B4C98, false)
-            Citizen.InvokeNative(0xE05190B11E73850F, false)
-            Citizen.InvokeNative(0x5B53775A884C0F73, false)
-            Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Oculta especificamente compass markers
-            Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove o anel de direcoes
             
-            -- Desativa o HUD component compass de forma direta no RDR3
-            Citizen.InvokeNative(0x506540306EB30292, 0x63E72166B0D5B574, false) -- Oculta componente da bussola
-            Citizen.InvokeNative(0x4CC5F2CE8BE63825, 20, false) -- Oculta componente HUD_COMPASS
+            -- Oculta os cardinais nativos da borda do radar rodando continuamente (Wait(0))
+            Citizen.InvokeNative(0xF80671CB9B7B280F, false) -- Remove a rosa dos ventos
+            Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Esconde as marcas cardinais da borda
+            Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove direções adicionais
+            Wait(0)
         else
             SetMinimapType(0) -- Oculta o minimapa completamente
+            Wait(500)
         end
     end
 end)
