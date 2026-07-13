@@ -27,6 +27,8 @@ CreateThread(function()
             Citizen.InvokeNative(0x9E2D87B40A5B4C98, false)
             Citizen.InvokeNative(0xE05190B11E73850F, false)
             Citizen.InvokeNative(0x5B53775A884C0F73, false)
+            Citizen.InvokeNative(0x4AD55A03FF264104, false) -- Oculta especificamente compass markers
+            Citizen.InvokeNative(0x1B86D49132E6A020, false) -- Remove o anel de direcoes
         else
             SetMinimapType(0) -- Oculta o minimapa completamente
         end
