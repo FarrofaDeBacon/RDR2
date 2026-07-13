@@ -42,6 +42,17 @@ CreateThread(function()
             SetFrontendActive(false)
         end
         
+        -- Fecha a UIApp nativa de mapa e pausa do RedM imediatamente caso tentem abrir
+        if Citizen.InvokeNative(0x25B7A0206BDFAC76, `map`) then
+            Citizen.InvokeNative(0x2FF10C9C3F92277E, `map`)
+        end
+        if Citizen.InvokeNative(0x25B7A0206BDFAC76, `pause_menu`) then
+            Citizen.InvokeNative(0x2FF10C9C3F92277E, `pause_menu`)
+        end
+        if Citizen.InvokeNative(0x25B7A0206BDFAC76, `map_menu`) then
+            Citizen.InvokeNative(0x2FF10C9C3F92277E, `map_menu`)
+        end
+        
         if IsDisabledControlJustReleased(0, 0xE31C6B06) or IsDisabledControlJustReleased(0, 0x3B3A5A2B) then
             if not isMapOpen then
                 SetMapActive(true)
