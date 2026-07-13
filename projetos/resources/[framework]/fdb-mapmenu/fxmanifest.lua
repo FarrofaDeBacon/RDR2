@@ -19,7 +19,7 @@ files {
     'html/index.html',
     'html/style.css',
     'html/script.js',
-    'html/rose.png' -- O mapa vetorial que sera exibido
+    'html/map.svg'
 }
 
 dependencies {
