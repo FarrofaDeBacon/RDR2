@@ -31,7 +31,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'ui/public/compass_hud.svg',
+    'ui/public/rose.png',
 }
 
 dependencies {
