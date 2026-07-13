@@ -1,5 +1,6 @@
 <script>
   import { compass } from '../../stores/hudStore.js'
+  import compassImg from '../../assets/hud_compass.png'
 </script>
 
 {#if $compass.visible}
@@ -11,7 +12,7 @@
     <!-- Rotaciona de forma contraria ao heading para manter o norte correto -->
     <div 
       class="compass-dial" 
-      style="transform: rotate(-{$compass.degrees}deg); background-image: url('images/hud_compass.png');"
+      style="transform: rotate(-{$compass.degrees}deg); background-image: url('{compassImg}');"
     ></div>
 
     <!-- Indicador de topo fixo (agulha/marcador) -->

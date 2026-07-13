@@ -31,7 +31,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'ui/public/images/hud_compass.png',
+    'ui/public/hud_compass.png',
 }
 
 dependencies {
