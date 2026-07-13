@@ -22,8 +22,11 @@ CreateThread(function()
         Wait(500)
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
             SetMinimapType(1) -- Ativa o minimapa circular
-            -- Oculta os pontos cardinais (N, S, E, W) e a bussola da borda do minimapa
+            -- Oculta todas as marcas cardinais (N, S, E, W), angulos e a bussola da borda do radar nativo
             Citizen.InvokeNative(0x7E16D1905E59013F, false)
+            Citizen.InvokeNative(0x9E2D87B40A5B4C98, false)
+            Citizen.InvokeNative(0xE05190B11E73850F, false)
+            Citizen.InvokeNative(0x5B53775A884C0F73, false)
         else
             SetMinimapType(0) -- Oculta o minimapa completamente
         end
