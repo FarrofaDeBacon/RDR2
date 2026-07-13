@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { compass } from '../../stores/hudStore.js'
-  import roseImg from '../../assets/rose.png'
+  import roseImg from '../../assets/rose.svg'
 
   // Referência do elemento DOM da imagem para atualizar diretamente o transform (60 FPS)
   let roseEl = null
