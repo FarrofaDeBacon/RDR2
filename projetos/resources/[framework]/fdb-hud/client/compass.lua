@@ -38,7 +38,7 @@ end)
 
 CreateThread(function()
     while true do
-        Wait(Config.UpdateInterval)
+        Wait(100)
         local canShow = isLoggedIn and Config.Elements.compass.enabled and hasCompassItem and isCompassEquipped
 
         if not canShow then

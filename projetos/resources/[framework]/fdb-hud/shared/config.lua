@@ -51,7 +51,7 @@ Config.MenuKey = 'F5'
 Config.DefaultLayout = {
     status  = { x = 0.02, y = 0.80 }, -- canto inferior esquerdo
     vehicle = { x = 0.78, y = 0.80 }, -- canto inferior direito
-    compass = { x = 0.35, y = 0.02 }, -- topo central
+    compass = { x = 0.35, y = 0.90 }, -- inferior central
     money   = { x = 0.78, y = 0.02 }, -- topo direito
 }
 
