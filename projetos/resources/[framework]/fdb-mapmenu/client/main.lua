@@ -30,13 +30,15 @@ CreateThread(function()
     while true do
         Wait(0)
         
-        -- Desativa o menu de mapa nativo e a tecla M (INPUT_FRONTEND_MAP e INPUT_MAP)
+        -- Desativa agressivamente o menu de mapa nativo e tecla M (INPUT_FRONTEND_MAP, INPUT_MAP e PAUSE)
         DisableControlAction(0, 0xE31C6B06, true) -- INPUT_FRONTEND_MAP
         DisableControlAction(0, 0x3B3A5A2B, true) -- INPUT_MAP
+        DisableControlAction(0, 0x4AD55A03FF264104, true) -- INPUT_PAUSE_MENU
+        DisableControlAction(0, 0xD2616428, true) -- INPUT_FRONTEND_PAUSE
+        DisableControlAction(0, 0x0FDF7156, true) -- INPUT_FRONTEND_PAUSE_ALTERNATE
         
-
-        -- Se o jogo por algum motivo abrir o menu de pausa nativo, força fechar
-        if IsPauseMenuActive() then
+        -- Se o menu de pausa nativo abrir, força o fechamento imediato no mesmo frame
+        if IsPauseMenuActive() or IsPauseMenuRestarting() then
             SetFrontendActive(false)
         end
         
