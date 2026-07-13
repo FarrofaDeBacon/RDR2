@@ -21,7 +21,7 @@ CreateThread(function()
     while true do
         Wait(500)
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
-            SetMinimapType(1) -- mapa circular, NUNCA modo 3 (bussola nativa)
+            SetMinimapType(0) -- mapa circular sem as direcoes cardinais na borda
         else
             SetMinimapType(0)
         end
