@@ -91,6 +91,7 @@
   // Início do Arraste
   function handleMouseDown(event) {
     if (event.button !== 0) return // Apenas botão esquerdo
+    event.preventDefault() // Impede comportamento padrão de arrasto de imagem / seleção
     isDragging = true
     startX = event.clientX - panX
     startY = event.clientY - panY
@@ -191,7 +192,7 @@
       <!-- Conteúdo do mapa com escala e translação aplicados -->
       <div class="map-content" style="transform: scale({zoom}) translate({panX / zoom}px, {panY / zoom}px);">
         <!-- Imagem de fundo do mapa -->
-        <img src={mapImg} class="map-image" alt="Mapa de Papel RDR2" />
+        <img src={mapImg} class="map-image" alt="Mapa de Papel RDR2" draggable="false" />
         
         <!-- Marcadores personalizados -->
         {#each $markers as marker}
@@ -288,6 +289,8 @@
     height: 100%;
     object-fit: cover;
     opacity: 0.9;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
   /* Caderno/Diário de Viagem Lateral */
