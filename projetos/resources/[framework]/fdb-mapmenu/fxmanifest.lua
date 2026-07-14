@@ -22,7 +22,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'ui/public/map.png' -- O mapa compilado do Vite
+    'ui/public/map.webp' -- O mapa compilado do Vite
 }
 
 dependencies {

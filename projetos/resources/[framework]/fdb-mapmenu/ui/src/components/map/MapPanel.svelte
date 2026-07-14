@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { visible, coords, markers } from '../../stores/mapStore.js'
-  import mapImg from '../../assets/map.png'
+  import mapImg from '../../assets/map.webp'
 
   // Limites de coordenadas do RedM mapeando as bordas do map.svg
   const MAP_LIMITS = {
