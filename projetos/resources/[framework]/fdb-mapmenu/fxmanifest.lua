@@ -8,10 +8,12 @@ version '1.0.0'
 ui_page 'ui/public/index.html'
 
 client_scripts {
+    '@ox_lib/init.lua',
     'client/main.lua'
 }
 
 server_scripts {
+    '@ox_lib/init.lua',
     '@oxmysql/lib/MySQL.lua',
     'server/main.lua'
 }
@@ -25,7 +27,8 @@ files {
 
 dependencies {
     'rsg-core',
-    'oxmysql'
+    'oxmysql',
+    'ox_lib'
 }
 
 lua54 'yes'

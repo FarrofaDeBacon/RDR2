@@ -4,10 +4,10 @@
 
   // NUI message handler
   window.addEventListener('message', (e) => {
-    const { action, coords } = e.data ?? {}
+    const { action, coords, markers } = e.data ?? {}
     switch (action) {
       case 'openMap':
-        mapStore.open(coords)
+        mapStore.open(coords, markers)
         break
       case 'closeMap':
         mapStore.close()

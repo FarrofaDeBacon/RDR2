@@ -111,20 +111,11 @@ end
 RSGCore.Functions.CreateUseableItem('map', function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return end
-    local cid = Player.PlayerData.citizenid
     
-    equipped[cid] = equipped[cid] or { map = false, compass = false }
-    
-    -- Só permite equipar se possuir o item válido
     local hasMap = HasValidItem(Player, 'map')
-    if not hasMap then
-        equipped[cid].map = false
-        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = false })
-        return
+    if hasMap then
+        TriggerClientEvent('fdb-mapmenu:client:openMap', source)
     end
-
-    equipped[cid].map = not equipped[cid].map
-    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = equipped[cid].map })
 end)
 
 RSGCore.Functions.CreateUseableItem('compass', function(source, item)
