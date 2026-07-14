@@ -170,6 +170,9 @@
     }).catch(() => {})
   }
 
+  // Evita cache persistente do CEF do RedM para arquivos grandes como o SVG do mapa
+  const CACHE_BUSTER = "?v=" + Math.random().toString(36).substring(7)
+
   // Atributos de estilo do marcador do jogador
   let playerPos = { x: 50, y: 50 }
   
@@ -192,7 +195,7 @@
       <!-- Conteúdo do mapa com escala e translação aplicados -->
       <div class="map-content" style="transform: scale({zoom}) translate({panX / zoom}px, {panY / zoom}px);">
         <!-- Imagem de fundo do mapa -->
-        <img src={mapImg} class="map-image" alt="Mapa de Papel RDR2" draggable="false" />
+        <img src={mapImg + CACHE_BUSTER} class="map-image" alt="Mapa de Papel RDR2" draggable="false" />
         
         <!-- Marcadores personalizados -->
         {#each $markers as marker}
