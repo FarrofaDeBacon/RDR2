@@ -64,14 +64,17 @@
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('wheel', handleWheel, { passive: false })
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('wheel', handleWheel)
   })
 
   // Wheel Zoom
   function handleWheel(event) {
+    if (!$visible) return
     event.preventDefault()
     const zoomFactor = 0.15
     if (event.deltaY < 0) {
@@ -182,8 +185,7 @@
          on:mousedown={handleMouseDown}
          on:mousemove={handleMouseMove}
          on:mouseup={handleMouseUp}
-         on:mouseleave={handleMouseUp}
-         on:wheel={handleWheel}>
+         on:mouseleave={handleMouseUp}>
       
       <!-- Conteúdo do mapa com escala e translação aplicados -->
       <div class="map-content" style="transform: scale({zoom}) translate({panX / zoom}px, {panY / zoom}px);">
