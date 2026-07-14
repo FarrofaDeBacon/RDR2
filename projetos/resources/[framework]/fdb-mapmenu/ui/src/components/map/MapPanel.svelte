@@ -94,6 +94,8 @@
     isDragging = true
     startX = event.clientX - panX
     startY = event.clientY - panY
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
   }
 
   // Movimento de Arraste
@@ -106,6 +108,8 @@
   // Fim do Arraste
   function handleMouseUp() {
     isDragging = false
+    window.removeEventListener('mousemove', handleMouseMove)
+    window.removeEventListener('mouseup', handleMouseUp)
   }
 
   // Trata clique no mapa para adicionar marcador
@@ -176,16 +180,13 @@
 
 {#if $visible}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="map-container" on:click|self={closeMap}>
+  <div class="map-container" class:dragging={isDragging} on:click|self={closeMap}>
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="map-wrapper" 
          bind:clientWidth={wrapperWidth}
          bind:clientHeight={wrapperHeight}
          on:click={handleMapClick}
-         on:mousedown={handleMouseDown}
-         on:mousemove={handleMouseMove}
-         on:mouseup={handleMouseUp}
-         on:mouseleave={handleMouseUp}>
+         on:mousedown={handleMouseDown}>
       
       <!-- Conteúdo do mapa com escala e translação aplicados -->
       <div class="map-content" style="transform: scale({zoom}) translate({panX / zoom}px, {panY / zoom}px);">
@@ -250,6 +251,16 @@
     z-index: 99999;
   }
 
+  /* Estado arrastando força cursor de mão fechada */
+  .map-container.dragging {
+    cursor: grabbing !important;
+    user-select: none;
+  }
+
+  .map-container.dragging .map-wrapper {
+    cursor: grabbing !important;
+  }
+
   /* Novo layout retangular ocupando quase toda a tela lateralmente */
   .map-wrapper {
     position: relative;
@@ -261,10 +272,6 @@
     overflow: hidden;
     border-radius: 4px;
     cursor: grab;
-  }
-
-  .map-wrapper:active {
-    cursor: grabbing;
   }
 
   .map-content {
