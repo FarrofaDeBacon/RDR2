@@ -16,6 +16,9 @@ server_scripts {
     'server/main.lua'
 }
 
+files {
+}
+
 dependencies {
     'rsg-core',
     'oxmysql',
