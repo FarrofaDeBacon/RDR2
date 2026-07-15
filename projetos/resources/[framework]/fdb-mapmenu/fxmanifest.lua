@@ -22,7 +22,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'tiles/**/*.webp'
+    'tiles/**/*.webp' -- Declara a pasta de tiles WebP recursiva para carregamento local
 }
 
 dependencies {

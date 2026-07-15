@@ -4,53 +4,43 @@
   import L from 'leaflet'
   import 'leaflet/dist/leaflet.css'
 
-  // Limites de coordenadas do MUNDO do jogo (RDR2 World Limits)
-  // Calibrados usando as posições de Valentine e Saint Denis na escala 8192x6400
+  // Limites de coordenadas do RedM mapeando as bordas do mapa fatiado
   const MAP_LIMITS = {
-    minX: -3615.89,
-    maxX: 3994.8,
-    minY: -3759.2,
-    maxY: 4553.1
+    minX: -6000,
+    maxX: 6000,
+    minY: -6000,
+    maxY: 6000
   }
 
-  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1, base 8192x6400 com Y negativo)
-  // Usar Y negativo [[-6400, 0], [0, 8192]] garante que a origem dos tiles do Leaflet (topo-esquerdo)
-  // coincida corretamente com o grid de carregamento do CRS.Simple, evitando tela preta (404 nos tiles).
-  const bounds = [[-6400, 0], [0, 8192]]
+  let map;
+  let playerMarker;
+  let markersLayer;
+  let mapElement;
+  let isMapInitialized = false;
 
-  let mapContainer
-  let leafletMap
-  let playerMarker
-  let leafletCustomMarkers = []
-
-  // Estados para o Modal customizado de Marcador (CEF-safe, HTML puro)
-  let showMarkerModal = false
-  let pendingCoords = null
-  let newMarkerLabel = ""
-
-  // Converte coordenadas do RedM (Vector3) para LatLng do Leaflet
-  function gameToLatLng(x, y) {
+  // Converte coordenadas mundo -> imagem (%)
+  function worldToImage(worldX, worldY) {
     const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
-    // Eixo X (Longitude) -> Mapeia [minX, maxX] para [0, 8192]
-    const lng = ((x - MAP_LIMITS.minX) / rangeX) * 8192
+    const pctX = ((worldX - MAP_LIMITS.minX) / rangeX) * 100
+    const pctY = (1 - (worldY - MAP_LIMITS.minY) / rangeY) * 100
     
-    // Eixo Y (Latitude) -> Mapeia [minY, maxY] para [-6400, 0] (Invertido no CRS.Simple)
-    const lat = ((y - MAP_LIMITS.maxY) / rangeY) * -6400
-    
-    return L.latLng(lat, lng)
+    return {
+      x: Math.max(0, Math.min(100, pctX)),
+      y: Math.max(0, Math.min(100, pctY))
+    }
   }
 
-  // Converte LatLng do Leaflet de volta para coordenadas do RedM
-  function latLngToGame(latlng) {
+  // Converte coordenadas imagem (%) -> mundo
+  function imageToWorld(pctX, pctY) {
     const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
-    const x = (latlng.lng / 8192) * rangeX + MAP_LIMITS.minX
-    const y = (latlng.lat / -6400) * rangeY + MAP_LIMITS.maxY
+    const worldX = (pctX / 100) * rangeX + MAP_LIMITS.minX
+    const worldY = (1 - (pctY / 100)) * rangeY + MAP_LIMITS.minY
     
-    return { x: x, y: y }
+    return { x: worldX, y: worldY }
   }
 
   // Notifica o client para fechar
@@ -65,122 +55,114 @@
   // Teclas de fechar
   function handleKeyDown(event) {
     if (event.key === 'Escape' || event.key === 'Backspace') {
-      if (showMarkerModal) {
-        cancelMarker()
-      } else {
-        closeMap()
-      }
+      closeMap()
     }
   }
 
   onMount(() => {
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown);
 
-    // Inicializa o mapa com Leaflet
-    leafletMap = L.map(mapContainer, {
+    // Inicializa o Leaflet com L.CRS.Simple para mapa plano
+    map = L.map(mapElement, {
       crs: L.CRS.Simple,
-      minZoom: 0,
+      minZoom: 1,
       maxZoom: 5,
-      zoomControl: true,
-      attributionControl: false,
-      maxBounds: bounds,
-      maxBoundsViscosity: 0.8
-    })
+      zoomControl: false,
+      attributionControl: false
+    });
 
-    // Adiciona o tileset local de WebP (carregando a partir da raiz do recurso)
-    L.tileLayer('../../tiles/{z}/{x}/{y}.webp', {
-      tileSize: 256,
+    // Limites de coordenadas simples [lat, lng] correspondendo a [0, 0] a [-100, 100]
+    const bounds = [[0, 0], [-100, 100]];
+
+    // Carrega os tiles locais WebP
+    L.tileLayer('https://cfx-nui-fdb-mapmenu/tiles/{z}/{x}/{y}.webp', {
+      minZoom: 1,
+      maxZoom: 5,
       noWrap: true,
       bounds: bounds
-    }).addTo(leafletMap)
+    }).addTo(map);
 
-    // Evento de clique para abrir modal de marcador
-    leafletMap.on('click', (e) => {
-      pendingCoords = latLngToGame(e.latlng)
-      newMarkerLabel = ""
-      showMarkerModal = true
-    })
-  })
+    // Centro inicial do mapa
+    map.setView([-50, 50], 2);
+
+    // Ícone e marcador do jogador
+    const playerIcon = L.divIcon({
+      className: 'player-marker-leaflet',
+      html: '<div class="pin"></div><div class="pulse"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+    playerMarker = L.marker([-50, 50], { icon: playerIcon }).addTo(map);
+
+    // Camada para os marcadores customizados do diário
+    markersLayer = L.layerGroup().addTo(map);
+
+    // Escuta cliques no mapa para adicionar novos marcadores
+    map.on('click', (e) => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      
+      const pctX = lng;
+      const pctY = -lat;
+
+      // Restringe cliques fora das bordas lógicas do mapa fatiado
+      if (pctX < 0 || pctX > 100 || pctY < 0 || pctY > 100) return;
+
+      const worldCoords = imageToWorld(pctX, pctY);
+      
+      const label = prompt("Nome do Marcador:", "Marcador");
+      if (!label || label.trim() === "") return;
+
+      fetch('https://fdb-mapmenu/addMarker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          x: worldCoords.x,
+          y: worldCoords.y,
+          label: label
+        })
+      }).then(() => {
+        markers.update(m => [...m, { x: worldCoords.x, y: worldCoords.y, label: label }]);
+      }).catch(() => {});
+    });
+
+    isMapInitialized = true;
+  });
 
   onDestroy(() => {
-    window.removeEventListener('keydown', handleKeyDown)
-    if (leafletMap) {
-      leafletMap.remove()
+    window.removeEventListener('keydown', handleKeyDown);
+    if (map) {
+      map.remove();
     }
-  })
+  });
 
-  // Confirmação de novo marcador pelo modal
-  function confirmMarker() {
-    if (!newMarkerLabel || newMarkerLabel.trim() === "") return
-    const label = newMarkerLabel.trim()
+  // Reage a mudanças de coordenadas do jogador
+  $: if (isMapInitialized && $visible && $coords) {
+    const pct = worldToImage($coords.x, $coords.y);
+    playerMarker.setLatLng([-pct.y, pct.x]);
     
-    fetch('https://fdb-mapmenu/addMarker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        x: pendingCoords.x,
-        y: pendingCoords.y,
-        label: label
-      })
-    }).then(() => {
-      markers.update(m => [...m, { x: pendingCoords.x, y: pendingCoords.y, label: label }])
-      showMarkerModal = false
-      pendingCoords = null
-    }).catch(() => {})
-  }
-
-  // Cancelamento do modal
-  function cancelMarker() {
-    showMarkerModal = false
-    pendingCoords = null
-  }
-
-  // Reage à mudança de visibilidade para recalcular tamanho e focar
-  $: if ($visible && leafletMap) {
+    // Pan no jogador ao abrir e corrige tamanho
     setTimeout(() => {
-      leafletMap.invalidateSize()
-      if ($coords) {
-        leafletMap.setView(gameToLatLng($coords.x, $coords.y), 3)
-      } else {
-        leafletMap.setView([-3200, 4096], 1)
+      if (map) {
+        map.invalidateSize();
+        map.panTo([-pct.y, pct.x]);
       }
-    }, 50)
+    }, 50);
   }
 
-  // Sincroniza o marcador do jogador
-  $: if (leafletMap && $coords) {
-    const latlng = gameToLatLng($coords.x, $coords.y)
-    if (!playerMarker) {
-      const playerIcon = L.divIcon({
-        className: 'custom-player-icon',
-        html: '<div class="player-marker"><div class="pin"></div><div class="pulse"></div></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      })
-      playerMarker = L.marker(latlng, { icon: playerIcon }).addTo(leafletMap)
-    } else {
-      playerMarker.setLatLng(latlng)
-    }
-  }
-
-  // Sincroniza os marcadores salvos
-  $: if (leafletMap && $markers) {
-    // Limpa os blips anteriores
-    leafletCustomMarkers.forEach(m => m.remove())
-    leafletCustomMarkers = []
-
-    // Adiciona os blips ativos
-    $markers.forEach((marker, index) => {
-      const latlng = gameToLatLng(marker.x, marker.y)
-      const customIcon = L.divIcon({
-        className: 'custom-pin-icon',
-        html: `<div class="custom-marker"><div class="marker-pin"></div><span class="marker-label">${marker.label}</span></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
-      })
-      const mapMarker = L.marker(latlng, { icon: customIcon }).addTo(leafletMap)
-      leafletCustomMarkers.push(mapMarker)
-    })
+  // Reage a mudanças de marcadores customizados
+  $: if (isMapInitialized && $markers) {
+    markersLayer.clearLayers();
+    $markers.forEach((marker) => {
+      const pct = worldToImage(marker.x, marker.y);
+      const markerIcon = L.divIcon({
+        className: 'custom-marker-leaflet',
+        html: '<div class="marker-pin"></div><span class="marker-label">' + marker.label + '</span>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+      L.marker([-pct.y, pct.x], { icon: markerIcon }).addTo(markersLayer);
+    });
   }
 
   // Remove um marcador
@@ -197,37 +179,15 @@
       })
     }).catch(() => {})
   }
-
-  // Foca a câmera do mapa em um marcador específico
-  function focusMarker(marker) {
-    if (leafletMap) {
-      leafletMap.setView(gameToLatLng(marker.x, marker.y), 4)
-    }
-  }
 </script>
 
-<div class="map-container" class:visible={$visible} on:click|self={closeMap}>
-  <div class="map-wrapper" bind:this={mapContainer}></div>
-
-  <!-- Modal customizado para adicionar marcador (HTML, CEF-safe) -->
-  {#if showMarkerModal}
-    <div class="modal-overlay" on:click|self={cancelMarker}>
-      <div class="marker-modal">
-        <h3>Criar Marcador</h3>
-        <input 
-          type="text" 
-          bind:value={newMarkerLabel} 
-          placeholder="Nome do local..." 
-          autofocus 
-          on:keydown={(e) => e.key === 'Enter' && confirmMarker()} 
-        />
-        <div class="modal-actions">
-          <button class="modal-btn confirm" on:click={confirmMarker}>Confirmar</button>
-          <button class="modal-btn cancel" on:click={cancelMarker}>Cancelar</button>
-        </div>
-      </div>
-    </div>
-  {/if}
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="map-container" class:hidden={!$visible} on:click|self={closeMap}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="map-wrapper">
+    <!-- Div alvo do Leaflet -->
+    <div id="leaflet-map" bind:this={mapElement}></div>
+  </div>
 
   <!-- Caderno/Diário Lateral de Viagem (Escrita à mão) -->
   <div class="journal-sidebar">
@@ -235,8 +195,7 @@
     <div class="markers-list">
       {#each $markers as marker, index}
         <div class="marker-item">
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <span class="marker-text" on:click={() => focusMarker(marker)}>📍 {marker.label}</span>
+          <span class="marker-text">📍 {marker.label}</span>
           <button class="delete-btn" on:click={() => removeMarker(index)}>remover</button>
         </div>
       {:else}
@@ -244,7 +203,7 @@
       {/each}
     </div>
     <div class="journal-hint">
-      Use o scroll do mouse para Zoom e arraste para navegar.
+      Use o arraste para mover e o scroll para zoom.
     </div>
   </div>
   
@@ -257,28 +216,6 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Cinzel:wght@400;700&display=swap');
 
-  /* Leaflet reset and containers */
-  :global(.leaflet-container) {
-    background: #0e0a07 !important;
-    outline: 0;
-  }
-
-  /* Sobrescreve botões de zoom do Leaflet para combinarem com o tema vintage */
-  :global(.leaflet-bar) {
-    border: 2px solid #b89047 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
-  }
-  :global(.leaflet-bar a) {
-    background-color: #1a120b !important;
-    color: #e5c185 !important;
-    border-bottom: 1px solid #6b512c !important;
-    transition: background 0.2s;
-  }
-  :global(.leaflet-bar a:hover) {
-    background-color: #2c1e12 !important;
-    color: #fff !important;
-  }
-
   .map-container {
     position: fixed;
     top: 0;
@@ -286,17 +223,16 @@
     width: 100vw;
     height: 100vh;
     background: rgba(0, 0, 0, 0.82);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 99999;
   }
 
-  .map-container.visible {
-    display: flex;
+  .map-container.hidden {
+    display: none !important;
   }
 
-  /* Novo layout retangular ocupando quase toda a tela lateralmente */
   .map-wrapper {
     position: relative;
     width: 68vw;
@@ -304,95 +240,80 @@
     border: 5px solid #b89047;
     background: #0e0a07;
     box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+    overflow: hidden;
     border-radius: 4px;
-    z-index: 10;
   }
 
-  /* Modal Styles */
-  .modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999999;
-  }
-
-  .marker-modal {
-    background: #e9dec4;
-    border: 3px solid #6b512c;
-    border-radius: 6px;
-    padding: 24px;
-    width: 320px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    font-family: 'Architects Daughter', cursive;
-    color: #3b2c15;
-    text-align: center;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.05) 100%);
-  }
-
-  .marker-modal h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-family: 'Cinzel', serif;
-    font-size: 1.4rem;
-    color: #6b512c;
-  }
-
-  .marker-modal input {
+  #leaflet-map {
     width: 100%;
-    padding: 10px;
-    border: 2px solid #8c7355;
-    border-radius: 4px;
-    background: #fbf8f0;
+    height: 100%;
+    background: #0e0a07;
+  }
+
+  /* Customizando a mão do Leaflet no mapa */
+  :global(.leaflet-grab) {
+    cursor: grab !important;
+  }
+  :global(.leaflet-dragging .leaflet-grab) {
+    cursor: grabbing !important;
+  }
+
+  /* Estilos do Marcador do Jogador no Leaflet */
+  :global(.player-marker-leaflet) {
+    position: relative;
+  }
+  :global(.player-marker-leaflet .pin) {
+    width: 12px;
+    height: 12px;
+    background-color: #ef4444;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  :global(.player-marker-leaflet .pulse) {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ef4444;
+    border-radius: 50%;
+    animation: marker-pulse 1.8s infinite ease-out;
+    opacity: 0;
+  }
+
+  @keyframes marker-pulse {
+    0% { transform: scale(0.6); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  /* Marcadores Customizados no Leaflet */
+  :global(.custom-marker-leaflet) {
+    position: relative;
+  }
+  :global(.custom-marker-leaflet .marker-pin) {
+    width: 10px;
+    height: 10px;
+    background-color: #5c3f15;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  :global(.custom-marker-leaflet .marker-label) {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(14, 10, 7, 0.85);
+    color: #e5c185;
     font-family: 'Architects Daughter', cursive;
-    font-size: 1.1rem;
-    color: #3b2c15;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-    outline: none;
-  }
-
-  .marker-modal input:focus {
-    border-color: #b89047;
-  }
-
-  .modal-actions {
-    display: flex;
-    justify-content: space-around;
-  }
-
-  .modal-btn {
-    padding: 8px 16px;
-    font-family: 'Architects Daughter', cursive;
-    font-size: 1.1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    border: 2px solid #6b512c;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .modal-btn.confirm {
-    background: #6b512c;
-    color: #e9dec4;
-  }
-
-  .modal-btn.confirm:hover {
-    background: #5c3f15;
-  }
-
-  .modal-btn.cancel {
-    background: transparent;
-    color: #8a3324;
-    border-color: #8a3324;
-  }
-
-  .modal-btn.cancel:hover {
-    background: rgba(138, 51, 36, 0.1);
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #b89047;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    pointer-events: none;
   }
 
   /* Caderno/Diário de Viagem Lateral */
@@ -410,7 +331,6 @@
     font-family: 'Architects Daughter', cursive;
     color: #3b2c15;
     background-image: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.05) 100%);
-    z-index: 20;
   }
 
   .journal-title {
@@ -452,11 +372,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
-    transition: color 0.15s;
-  }
-  .marker-text:hover {
-    color: #8c7355;
   }
 
   .delete-btn {
@@ -490,71 +405,6 @@
     text-align: center;
   }
 
-  /* Marcadores personalizados */
-  .custom-marker {
-    position: relative;
-    width: 12px;
-    height: 12px;
-  }
-
-  .marker-pin {
-    width: 8px;
-    height: 8px;
-    background: #5c3f15;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  }
-
-  .marker-label {
-    position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(14, 10, 7, 0.85);
-    color: #e5c185;
-    font-family: 'Architects Daughter', cursive;
-    font-size: 0.8rem;
-    padding: 2px 6px;
-    border-radius: 3px;
-    white-space: nowrap;
-    border: 1px solid #b89047;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  }
-
-  /* Marcador do jogador */
-  .player-marker {
-    position: relative;
-    width: 16px;
-    height: 16px;
-  }
-
-  .pin {
-    width: 10px;
-    height: 10px;
-    background: #ef4444;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .pulse {
-    position: absolute;
-    top: -4px;
-    left: -4px;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #ef4444;
-    border-radius: 50%;
-    animation: pulse 1.8s infinite ease-out;
-    opacity: 0;
-  }
-
-  @keyframes pulse {
-    0% { transform: scale(0.6); opacity: 0.8; }
-    100% { transform: scale(2.2); opacity: 0; }
-  }
-
   /* Dica de tecla */
   .legend-box {
     position: absolute;
@@ -568,6 +418,5 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     pointer-events: none;
     font-family: 'Cinzel', serif;
-    z-index: 30;
   }
 </style>
