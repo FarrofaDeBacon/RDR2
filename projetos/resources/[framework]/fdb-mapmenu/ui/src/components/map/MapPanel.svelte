@@ -296,6 +296,17 @@
     background: #d4c5a9;
   }
 
+  /* Remove linhas brancas de sub-pixel entre as fatias do mapa no Chrome/CEF */
+  :global(.leaflet-tile) {
+    margin: -0.5px;
+    outline: 1px solid transparent;
+  }
+
+  /* Envelhece e melhora a tonalidade de pergaminho antigo do mapa */
+  :global(.leaflet-tile-pane) {
+    filter: sepia(35%) contrast(105%) brightness(93%) saturate(85%);
+  }
+
   /* Customizando a mão do Leaflet no mapa */
   :global(.leaflet-grab) {
     cursor: grab !important;
