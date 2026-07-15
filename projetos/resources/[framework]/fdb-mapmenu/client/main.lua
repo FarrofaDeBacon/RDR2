@@ -78,6 +78,15 @@ CreateThread(function()
 
         if isMapOpen then
             DisableControlAction(0, 0x3C0A40F2, true) -- ESC pra fechar
+            
+            -- Desativa o controle de rotação de câmera do mouse do jogo para evitar roubo de foco do drag no NUI
+            DisableControlAction(0, 0x3900BA13, true) -- INPUT_LOOK_LR (Olhar Lados)
+            DisableControlAction(0, 0x0877C683, true) -- INPUT_LOOK_UD (Olhar Cima/Baixo)
+            
+            -- Desativa o scroll de trocar de arma do jogo para liberar o wheel zoom no CEF
+            DisableControlAction(0, 0xCC14EB5C, true) -- INPUT_WEAPON_WHEEL_NEXT
+            DisableControlAction(0, 0x307E4424, true) -- INPUT_WEAPON_WHEEL_PREV
+
             if IsDisabledControlJustReleased(0, 0x3C0A40F2) then
                 SetMapActive(false)
             end
