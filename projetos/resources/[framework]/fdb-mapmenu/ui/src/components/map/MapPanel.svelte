@@ -5,17 +5,12 @@
   import 'leaflet/dist/leaflet.css'
 
   // Limites de coordenadas do MUNDO do jogo (RDR2 World Limits)
-  // Calibração pendente: ajustar minX, maxX, minY, maxY com coordenadas reais de Valentine/Saint Denis
-  // Fórmula:
-  // scaleX = (pixelX2 - pixelX1) / (worldX2 - worldX1)
-  // minX = worldX1 - (pixelX1 / scaleX)
-  // maxX = minX + (8192 / scaleX)
-  // (Fazer o mesmo para Y usando a altura de 6400)
+  // Calibrados usando as posições de Valentine e Saint Denis na escala 8192x6400
   const MAP_LIMITS = {
-    minX: -6000,
-    maxX: 6000,
-    minY: -6000,
-    maxY: 6000
+    minX: -3615.89,
+    maxX: 3994.8,
+    minY: -3759.2,
+    maxY: 4553.1
   }
 
   // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1, base 8192x6400)
