@@ -5,7 +5,7 @@ game 'rdr3'
 description 'fdb-mapmenu'
 version '1.0.0'
 
-ui_page 'ui/public/index.html'
+ui_page 'ui/public/index.html?v=5'
 
 client_scripts {
     '@ox_lib/init.lua',
