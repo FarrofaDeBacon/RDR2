@@ -80,8 +80,7 @@
     L.tileLayer('https://cfx-nui-fdb-mapmenu/tiles/{z}/{x}/{y}.webp', {
       minZoom: 2,
       maxZoom: 6,
-      noWrap: true,
-      bounds: bounds
+      noWrap: true
     }).addTo(map);
 
     // Centro inicial do mapa

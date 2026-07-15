@@ -22,7 +22,13 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'tiles/**/*.webp' -- Declara a pasta de tiles WebP recursiva para carregamento local
+    -- Declaração explícita por nível de zoom para garantir empacotamento completo de subpastas profundas no RedM
+    'tiles/0/**/*.webp',
+    'tiles/1/**/*.webp',
+    'tiles/2/**/*.webp',
+    'tiles/3/**/*.webp',
+    'tiles/4/**/*.webp',
+    'tiles/5/**/*.webp'
 }
 
 dependencies {
