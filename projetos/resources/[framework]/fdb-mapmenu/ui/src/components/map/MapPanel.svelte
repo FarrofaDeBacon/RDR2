@@ -290,6 +290,28 @@
     border-radius: 4px;
   }
 
+  /* Camada de envelhecimento: Vinheta rústica, manchas de sujeira de época e dobras de papel simuladas */
+  .map-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Cliques passam direto para o Leaflet */
+    z-index: 999; /* Acima dos tiles do mapa */
+    box-shadow: inset 0 0 100px rgba(45, 28, 10, 0.75); /* Vinheta marrom/queimada nas bordas */
+    background: 
+      /* Dobras envelhecidas (horizontal e vertical no centro) */
+      linear-gradient(to bottom, transparent 49.7%, rgba(45,28,10,0.2) 50%, rgba(255,255,255,0.08) 50.3%, transparent 51%),
+      linear-gradient(to right, transparent 49.7%, rgba(45,28,10,0.2) 50%, rgba(255,255,255,0.08) 50.3%, transparent 51%),
+      /* Manchas de terra e desgaste */
+      radial-gradient(circle at 15% 25%, rgba(90, 60, 25, 0.22) 0%, transparent 35%),
+      radial-gradient(circle at 85% 75%, rgba(90, 60, 25, 0.18) 0%, transparent 40%),
+      radial-gradient(circle at 45% 85%, rgba(70, 45, 20, 0.15) 0%, transparent 30%);
+    mix-blend-mode: multiply; /* Mescla as cores perfeitamente com os tiles do mapa */
+  }
+
   #leaflet-map {
     width: 100%;
     height: 100%;
@@ -304,7 +326,7 @@
 
   /* Envelhece e melhora a tonalidade de pergaminho antigo do mapa */
   :global(.leaflet-tile-pane) {
-    filter: sepia(35%) contrast(105%) brightness(93%) saturate(85%);
+    filter: sepia(65%) contrast(110%) brightness(90%) saturate(75%);
   }
 
   /* Customizando a mão do Leaflet no mapa */
