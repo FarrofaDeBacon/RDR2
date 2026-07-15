@@ -3,8 +3,8 @@ local mapProp = nil
 
 -- Configurações de Animação e Props
 local MAP_PROP_MODEL = `p_map01x`
-local MAP_ANIM_DICT = "script@mech@treasure_map"
-local MAP_ANIM_OPEN = "open"
+local MAP_ANIM_DICT = "script_re@player_item@tablet@land_use"
+local MAP_ANIM_OPEN = "player_read"
 local MAP_BONE = 57005 -- SKEL_R_Hand
 
 -- Helper para carregar AnimDicts
