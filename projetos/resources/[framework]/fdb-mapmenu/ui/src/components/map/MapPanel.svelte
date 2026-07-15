@@ -12,13 +12,18 @@
     maxY: 6000
   }
 
-  // Definição dos limites em pixels no Leaflet CRS.Simple (zoom 0 = 256x256)
-  const bounds = [[-256, 0], [0, 256]]
+  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1)
+  const bounds = [[-199.22, 0], [0, 256]]
 
   let mapContainer
   let leafletMap
   let playerMarker
   let leafletCustomMarkers = []
+
+  // Estados para o Modal customizado de Marcador (CEF-safe)
+  let showMarkerModal = false
+  let pendingCoords = null
+  let newMarkerLabel = ""
 
   // Converte coordenadas do RedM (Vector3) para LatLng do Leaflet
   function gameToLatLng(x, y) {
@@ -28,8 +33,8 @@
     // Eixo X (Longitude) -> Mapeia [-6000, 6000] para [0, 256]
     const lng = ((x - MAP_LIMITS.minX) / rangeX) * 256
     
-    // Eixo Y (Latitude) -> Mapeia [-6000, 6000] para [-256, 0] (Invertido)
-    const lat = ((y - MAP_LIMITS.maxY) / rangeY) * -256
+    // Eixo Y (Latitude) -> Mapeia [-6000, 6000] para [-199.22, 0] (Invertido)
+    const lat = ((y - MAP_LIMITS.maxY) / rangeY) * -199.22
     
     return L.latLng(lat, lng)
   }
@@ -40,7 +45,7 @@
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
     const x = (latlng.lng / 256) * rangeX + MAP_LIMITS.minX
-    const y = (latlng.lat / -256) * rangeY + MAP_LIMITS.maxY
+    const y = (latlng.lat / -199.22) * rangeY + MAP_LIMITS.maxY
     
     return { x: x, y: y }
   }
@@ -57,7 +62,11 @@
   // Teclas de fechar
   function handleKeyDown(event) {
     if (event.key === 'Escape' || event.key === 'Backspace') {
-      closeMap()
+      if (showMarkerModal) {
+        cancelMarker()
+      } else {
+        closeMap()
+      }
     }
   }
 
@@ -72,7 +81,7 @@
       zoomControl: true,
       attributionControl: false,
       maxBounds: bounds,
-      maxBoundsViscosity: 1.0
+      maxBoundsViscosity: 0.8
     })
 
     // Adiciona o tileset local de WebP
@@ -82,24 +91,11 @@
       bounds: bounds
     }).addTo(leafletMap)
 
-    // Evento de clique para adicionar marcador personalizado
+    // Evento de clique para abrir modal de marcador
     leafletMap.on('click', (e) => {
-      const worldCoords = latLngToGame(e.latlng)
-      
-      const label = prompt("Nome do Marcador:", "Marcador")
-      if (!label || label.trim() === "") return
-      
-      fetch('https://fdb-mapmenu/addMarker', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          x: worldCoords.x,
-          y: worldCoords.y,
-          label: label.trim()
-        })
-      }).then(() => {
-        markers.update(m => [...m, { x: worldCoords.x, y: worldCoords.y, label: label.trim() }])
-      }).catch(() => {})
+      pendingCoords = latLngToGame(e.latlng)
+      newMarkerLabel = ""
+      showMarkerModal = true
     })
   })
 
@@ -110,6 +106,32 @@
     }
   })
 
+  // Confirmação de novo marcador pelo modal
+  function confirmMarker() {
+    if (!newMarkerLabel || newMarkerLabel.trim() === "") return
+    const label = newMarkerLabel.trim()
+    
+    fetch('https://fdb-mapmenu/addMarker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        x: pendingCoords.x,
+        y: pendingCoords.y,
+        label: label
+      })
+    }).then(() => {
+      markers.update(m => [...m, { x: pendingCoords.x, y: pendingCoords.y, label: label }])
+      showMarkerModal = false
+      pendingCoords = null
+    }).catch(() => {})
+  }
+
+  // Cancelamento do modal
+  function cancelMarker() {
+    showMarkerModal = false
+    pendingCoords = null
+  }
+
   // Reage à mudança de visibilidade para recalcular tamanho e focar
   $: if ($visible && leafletMap) {
     setTimeout(() => {
@@ -117,7 +139,7 @@
       if ($coords) {
         leafletMap.setView(gameToLatLng($coords.x, $coords.y), 3)
       } else {
-        leafletMap.setView([-128, 128], 1)
+        leafletMap.setView([-99.61, 128], 1)
       }
     }, 50)
   }
@@ -183,6 +205,26 @@
 
 <div class="map-container" class:visible={$visible} on:click|self={closeMap}>
   <div class="map-wrapper" bind:this={mapContainer}></div>
+
+  <!-- Modal customizado para adicionar marcador (HTML, CEF-safe) -->
+  {#if showMarkerModal}
+    <div class="modal-overlay" on:click|self={cancelMarker}>
+      <div class="marker-modal">
+        <h3>Criar Marcador</h3>
+        <input 
+          type="text" 
+          bind:value={newMarkerLabel} 
+          placeholder="Nome do local..." 
+          autofocus 
+          on:keydown={(e) => e.key === 'Enter' && confirmMarker()} 
+        />
+        <div class="modal-actions">
+          <button class="modal-btn confirm" on:click={confirmMarker}>Confirmar</button>
+          <button class="modal-btn cancel" on:click={cancelMarker}>Cancelar</button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- Caderno/Diário Lateral de Viagem (Escrita à mão) -->
   <div class="journal-sidebar">
@@ -261,6 +303,93 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.9);
     border-radius: 4px;
     z-index: 10;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+  }
+
+  .marker-modal {
+    background: #e9dec4;
+    border: 3px solid #6b512c;
+    border-radius: 6px;
+    padding: 24px;
+    width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    font-family: 'Architects Daughter', cursive;
+    color: #3b2c15;
+    text-align: center;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.05) 100%);
+  }
+
+  .marker-modal h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: #6b512c;
+  }
+
+  .marker-modal input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #8c7355;
+    border-radius: 4px;
+    background: #fbf8f0;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 1.1rem;
+    color: #3b2c15;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    outline: none;
+  }
+
+  .marker-modal input:focus {
+    border-color: #b89047;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .modal-btn {
+    padding: 8px 16px;
+    font-family: 'Architects Daughter', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 2px solid #6b512c;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .modal-btn.confirm {
+    background: #6b512c;
+    color: #e9dec4;
+  }
+
+  .modal-btn.confirm:hover {
+    background: #5c3f15;
+  }
+
+  .modal-btn.cancel {
+    background: transparent;
+    color: #8a3324;
+    border-color: #8a3324;
+  }
+
+  .modal-btn.cancel:hover {
+    background: rgba(138, 51, 36, 0.1);
   }
 
   /* Caderno/Diário de Viagem Lateral */
