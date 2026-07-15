@@ -145,3 +145,40 @@ RegisterCommand("testmapprops", function()
     print("--- FIM DO TESTE ---")
 end, false)
 
+-- Comando de Teste de AnimDicts no F8
+RegisterCommand("testmapanims", function()
+    local testDicts = {
+        "script_re@player_item@tablet@land_use",
+        "script_re@player_item@tablet@land_use_map",
+        "script_re@player_item@tablet@map",
+        "amb_rest@world_human_read_map@male_a@idle_a",
+        "amb_work@world_human_read_map@male_a@idle_a",
+        "mech_inventory@map",
+        "mech_inventory@treasure_map",
+        "script_re@treasure_map",
+        "script_common@item_inspect@paper_map",
+        "script_common@item_inspect@paper_map@base",
+        "script_story@player_item",
+        "script_re@player_item",
+        "script_re@player_item@gold_map"
+    }
+
+    print("--- INICIANDO TESTE DE ANIMACOES ---")
+    for _, dictName in ipairs(testDicts) do
+        RequestAnimDict(dictName)
+        local timer = 0
+        while not HasAnimDictLoaded(dictName) and timer < 100 do
+            Wait(10)
+            timer = timer + 1
+        end
+        if HasAnimDictLoaded(dictName) then
+            print("SUCESSO: AnimDict " .. dictName .. " carregou perfeitamente!")
+            RemoveAnimDict(dictName)
+        else
+            print("FALHA: AnimDict " .. dictName .. " nao existe ou nao carregou.")
+        end
+    end
+    print("--- FIM DO TESTE DE ANIMACOES ---")
+end, false)
+
+
