@@ -113,8 +113,6 @@
       maxZoom: 6,
       zoomControl: false,
       attributionControl: false,
-      maxBounds: bounds,
-      maxBoundsViscosity: 1.0,
       dragging: true,
       scrollWheelZoom: true,
       doubleClickZoom: true,

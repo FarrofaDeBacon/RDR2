@@ -20,7 +20,7 @@ server_scripts {
 
 files {
     'ui/public/index.html',
-    'ui/public/assets/index-CJJkqTaf.js',
+    'ui/public/assets/index-BjMAJec1.js',
     'ui/public/assets/index-CzUDblFE.css',
     -- Declaração explícita por nível de zoom para garantir empacotamento completo de subpastas profundas no RedM
     'tiles/0/**/*.webp',
