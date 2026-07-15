@@ -4,7 +4,13 @@
   import L from 'leaflet'
   import 'leaflet/dist/leaflet.css'
 
-  // Limites de coordenadas do RedM (RDR2 World Limits)
+  // Limites de coordenadas do MUNDO do jogo (RDR2 World Limits)
+  // Calibração pendente: ajustar minX, maxX, minY, maxY com coordenadas reais de Valentine/Saint Denis
+  // Fórmula:
+  // scaleX = (pixelX2 - pixelX1) / (worldX2 - worldX1)
+  // minX = worldX1 - (pixelX1 / scaleX)
+  // maxX = minX + (8192 / scaleX)
+  // (Fazer o mesmo para Y usando a altura de 6400)
   const MAP_LIMITS = {
     minX: -6000,
     maxX: 6000,
@@ -12,15 +18,15 @@
     maxY: 6000
   }
 
-  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1)
-  const bounds = [[-199.22, 0], [0, 256]]
+  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1, base 8192x6400)
+  const bounds = [[0, 0], [6400, 8192]]
 
   let mapContainer
   let leafletMap
   let playerMarker
   let leafletCustomMarkers = []
 
-  // Estados para o Modal customizado de Marcador (CEF-safe)
+  // Estados para o Modal customizado de Marcador (CEF-safe, HTML puro)
   let showMarkerModal = false
   let pendingCoords = null
   let newMarkerLabel = ""
@@ -30,11 +36,11 @@
     const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
-    // Eixo X (Longitude) -> Mapeia [-6000, 6000] para [0, 256]
-    const lng = ((x - MAP_LIMITS.minX) / rangeX) * 256
+    // Eixo X (Longitude) -> Mapeia [minX, maxX] para [0, 8192]
+    const lng = ((x - MAP_LIMITS.minX) / rangeX) * 8192
     
-    // Eixo Y (Latitude) -> Mapeia [-6000, 6000] para [-199.22, 0] (Invertido)
-    const lat = ((y - MAP_LIMITS.maxY) / rangeY) * -199.22
+    // Eixo Y (Latitude) -> Mapeia [minY, maxY] para [0, 6400]
+    const lat = ((y - MAP_LIMITS.minY) / rangeY) * 6400
     
     return L.latLng(lat, lng)
   }
@@ -44,8 +50,8 @@
     const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
-    const x = (latlng.lng / 256) * rangeX + MAP_LIMITS.minX
-    const y = (latlng.lat / -199.22) * rangeY + MAP_LIMITS.maxY
+    const x = (latlng.lng / 8192) * rangeX + MAP_LIMITS.minX
+    const y = (latlng.lat / 6400) * rangeY + MAP_LIMITS.minY
     
     return { x: x, y: y }
   }
@@ -84,8 +90,8 @@
       maxBoundsViscosity: 0.8
     })
 
-    // Adiciona o tileset local de WebP
-    L.tileLayer('../../tiles/{z}/{x}/{y}.webp', {
+    // Adiciona o tileset local de WebP (carregando a partir de ui/public/tiles/)
+    L.tileLayer('tiles/{z}/{x}/{y}.webp', {
       tileSize: 256,
       noWrap: true,
       bounds: bounds
@@ -139,7 +145,7 @@
       if ($coords) {
         leafletMap.setView(gameToLatLng($coords.x, $coords.y), 3)
       } else {
-        leafletMap.setView([-99.61, 128], 1)
+        leafletMap.setView([3200, 4096], 1)
       }
     }, 50)
   }
