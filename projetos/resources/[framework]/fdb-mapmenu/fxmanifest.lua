@@ -22,7 +22,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'ui/public/tiles/**/*.webp'
+    'tiles/**/*.webp'
 }
 
 dependencies {

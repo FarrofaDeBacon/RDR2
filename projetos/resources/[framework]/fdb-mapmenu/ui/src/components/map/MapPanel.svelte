@@ -85,8 +85,8 @@
       maxBoundsViscosity: 0.8
     })
 
-    // Adiciona o tileset local de WebP (carregando a partir de ui/public/tiles/)
-    L.tileLayer('tiles/{z}/{x}/{y}.webp', {
+    // Adiciona o tileset local de WebP (carregando a partir da raiz do recurso)
+    L.tileLayer('../../tiles/{z}/{x}/{y}.webp', {
       tileSize: 256,
       noWrap: true,
       bounds: bounds
