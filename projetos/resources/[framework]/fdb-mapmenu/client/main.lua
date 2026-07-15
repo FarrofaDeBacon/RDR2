@@ -2,7 +2,7 @@ local RSGCore = exports['rsg-core']:GetCoreObject()
 local mapProp = nil
 
 -- Configurações de Animação e Props
-local MAP_PROP_MODEL = `p_treasuremap01x`
+local MAP_PROP_MODEL = `p_map01x`
 local MAP_ANIM_DICT = "script@mech@treasure_map"
 local MAP_ANIM_OPEN = "open"
 local MAP_BONE = 57005 -- SKEL_R_Hand
@@ -43,8 +43,8 @@ local function AttachMapProp(ped)
         mapProp,    -- prop
         ped,        -- ped
         boneIndex,  -- bone
-        0.0, 0.0, 0.0,   -- offsets de posição (ajustar se necessário)
-        0.0, 0.0, 0.0,   -- offsets de rotação (ajustar se necessário)
+        0.1, 0.0, 0.05,  -- offsets de posição (ajustado para p_map01x na mão)
+        -10.0, 10.0, 5.0, -- offsets de rotação (ajustado para alinhar com a mão)
         true, true, false, true, 1, true
     )
 end
@@ -69,20 +69,21 @@ local function OpenNativeMapWithAnimation()
     -- 2. Toca a animação de abrir o mapa
     TaskPlayAnim(ped, MAP_ANIM_DICT, MAP_ANIM_OPEN, 8.0, -8.0, -1, 49, 0, false, false, false)
 
-    -- 3. Prende o prop do mapa na mão
+    -- 3. Prende o prop do mapa na mão (p_map01x)
     AttachMapProp(ped)
 
     -- 4. Espera a animação rodar um pouco antes de abrir o menu de pausa nativo
     Wait(1200)
 
-    -- 5. Abre o mapa nativo do jogo
-    ActivateFrontendMenu(GetHashKey("FE_MENU_VERSION_MP_PAUSE"), false, -1)
+    -- 5. Abre o mapa nativo do jogo via hash nativo (ACTIVATE_FRONTEND_MENU = 0xEF01D36B9C9D0C7B)
+    local menuHash = GetHashKey("FE_MENU_VERSION_MP_PAUSE")
+    Citizen.InvokeNative(0xEF01D36B9C9D0C7B, menuHash, false, -1)
 
-    -- 6. Monitora o fechamento do mapa nativo em segundo plano
+    -- 6. Monitora o fechamento do mapa nativo em segundo plano (IS_PAUSE_MENU_ACTIVE = 0xA7E95B60ED29B88D)
     CreateThread(function()
         -- Aguarda o menu de pausa registrar como ativo
         Wait(500)
-        while IsPauseMenuActive() do
+        while Citizen.InvokeNative(0xA7E95B60ED29B88D) do
             Wait(100)
         end
         -- Quando fechar o menu de pausa/mapa:
