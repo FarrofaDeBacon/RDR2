@@ -79,11 +79,17 @@ RSGConfig.Player.PlayerDefaults = {
             hasRecord = false,
             date = nil
         },
+        equipmentSlots = {
+            backpack = nil,
+            satchel = nil,
+            wallet = nil,
+            holster = nil
+        },
     },
     position = RSGConfig.DefaultSpawn,
     items = {},
-    weight = 35000,
-    slots = 25,
+    weight = 8000,
+    slots = 12,
 }
 
 RSGConfig.Server = {}                                    -- General server config
