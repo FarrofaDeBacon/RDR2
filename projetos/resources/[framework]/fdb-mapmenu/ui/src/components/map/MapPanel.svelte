@@ -131,6 +131,29 @@
     // Centro inicial do mapa (centralizado na área jogável do RDR2)
     map.setView([-58, 65], 3.0);
 
+    // Adiciona linhas de dobras rústicas que se movem e escalam junto com o mapa
+    const foldStyle = {
+      color: '#3d250d',
+      weight: 1.5,
+      opacity: 0.12,
+      interactive: false
+    };
+
+    // Dobras principais em cruz (divisão em 4 quadrantes)
+    L.polyline([[0, 50], [-100, 50]], foldStyle).addTo(map);
+    L.polyline([[-50, 0], [-50, 100]], foldStyle).addTo(map);
+
+    // Dobras secundárias (divisão em 8 quadrantes)
+    const secondaryFoldStyle = {
+      ...foldStyle,
+      weight: 0.8,
+      opacity: 0.08
+    };
+    L.polyline([[0, 25], [-100, 25]], secondaryFoldStyle).addTo(map);
+    L.polyline([[0, 75], [-100, 75]], secondaryFoldStyle).addTo(map);
+    L.polyline([[-25, 0], [-25, 100]], secondaryFoldStyle).addTo(map);
+    L.polyline([[-75, 0], [-75, 100]], secondaryFoldStyle).addTo(map);
+
     // Ícone e marcador do jogador
     const playerIcon = L.divIcon({
       className: 'player-marker-leaflet',
@@ -290,7 +313,7 @@
     border-radius: 4px;
   }
 
-  /* Camada de envelhecimento: Vinheta rústica, manchas de sujeira de época e dobras de papel simuladas */
+  /* Camada de envelhecimento: Vinheta rústica e manchas de sujeira de época */
   .map-wrapper::after {
     content: '';
     position: absolute;
@@ -302,9 +325,6 @@
     z-index: 999; /* Acima dos tiles do mapa */
     box-shadow: inset 0 0 100px rgba(45, 28, 10, 0.75); /* Vinheta marrom/queimada nas bordas */
     background: 
-      /* Dobras envelhecidas (horizontal e vertical no centro) */
-      linear-gradient(to bottom, transparent 49.7%, rgba(45,28,10,0.2) 50%, rgba(255,255,255,0.08) 50.3%, transparent 51%),
-      linear-gradient(to right, transparent 49.7%, rgba(45,28,10,0.2) 50%, rgba(255,255,255,0.08) 50.3%, transparent 51%),
       /* Manchas de terra e desgaste */
       radial-gradient(circle at 15% 25%, rgba(90, 60, 25, 0.22) 0%, transparent 35%),
       radial-gradient(circle at 85% 75%, rgba(90, 60, 25, 0.18) 0%, transparent 40%),
