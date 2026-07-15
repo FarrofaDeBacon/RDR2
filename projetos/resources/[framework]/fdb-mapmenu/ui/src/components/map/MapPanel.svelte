@@ -61,6 +61,10 @@
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown);
+  });
+
+  function initMap() {
+    if (isMapInitialized || !mapElement) return;
 
     // Limites de coordenadas simples [lat, lng] correspondendo a [0, 0] a [-100, 100]
     const bounds = [[0, 0], [-100, 100]];
@@ -128,7 +132,7 @@
     });
 
     isMapInitialized = true;
-  });
+  }
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown);
@@ -137,22 +141,33 @@
     }
   });
 
-  // Reage a mudanças de coordenadas do jogador
-  $: if (isMapInitialized && $visible && $coords) {
-    const pct = worldToImage($coords.x, $coords.y);
-    playerMarker.setLatLng([-pct.y, pct.x]);
-    
-    // Pan no jogador ao abrir e corrige tamanho
-    setTimeout(() => {
-      if (map) {
-        map.invalidateSize();
-        map.panTo([-pct.y, pct.x]);
-      }
-    }, 50);
+  // Controla inicialização e atualização do Leaflet de acordo com visibilidade do NUI
+  $: if ($visible && mapElement) {
+    if (!isMapInitialized) {
+      setTimeout(() => {
+        initMap();
+        updatePlayerMarker();
+        updateCustomMarkers();
+      }, 150);
+    } else {
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize();
+          updatePlayerMarker();
+        }
+      }, 50);
+    }
   }
 
-  // Reage a mudanças de marcadores customizados
-  $: if (isMapInitialized && $markers) {
+  function updatePlayerMarker() {
+    if (!isMapInitialized || !playerMarker || !$coords) return;
+    const pct = worldToImage($coords.x, $coords.y);
+    playerMarker.setLatLng([-pct.y, pct.x]);
+    map.panTo([-pct.y, pct.x]);
+  }
+
+  function updateCustomMarkers() {
+    if (!isMapInitialized || !markersLayer || !$markers) return;
     markersLayer.clearLayers();
     $markers.forEach((marker) => {
       const pct = worldToImage(marker.x, marker.y);
@@ -164,6 +179,11 @@
       });
       L.marker([-pct.y, pct.x], { icon: markerIcon }).addTo(markersLayer);
     });
+  }
+
+  // Atualiza marcadores do Leaflet sempre que os marcadores da store mudarem
+  $: if (isMapInitialized && $markers) {
+    updateCustomMarkers();
   }
 
   // Remove um marcador
