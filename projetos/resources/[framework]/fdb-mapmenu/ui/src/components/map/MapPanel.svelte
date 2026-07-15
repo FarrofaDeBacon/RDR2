@@ -110,7 +110,7 @@
     map = L.map(mapElement, {
       crs: L.CRS.Simple,
       minZoom: 2,
-      maxZoom: 6,
+      maxZoom: 8,
       zoomControl: false,
       attributionControl: false,
       dragging: true,
@@ -122,7 +122,8 @@
     // Carrega os tiles locais WebP
     L.tileLayer('https://cfx-nui-fdb-mapmenu/tiles/{z}/{x}/{y}.webp', {
       minZoom: 2,
-      maxZoom: 6,
+      maxZoom: 8,
+      maxNativeZoom: 5,
       noWrap: true
     }).addTo(map);
 
