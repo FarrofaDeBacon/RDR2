@@ -144,29 +144,50 @@
     }
   });
 
+  let hasCenteredOnOpen = false;
+
+  // Reseta o flag de centralização quando o mapa fecha
+  $: if (!$visible) {
+    hasCenteredOnOpen = false;
+  }
+
   // Controla inicialização e atualização do Leaflet de acordo com visibilidade do NUI
   $: if ($visible && mapElement) {
     if (!isMapInitialized) {
       setTimeout(() => {
         initMap();
-        updatePlayerMarker();
+        updatePlayerMarker(true); // Força centralização na inicialização
         updateCustomMarkers();
       }, 150);
     } else {
       setTimeout(() => {
         if (map) {
           map.invalidateSize();
-          updatePlayerMarker();
+          updatePlayerMarker(!hasCenteredOnOpen); // Centraliza apenas se ainda não centrou nesta abertura
         }
       }, 50);
     }
   }
 
-  function updatePlayerMarker() {
+  // Atualiza a posição do marcador. Se centerView for true, move a câmera do mapa para o jogador
+  function updatePlayerMarker(centerView = false) {
     if (!isMapInitialized || !playerMarker || !$coords) return;
     const pct = worldToImage($coords.x, $coords.y);
     playerMarker.setLatLng([-pct.y, pct.x]);
-    map.panTo([-pct.y, pct.x]);
+    
+    if (centerView) {
+      map.setView([-pct.y, pct.x], map.getZoom());
+      hasCenteredOnOpen = true;
+    }
+  }
+
+  // Atualiza a posição do marcador do jogador em tempo real quando as coordenadas mudarem,
+  // mas SEM mover a câmera do mapa (para permitir que o jogador continue arrastando livremente)
+  $: if (isMapInitialized && $visible && $coords) {
+    if (playerMarker) {
+      const pct = worldToImage($coords.x, $coords.y);
+      playerMarker.setLatLng([-pct.y, pct.x]);
+    }
   }
 
   function updateCustomMarkers() {
