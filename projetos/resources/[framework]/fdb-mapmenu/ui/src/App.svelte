@@ -1,6 +1,6 @@
 <script>
   import MapPanel from './components/map/MapPanel.svelte'
-  import { mapStore } from './stores/mapStore.js'
+  import { visible, mapStore } from './stores/mapStore.js'
 
   // NUI message handler
   window.addEventListener('message', (e) => {
@@ -16,7 +16,7 @@
   })
 </script>
 
-<main class="map-root">
+<main class="map-root" class:interactive={$visible}>
   <MapPanel />
 </main>
 
@@ -28,5 +28,9 @@
     width: 100vw;
     height: 100vh;
     pointer-events: none;
+  }
+
+  .map-root.interactive {
+    pointer-events: auto;
   }
 </style>

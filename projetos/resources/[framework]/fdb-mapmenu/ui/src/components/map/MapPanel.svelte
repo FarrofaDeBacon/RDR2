@@ -2,7 +2,6 @@
   import { onMount, onDestroy } from 'svelte'
   import { visible, coords, markers } from '../../stores/mapStore.js'
   import L from 'leaflet'
-  import 'leaflet/dist/leaflet.css'
 
   // Limites de coordenadas do RedM mapeando as bordas do mapa fatiado
   const MAP_LIMITS = {
