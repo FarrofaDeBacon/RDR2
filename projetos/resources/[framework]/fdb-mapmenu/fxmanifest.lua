@@ -5,8 +5,6 @@ game 'rdr3'
 description 'fdb-mapmenu'
 version '1.0.0'
 
-ui_page 'ui/public/index.html?v=8'
-
 client_scripts {
     '@ox_lib/init.lua',
     'client/main.lua'
@@ -16,19 +14,6 @@ server_scripts {
     '@ox_lib/init.lua',
     '@oxmysql/lib/MySQL.lua',
     'server/main.lua'
-}
-
-files {
-    'ui/public/index.html',
-    'ui/public/assets/index-QvE27d7p.js',
-    'ui/public/assets/index-x-7WXWnx.css',
-    -- Declaração explícita por nível de zoom para garantir empacotamento completo de subpastas profundas no RedM
-    'tiles/0/**/*.webp',
-    'tiles/1/**/*.webp',
-    'tiles/2/**/*.webp',
-    'tiles/3/**/*.webp',
-    'tiles/4/**/*.webp',
-    'tiles/5/**/*.webp'
 }
 
 dependencies {
