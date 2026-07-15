@@ -298,11 +298,8 @@ import creasesImg from '../../assets/creases.svg'
     height: 85vh;
     background: transparent;
     overflow: hidden;
-    /* Borda rasgada rústica gerada proceduralmente */
-    -webkit-mask-image: url('../../assets/torn_mask.svg');
-    -webkit-mask-size: 100% 100%;
-    mask-image: url('../../assets/torn_mask.svg');
-    mask-size: 100% 100%;
+    border-radius: 6px;
+    border: 3px solid #6b512c;
   }
 
   /* Camada de envelhecimento: Vinheta rústica, manchas de umidade/sujeira e textura de época */
