@@ -1,7 +1,7 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
--- Configurações de Animação e Props (Novas)
-local MAP_PROP_MODEL = `p_map_treasure_01x`
+-- Configurações de Animação e Props
+local MAP_PROP_MODEL = `p_treasuremap01x`
 local ANIM_DICT_UNFOLD = "mech_inspection@generic@map@unfold"
 local ANIM_DICT_BASE = "mech_inspection@generic@map@base"
 local ANIM_DICT_FOLD = "mech_inspection@generic@map@fold"
@@ -9,36 +9,53 @@ local MAP_BONE = 57005 -- SKEL_R_Hand
 
 -- Helper para carregar AnimDicts
 local function LoadAnimDict(dict)
-    if HasAnimDictLoaded(dict) then return end
+    if HasAnimDictLoaded(dict) then return true end
     RequestAnimDict(dict)
     local timeout = 0
-    while not HasAnimDictLoaded(dict) and timeout < 500 do
+    while not HasAnimDictLoaded(dict) and timeout < 100 do
         Wait(10)
         timeout = timeout + 1
     end
     print("[fdb-mapmenu] AnimDict carregado:", dict, "Status:", HasAnimDictLoaded(dict))
+    return HasAnimDictLoaded(dict)
 end
 
 -- Helper para carregar Modelos
 local function LoadModel(model)
-    if HasModelLoaded(model) then return end
+    if HasModelLoaded(model) then return true end
     RequestModel(model)
     local timeout = 0
-    while not HasModelLoaded(model) and timeout < 500 do
+    while not HasModelLoaded(model) and timeout < 100 do
         Wait(10)
         timeout = timeout + 1
     end
     print("[fdb-mapmenu] Model carregado:", model, "Status:", HasModelLoaded(model))
+    return HasModelLoaded(model)
 end
 
--- Abre o mapa com animação em três partes (Desenrolar -> Ler -> Guardar)
+-- Abre o mapa com animação em três partes
 local function OpenNativeMapWithAnimation()
     print("[fdb-mapmenu] Iniciando OpenNativeMapWithAnimation...")
     local ped = PlayerPedId()
     
-    LoadModel(MAP_PROP_MODEL)
-    LoadAnimDict(ANIM_DICT_UNFOLD)
-    LoadAnimDict(ANIM_DICT_BASE)
+    -- Tenta carregar o modelo. Se falhar, usa outro
+    if not LoadModel(MAP_PROP_MODEL) then
+        MAP_PROP_MODEL = `p_map01x`
+        LoadModel(MAP_PROP_MODEL)
+    end
+    
+    -- Tenta carregar os dicionários, se falhar tenta o dicionário base unificado
+    local useUnifiedDict = false
+    if not LoadAnimDict(ANIM_DICT_UNFOLD) then
+        print("[fdb-mapmenu] Falha ao carregar @unfold, tentando dicionario unificado mech_inspection@generic@map")
+        useUnifiedDict = true
+        ANIM_DICT_UNFOLD = "mech_inspection@generic@map"
+        ANIM_DICT_BASE = "mech_inspection@generic@map"
+        ANIM_DICT_FOLD = "mech_inspection@generic@map"
+        LoadAnimDict(ANIM_DICT_UNFOLD)
+    else
+        LoadAnimDict(ANIM_DICT_BASE)
+    end
 
     -- Spawna e anexa o prop na mão (SKEL_R_Hand)
     local coords = GetEntityCoords(ped)
