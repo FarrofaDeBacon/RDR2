@@ -122,7 +122,7 @@
 
     // Carrega os tiles locais WebP
     L.tileLayer('https://cfx-nui-fdb-mapmenu/tiles/{z}/{x}/{y}.webp', {
-      minZoom: 2.3,
+      minZoom: 2,
       maxZoom: 8,
       maxNativeZoom: 5,
       noWrap: true
