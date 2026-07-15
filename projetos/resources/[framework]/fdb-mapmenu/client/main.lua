@@ -181,4 +181,30 @@ RegisterCommand("testmapanims", function()
     print("--- FIM DO TESTE DE ANIMACOES ---")
 end, false)
 
+-- Comando de Teste Visual de Scenarios no F8/Chat
+RegisterCommand("testscenario", function(source, args)
+    local scenarioName = args[1]
+    if not scenarioName then
+        print("Uso: /testscenario [NOME_DO_SCENARIO]")
+        return
+    end
+
+    local ped = PlayerPedId()
+    ClearPedTasksImmediately(ped)
+    Wait(500)
+
+    print("Tentando rodar o scenario: " .. scenarioName)
+    local hash = GetHashKey(scenarioName)
+    
+    -- TaskStartScenarioInPlace(ped, scenarioHash, unkDelay, playEnterAnim, unk, unk, unk)
+    Citizen.InvokeNative(0x524B5436C2243679, ped, hash, 0, true, false, false, false)
+    
+    lib.notify({
+        title = 'Iniciando Scenario',
+        description = 'Iniciando: ' .. scenarioName,
+        type = 'info'
+    })
+end, false)
+
+
 
