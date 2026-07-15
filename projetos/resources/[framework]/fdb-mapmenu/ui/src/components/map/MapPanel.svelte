@@ -109,7 +109,7 @@
     // Inicializa o Leaflet com L.CRS.Simple para mapa plano
     map = L.map(mapElement, {
       crs: L.CRS.Simple,
-      minZoom: 2.3,
+      minZoom: 3.0,
       maxZoom: 8,
       zoomSnap: 0.1,
       zoomControl: false,
@@ -129,7 +129,7 @@
     }).addTo(map);
 
     // Centro inicial do mapa (centralizado na área jogável do RDR2)
-    map.setView([-58, 65], 2.3);
+    map.setView([-58, 65], 3.0);
 
     // Ícone e marcador do jogador
     const playerIcon = L.divIcon({
@@ -192,8 +192,8 @@
     if (playerMarker) {
       playerMarker.setLatLng([-pct.y, pct.x]);
     }
-    // Centraliza na coordenada do jogador a zoom level 4.5 ao abrir o mapa
-    map.setView([-pct.y, pct.x], 4.5);
+    // Centraliza na coordenada do jogador a zoom level 3.5 ao abrir o mapa
+    map.setView([-pct.y, pct.x], 3.5);
   }
 
   function updateCustomMarkers(markersList) {
