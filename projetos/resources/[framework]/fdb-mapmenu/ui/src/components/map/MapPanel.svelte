@@ -131,29 +131,6 @@
     // Centro inicial do mapa (centralizado na área jogável do RDR2)
     map.setView([-58, 65], 3.0);
 
-    // Adiciona linhas de dobras rústicas que se movem e escalam junto com o mapa
-    const foldStyle = {
-      color: '#3d250d',
-      weight: 1.5,
-      opacity: 0.12,
-      interactive: false
-    };
-
-    // Dobras principais em cruz (divisão em 4 quadrantes)
-    L.polyline([[0, 50], [-100, 50]], foldStyle).addTo(map);
-    L.polyline([[-50, 0], [-50, 100]], foldStyle).addTo(map);
-
-    // Dobras secundárias (divisão em 8 quadrantes)
-    const secondaryFoldStyle = {
-      ...foldStyle,
-      weight: 0.8,
-      opacity: 0.08
-    };
-    L.polyline([[0, 25], [-100, 25]], secondaryFoldStyle).addTo(map);
-    L.polyline([[0, 75], [-100, 75]], secondaryFoldStyle).addTo(map);
-    L.polyline([[-25, 0], [-25, 100]], secondaryFoldStyle).addTo(map);
-    L.polyline([[-75, 0], [-75, 100]], secondaryFoldStyle).addTo(map);
-
     // Ícone e marcador do jogador
     const playerIcon = L.divIcon({
       className: 'player-marker-leaflet',
@@ -313,18 +290,18 @@
     position: relative;
     width: 68vw;
     height: 85vh;
-    background: #d4c5a9;
+    background: transparent;
     overflow: hidden;
-    /* Borda rasgada rústica de papel usando clip-path poligonal irregular */
-    clip-path: polygon(
-      0% 2%, 3% 0%, 7% 1%, 12% 0%, 18% 2%, 22% 1%, 28% 0%, 33% 2%, 38% 0%, 45% 1%, 52% 0%, 59% 2%, 65% 1%, 72% 0%, 78% 2%, 84% 0%, 90% 1%, 95% 0%, 100% 2%,
-      99% 7%, 100% 14%, 98% 20%, 99% 27%, 97% 35%, 99% 42%, 98% 50%, 100% 58%, 98% 66%, 99% 74%, 97% 82%, 99% 90%, 98% 96%, 100% 100%,
-      94% 99%, 88% 100%, 82% 98%, 76% 99%, 70% 97%, 63% 99%, 56% 98%, 50% 100%, 43% 98%, 37% 99%, 30% 97%, 24% 99%, 17% 98%, 10% 100%, 4% 98%, 0% 97%,
-      1% 92%, 0% 84%, 2% 76%, 1% 68%, 3% 60%, 1% 52%, 2% 44%, 0% 36%, 2% 28%, 1% 20%, 3% 12%, 1% 5%
-    );
+    /* Usa a textura do papel antigo como máscara para recortar as bordas de forma realista */
+    -webkit-mask-image: url('../../assets/paper_overlay.png');
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url('../../assets/paper_overlay.png');
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
   }
 
-  /* Camada de envelhecimento: Vinheta rústica, manchas de umidade/sujeira e textura de época */
+  /* Camada de textura do papel: aplica a mesma imagem sobre o mapa para dar as manchas e dobras */
   .map-wrapper::after {
     content: '';
     position: absolute;
@@ -334,16 +311,10 @@
     height: 100%;
     pointer-events: none; /* Cliques passam direto para o Leaflet */
     z-index: 999; /* Acima dos tiles do mapa */
-    box-shadow: inset 0 0 130px rgba(35, 18, 5, 0.88); /* Vinheta marrom/queimada escura nas bordas */
-    background: 
-      /* Manchas de terra e poeira rústica */
-      radial-gradient(circle at 15% 25%, rgba(75, 45, 15, 0.38) 0%, transparent 40%),
-      radial-gradient(circle at 85% 75%, rgba(75, 45, 15, 0.32) 0%, transparent 45%),
-      radial-gradient(circle at 45% 85%, rgba(65, 35, 10, 0.30) 0%, transparent 35%),
-      radial-gradient(circle at 50% 15%, rgba(70, 40, 15, 0.28) 0%, transparent 30%),
-      radial-gradient(circle at 75% 20%, rgba(55, 30, 5, 0.25) 0%, transparent 25%),
-      radial-gradient(circle at 25% 70%, rgba(55, 30, 5, 0.25) 0%, transparent 25%);
-    mix-blend-mode: multiply; /* Mescla as cores perfeitamente com os tiles do mapa */
+    background-image: url('../../assets/paper_overlay.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    mix-blend-mode: multiply; /* Mescla a textura do papel perfeitamente com os tiles do mapa */
     opacity: 0.95;
   }
 
