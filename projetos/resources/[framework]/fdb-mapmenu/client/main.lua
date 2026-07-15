@@ -110,3 +110,37 @@ CreateThread(function()
         end
     end
 end)
+
+-- Comando de Teste de Modelos de Prop de Mapa no F8
+RegisterCommand("testmapprops", function()
+    local testModels = {
+        "p_treasuremap01x",
+        "p_treasuremap_01x",
+        "p_map01x",
+        "p_map_01x",
+        "p_letter01x",
+        "p_letter_01x",
+        "p_newspaper01x",
+        "p_cs_newspaper01x",
+        "p_paper01x"
+    }
+
+    print("--- INICIANDO TESTE DE MODELOS ---")
+    for _, modelName in ipairs(testModels) do
+        local hash = GetHashKey(modelName)
+        RequestModel(hash)
+        local timer = 0
+        while not HasModelLoaded(hash) and timer < 100 do
+            Wait(10)
+            timer = timer + 1
+        end
+        if HasModelLoaded(hash) then
+            print("SUCESSO: Modelo " .. modelName .. " carregou perfeitamente!")
+            SetModelAsNoLongerNeeded(hash)
+        else
+            print("FALHA: Modelo " .. modelName .. " nao existe ou nao carregou.")
+        end
+    end
+    print("--- FIM DO TESTE ---")
+end, false)
+
