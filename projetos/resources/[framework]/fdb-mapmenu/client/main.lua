@@ -69,7 +69,7 @@ local function OpenNativeMapWithAnimation()
 
     -- Abre o mapa nativo do jogo
     print("[fdb-mapmenu] Abrindo mapa nativo...")
-    ActivateFrontendMenu(GetHashKey("FE_MENU_VERSION_MP_PAUSE"), false, -1)
+    Citizen.InvokeNative(0xEF01D36B9C9D0C7B, GetHashKey("FE_MENU_VERSION_MP_PAUSE"), false, -1)
 
     -- Monitora o fechamento do mapa nativo em segundo plano
     CreateThread(function()
