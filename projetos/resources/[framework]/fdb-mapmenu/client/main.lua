@@ -1,9 +1,10 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
--- Configurações de Animação e Props
-local MAP_PROP_MODEL = `p_treasuremap01x`
-local MAP_ANIM_DICT = "script@mech@treasure_map"
-local MAP_ANIM_OPEN = "open"
+-- Configurações de Animação e Props (Novas)
+local MAP_PROP_MODEL = `p_map_treasure_01x`
+local ANIM_DICT_UNFOLD = "mech_inspection@generic@map@unfold"
+local ANIM_DICT_BASE = "mech_inspection@generic@map@base"
+local ANIM_DICT_FOLD = "mech_inspection@generic@map@fold"
 local MAP_BONE = 57005 -- SKEL_R_Hand
 
 -- Helper para carregar AnimDicts
@@ -28,23 +29,37 @@ local function LoadModel(model)
     end
 end
 
--- Abre o mapa com animação física do personagem segurando o papel (Lógica do treasuremaps)
+-- Abre o mapa com animação em três partes (Desenrolar -> Ler -> Guardar)
 local function OpenNativeMapWithAnimation()
     local ped = PlayerPedId()
-    LoadAnimDict(MAP_ANIM_DICT)
+    
     LoadModel(MAP_PROP_MODEL)
+    LoadAnimDict(ANIM_DICT_UNFOLD)
+    LoadAnimDict(ANIM_DICT_BASE)
 
-    -- Toca animação
-    TaskPlayAnim(ped, MAP_ANIM_DICT, MAP_ANIM_OPEN, 8.0, -8.0, -1, 49, 0, false, false, false)
-
-    -- Spawna e anexa o prop na mão
+    -- Spawna e anexa o prop na mão (SKEL_R_Hand)
     local coords = GetEntityCoords(ped)
     local prop = CreateObject(MAP_PROP_MODEL, coords.x, coords.y, coords.z, true, true, true)
     local boneIndex = GetPedBoneIndex(ped, MAP_BONE)
     AttachEntityToEntity(prop, ped, boneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
 
-    -- Tempo da animação rodar antes de abrir o mapa do pause
-    Wait(1500)
+    -- 1. Animação de puxar/desenrolar
+    TaskPlayAnim(ped, ANIM_DICT_UNFOLD, "enter", 8.0, -8.0, -1, 0, 0, false, false, false)
+    
+    -- Calcula a duração da animação de entrada
+    local unfoldDuration = GetAnimDuration(ANIM_DICT_UNFOLD, "enter")
+    if unfoldDuration > 0.0 then
+        Wait(math.floor(unfoldDuration * 1000) - 200) -- Subtrai 200ms para uma transição mais suave
+    else
+        Wait(1500)
+    end
+
+    -- 2. Animação de segurar/ler (Loop)
+    -- Flag 49 = Loop (1) + Upper Body (16) + Allow Control (32)
+    TaskPlayAnim(ped, ANIM_DICT_BASE, "hold", 8.0, -8.0, -1, 49, 0, false, false, false)
+
+    -- Pequena pausa para a animação estabilizar
+    Wait(500)
 
     -- Abre o mapa nativo do jogo
     ActivateFrontendMenu(GetHashKey("FE_MENU_VERSION_MP_PAUSE"), false, -1)
@@ -56,11 +71,29 @@ local function OpenNativeMapWithAnimation()
         while Citizen.InvokeNative(0xA7E95B60ED29B88D) do -- IS_PAUSE_MENU_ACTIVE
             Wait(100)
         end
+        
         -- Quando fechar o menu de pausa/mapa:
+        -- 3. Carrega e toca a animação de dobrar/guardar o mapa
+        LoadAnimDict(ANIM_DICT_FOLD)
+        TaskPlayAnim(ped, ANIM_DICT_FOLD, "exit", 8.0, -8.0, -1, 0, 0, false, false, false)
+        
+        -- Calcula a duração da animação de saída
+        local foldDuration = GetAnimDuration(ANIM_DICT_FOLD, "exit")
+        if foldDuration > 0.0 then
+            Wait(math.floor(foldDuration * 1000))
+        else
+            Wait(1500)
+        end
+
+        -- Finaliza, limpa o prop e limpa as memórias
         ClearPedTasks(ped)
         DetachEntity(prop, true, true)
         DeleteObject(prop)
         SetObjectAsNoLongerNeeded(prop)
+        
+        RemoveAnimDict(ANIM_DICT_UNFOLD)
+        RemoveAnimDict(ANIM_DICT_BASE)
+        RemoveAnimDict(ANIM_DICT_FOLD)
     end)
 end
 
