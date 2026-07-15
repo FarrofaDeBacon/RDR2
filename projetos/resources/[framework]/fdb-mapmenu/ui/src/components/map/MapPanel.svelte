@@ -58,8 +58,46 @@
     }
   }
 
+  let unsubscribeVisible;
+  let unsubscribeCoords;
+  let unsubscribeMarkers;
+
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown);
+
+    // Subscreve às mudanças de visibilidade de forma determinística e imperativa
+    unsubscribeVisible = visible.subscribe((isVisible) => {
+      if (isVisible) {
+        setTimeout(() => {
+          if (!isMapInitialized) {
+            initMap();
+            // Primeiro carregamento dos marcadores customizados
+            if ($markers) {
+              updateCustomMarkers($markers);
+            }
+          } else if (map) {
+            map.invalidateSize();
+          }
+          // Centraliza no jogador uma única vez ao abrir
+          centerOnPlayer();
+        }, 150);
+      }
+    });
+
+    // Atualiza a posição do marcador do jogador em tempo real quando as coordenadas mudarem
+    unsubscribeCoords = coords.subscribe((val) => {
+      if (isMapInitialized && playerMarker && val) {
+        const pct = worldToImage(val.x, val.y);
+        playerMarker.setLatLng([-pct.y, pct.x]);
+      }
+    });
+
+    // Atualiza os marcadores do Leaflet sempre que os marcadores da store mudarem
+    unsubscribeMarkers = markers.subscribe((val) => {
+      if (isMapInitialized && markersLayer && val) {
+        updateCustomMarkers(val);
+      }
+    });
   });
 
   function initMap() {
@@ -139,61 +177,29 @@
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown);
+    if (unsubscribeVisible) unsubscribeVisible();
+    if (unsubscribeCoords) unsubscribeCoords();
+    if (unsubscribeMarkers) unsubscribeMarkers();
     if (map) {
       map.remove();
     }
   });
 
-  let hasCenteredOnOpen = false;
-
-  // Reseta o flag de centralização quando o mapa fecha
-  $: if (!$visible) {
-    hasCenteredOnOpen = false;
-  }
-
-  // Controla inicialização e atualização do Leaflet de acordo com visibilidade do NUI
-  $: if ($visible && mapElement) {
-    if (!isMapInitialized) {
-      setTimeout(() => {
-        initMap();
-        updatePlayerMarker(true); // Força centralização na inicialização
-        updateCustomMarkers();
-      }, 150);
-    } else {
-      setTimeout(() => {
-        if (map) {
-          map.invalidateSize();
-          updatePlayerMarker(!hasCenteredOnOpen); // Centraliza apenas se ainda não centrou nesta abertura
-        }
-      }, 50);
-    }
-  }
-
-  // Atualiza a posição do marcador. Se centerView for true, move a câmera do mapa para o jogador
-  function updatePlayerMarker(centerView = false) {
-    if (!isMapInitialized || !playerMarker || !$coords) return;
+  // Centraliza o mapa na posição do jogador com um nível de zoom fixo confortável
+  function centerOnPlayer() {
+    if (!isMapInitialized || !map || !$coords) return;
     const pct = worldToImage($coords.x, $coords.y);
-    playerMarker.setLatLng([-pct.y, pct.x]);
-    
-    if (centerView) {
-      map.setView([-pct.y, pct.x], map.getZoom());
-      hasCenteredOnOpen = true;
-    }
-  }
-
-  // Atualiza a posição do marcador do jogador em tempo real quando as coordenadas mudarem,
-  // mas SEM mover a câmera do mapa (para permitir que o jogador continue arrastando livremente)
-  $: if (isMapInitialized && $visible && $coords) {
     if (playerMarker) {
-      const pct = worldToImage($coords.x, $coords.y);
       playerMarker.setLatLng([-pct.y, pct.x]);
     }
+    // Centraliza na coordenada do jogador a zoom level 3 ao abrir o mapa
+    map.setView([-pct.y, pct.x], 3);
   }
 
-  function updateCustomMarkers() {
-    if (!isMapInitialized || !markersLayer || !$markers) return;
+  function updateCustomMarkers(markersList) {
+    if (!isMapInitialized || !markersLayer || !markersList) return;
     markersLayer.clearLayers();
-    $markers.forEach((marker) => {
+    markersList.forEach((marker) => {
       const pct = worldToImage(marker.x, marker.y);
       const markerIcon = L.divIcon({
         className: 'custom-marker-leaflet',
@@ -203,11 +209,6 @@
       });
       L.marker([-pct.y, pct.x], { icon: markerIcon }).addTo(markersLayer);
     });
-  }
-
-  // Atualiza marcadores do Leaflet sempre que os marcadores da store mudarem
-  $: if (isMapInitialized && $markers) {
-    updateCustomMarkers();
   }
 
   // Remove um marcador
