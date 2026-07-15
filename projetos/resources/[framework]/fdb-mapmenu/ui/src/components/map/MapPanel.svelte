@@ -62,22 +62,24 @@
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown);
 
-    // Inicializa o Leaflet com L.CRS.Simple para mapa plano
-    map = L.map(mapElement, {
-      crs: L.CRS.Simple,
-      minZoom: 1,
-      maxZoom: 5,
-      zoomControl: false,
-      attributionControl: false
-    });
-
     // Limites de coordenadas simples [lat, lng] correspondendo a [0, 0] a [-100, 100]
     const bounds = [[0, 0], [-100, 100]];
 
+    // Inicializa o Leaflet com L.CRS.Simple para mapa plano
+    map = L.map(mapElement, {
+      crs: L.CRS.Simple,
+      minZoom: 2,
+      maxZoom: 6,
+      zoomControl: false,
+      attributionControl: false,
+      maxBounds: bounds,
+      maxBoundsViscosity: 1.0
+    });
+
     // Carrega os tiles locais WebP
     L.tileLayer('https://cfx-nui-fdb-mapmenu/tiles/{z}/{x}/{y}.webp', {
-      minZoom: 1,
-      maxZoom: 5,
+      minZoom: 2,
+      maxZoom: 6,
       noWrap: true,
       bounds: bounds
     }).addTo(map);
@@ -238,7 +240,7 @@
     width: 68vw;
     height: 85vh;
     border: 5px solid #b89047;
-    background: #0e0a07;
+    background: #d4c5a9;
     box-shadow: 0 10px 40px rgba(0,0,0,0.9);
     overflow: hidden;
     border-radius: 4px;
@@ -247,7 +249,7 @@
   #leaflet-map {
     width: 100%;
     height: 100%;
-    background: #0e0a07;
+    background: #d4c5a9;
   }
 
   /* Customizando a mão do Leaflet no mapa */
