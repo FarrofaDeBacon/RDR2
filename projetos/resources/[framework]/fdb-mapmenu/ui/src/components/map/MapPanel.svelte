@@ -13,8 +13,10 @@
     maxY: 4553.1
   }
 
-  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1, base 8192x6400)
-  const bounds = [[0, 0], [6400, 8192]]
+  // Definição dos limites em pixels no Leaflet CRS.Simple (proporção real 1.285:1, base 8192x6400 com Y negativo)
+  // Usar Y negativo [[-6400, 0], [0, 8192]] garante que a origem dos tiles do Leaflet (topo-esquerdo)
+  // coincida corretamente com o grid de carregamento do CRS.Simple, evitando tela preta (404 nos tiles).
+  const bounds = [[-6400, 0], [0, 8192]]
 
   let mapContainer
   let leafletMap
@@ -34,8 +36,8 @@
     // Eixo X (Longitude) -> Mapeia [minX, maxX] para [0, 8192]
     const lng = ((x - MAP_LIMITS.minX) / rangeX) * 8192
     
-    // Eixo Y (Latitude) -> Mapeia [minY, maxY] para [0, 6400]
-    const lat = ((y - MAP_LIMITS.minY) / rangeY) * 6400
+    // Eixo Y (Latitude) -> Mapeia [minY, maxY] para [-6400, 0] (Invertido no CRS.Simple)
+    const lat = ((y - MAP_LIMITS.maxY) / rangeY) * -6400
     
     return L.latLng(lat, lng)
   }
@@ -46,7 +48,7 @@
     const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY
     
     const x = (latlng.lng / 8192) * rangeX + MAP_LIMITS.minX
-    const y = (latlng.lat / 6400) * rangeY + MAP_LIMITS.minY
+    const y = (latlng.lat / -6400) * rangeY + MAP_LIMITS.maxY
     
     return { x: x, y: y }
   }
@@ -140,7 +142,7 @@
       if ($coords) {
         leafletMap.setView(gameToLatLng($coords.x, $coords.y), 3)
       } else {
-        leafletMap.setView([3200, 4096], 1)
+        leafletMap.setView([-3200, 4096], 1)
       }
     }, 50)
   }
