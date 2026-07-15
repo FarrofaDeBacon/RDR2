@@ -9,11 +9,6 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: 'index.html',
-      output: {
-        entryFileNames: 'index.js',
-        chunkFileNames: 'index.js',
-        assetFileNames: (info) => info.name?.endsWith('.css') ? 'index.css' : info.name,
-      },
     },
   },
   base: './',
