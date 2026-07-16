@@ -20,7 +20,8 @@ ui_page 'web/dist/index.html'
 
 files {
     'web/dist/index.html',
-    'web/dist/assets/*'
+    'web/dist/assets/*',
+    'web/dist/blips/*'
 }
 
 dependencies {
