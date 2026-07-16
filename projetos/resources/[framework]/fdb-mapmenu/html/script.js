@@ -13,7 +13,8 @@ window.addEventListener('message', function(event) {
         
         // Limpa o input
         $("#marker-name").val('');
-        $("#marker-icon").prop('selectedIndex', 0);
+        $(".icon-option").removeClass("selected");
+        $(".icon-option").first().addClass("selected");
         $("#marker-name").focus();
     } else if (data.action === "openNotebook") {
         $("#ui-container").removeClass("hidden");
@@ -61,10 +62,16 @@ $(document).keyup(function(e) {
     }
 });
 
+// Clicar no grid de ícones
+$(".icon-option").click(function() {
+    $(".icon-option").removeClass("selected");
+    $(this).addClass("selected");
+});
+
 // Salvar Anotação
 $("#btn-save").click(function() {
     const name = $("#marker-name").val().trim();
-    const icon = $("#marker-icon").val();
+    const icon = $(".icon-option.selected").data("value");
     
     if (name.length === 0) {
         return; // Não deixa salvar sem nome

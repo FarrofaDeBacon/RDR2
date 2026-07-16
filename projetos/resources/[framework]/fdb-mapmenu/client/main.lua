@@ -13,6 +13,12 @@ local function RemoveAllBlips()
     activeBlips = {}
 end
 
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        RemoveAllBlips()
+    end
+end)
+
 local function LoadPlayerMarkers()
     RemoveAllBlips()
     local markers = lib.callback.await('fdb-mapmenu:server:getMarkers', false)

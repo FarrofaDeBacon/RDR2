@@ -115,9 +115,33 @@ input::placeholder {
     opacity: 0.6;
 }
 
-select option {
-    background: #f4e8c1;
-    color: #3e2723;
+/* Icon Grid */
+.icon-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.icon-option {
+    font-size: 32px;
+    cursor: pointer;
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    transition: 0.2s;
+    background: rgba(139, 69, 19, 0.1);
+}
+
+.icon-option:hover {
+    background: rgba(139, 69, 19, 0.3);
+}
+
+.icon-option.selected {
+    border-color: #8b4513;
+    background: rgba(139, 69, 19, 0.4);
+    transform: scale(1.1);
 }
 
 /* Botões */
