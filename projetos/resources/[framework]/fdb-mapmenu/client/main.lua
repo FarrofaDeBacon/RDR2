@@ -107,11 +107,19 @@ RegisterCommand('checkwaypoint', function()
     print("[DEBUG] Native Coords:", tostring(natCoord))
 end)
 
-CreateThread(function()
-    -- Carrega os marcadores ao entrar no jogo
-    Wait(2000)
+RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
+    Wait(1000)
     LoadPlayerMarkers()
-    
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        Wait(1000)
+        LoadPlayerMarkers()
+    end
+end)
+
+CreateThread(function()
     local wasWaypointActive = false
     
     while true do
