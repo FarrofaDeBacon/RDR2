@@ -17,6 +17,13 @@ local isCompassEquipped = false
 local compassVisible = false
 local isLoggedIn = false
 
+CreateThread(function()
+    Wait(500)
+    if LocalPlayer.state.isLoggedIn then
+        isLoggedIn = true
+    end
+end)
+
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     isLoggedIn = true
 end)

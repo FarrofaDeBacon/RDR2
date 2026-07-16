@@ -6,6 +6,10 @@ author 'Farrofa / Antigravity'
 description 'Standalone Compass UI'
 version '1.0.0'
 
+shared_scripts {
+    'config.lua'
+}
+
 ui_page 'web/dist/index.html'
 
 files {
@@ -19,8 +23,4 @@ client_scripts {
 
 server_scripts {
     'server/main.lua'
-}
-
-shared_scripts {
-    'config.lua'
 }
