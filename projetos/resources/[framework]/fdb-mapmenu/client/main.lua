@@ -161,6 +161,7 @@ end)
 -- NUI CALLBACKS
 -- =======================================================
 
+-- NUI Callbacks
 RegisterNUICallback('closeUI', function(data, cb)
     SetNuiFocus(false, false)
     cb('ok')
@@ -176,9 +177,12 @@ RegisterNUICallback('deleteMarker', function(data, cb)
     cb('ok')
 end)
 
+RegisterNUICallback('editMarker', function(data, cb)
+    TriggerServerEvent('fdb-mapmenu:server:editMarker', data.id, data.name, data.icon)
+    cb('ok')
+end)
+
 RegisterNUICallback('requestMarkers', function(data, cb)
     local markers = lib.callback.await('fdb-mapmenu:server:getMarkers', false)
     cb(markers or {})
 end)
-
-

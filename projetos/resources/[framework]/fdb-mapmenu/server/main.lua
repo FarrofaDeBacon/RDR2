@@ -128,6 +128,30 @@ RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(markerId)
     end
 end)
 
+-- Edita um marcador
+RegisterNetEvent('fdb-mapmenu:server:editMarker', function(markerId, newName, newIcon)
+    local src = source
+    print("[fdb-mapmenu] editMarker received for ID: " .. tostring(markerId))
+    
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    local citizenid = Player.PlayerData.citizenid
+    
+    local success, affectedRows = pcall(function()
+        return MySQL.update.await('UPDATE player_markers SET name = ?, icon = ? WHERE id = ? AND citizenid = ?', {newName, newIcon, markerId, citizenid})
+    end)
+    
+    print("[fdb-mapmenu] Edit success: " .. tostring(success) .. " | Affected Rows: " .. tostring(affectedRows))
+    
+    if success and affectedRows > 0 then
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Marcação Atualizada', type = 'success'})
+        TriggerClientEvent('fdb-mapmenu:client:refreshMarkers', src)
+    else
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Erro ao editar', type = 'error'})
+    end
+end)
+
 -- Adiciona o item mapa como utilizável
 RSGCore.Functions.CreateUseableItem('map', function(source, item)
     TriggerClientEvent('fdb-mapmenu:client:OpenMapMenu', source)
