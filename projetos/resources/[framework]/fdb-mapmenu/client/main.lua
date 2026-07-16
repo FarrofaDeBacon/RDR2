@@ -150,13 +150,7 @@ CreateThread(function()
             if not hasPencil then
                 lib.notify({ title = 'Você marcou o mapa, mas não tem um Lápis para anotar!', type = 'error' })
             else
-                -- Força o mapa a fechar para podermos mostrar a UI
-                SetPauseMenuActive(false)
-                
-                -- Aguarda a tela voltar ao jogo para evitar soft-lock
-                Wait(1000)
-                
-                -- Mostra a caixinha
+                -- Mostra a caixinha diretamente (ela vai aparecer por cima do mapa)
                 local input = lib.inputDialog('Nova Anotação no Mapa', {
                     {type = 'input', label = 'Nome da Anotação', description = 'Ex: Ponto de Caça, Esconderijo', required = true},
                     {type = 'select', label = 'Símbolo', required = true, options = {
