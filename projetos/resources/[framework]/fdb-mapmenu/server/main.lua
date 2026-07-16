@@ -75,18 +75,32 @@ end)
 -- Adiciona um novo marcador no banco de dados
 RegisterNetEvent('fdb-mapmenu:server:addMarker', function(name, icon, coords)
     local src = source
+    print("[fdb-mapmenu] addMarker received from " .. tostring(src))
+    print("[fdb-mapmenu] Payload -> Name: " .. tostring(name) .. " | Icon: " .. tostring(icon))
+    print("[fdb-mapmenu] Coords -> " .. json.encode(coords))
+    
     local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
+    if not Player then 
+        print("[fdb-mapmenu] Player not found!")
+        return 
+    end
     local citizenid = Player.PlayerData.citizenid
     
-    local id = MySQL.insert.await('INSERT INTO player_markers (citizenid, name, icon, x, y, z) VALUES (?, ?, ?, ?, ?, ?)', {
-        citizenid, name, icon, coords.x, coords.y, coords.z
-    })
+    local success, id = pcall(function()
+        return MySQL.insert.await('INSERT INTO player_markers (citizenid, name, icon, x, y, z) VALUES (?, ?, ?, ?, ?, ?)', {
+            citizenid, name, icon, coords.x, coords.y, coords.z
+        })
+    end)
     
-    if id then
+    print("[fdb-mapmenu] DB Insert Success: " .. tostring(success) .. " | ID: " .. tostring(id))
+    
+    if success and id then
         TriggerClientEvent('ox_lib:notify', src, {title = 'Marcação Adicionada', type = 'success'})
         -- Opcional: Acionar um client event para forçar o recarregamento dos blips
         TriggerClientEvent('fdb-mapmenu:client:refreshMarkers', src)
+    else
+        print("[fdb-mapmenu] DB Insert Failed!")
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Erro ao salvar marcação', type = 'error'})
     end
 end)
 
