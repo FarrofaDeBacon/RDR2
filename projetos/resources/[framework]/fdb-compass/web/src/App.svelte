@@ -1,12 +1,11 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { compass } from '../../stores/hudStore.js'
-  import roseImg from '../../assets/rose.svg'
+  import roseImg from './assets/rose.svg'
 
   // Referência do elemento DOM da imagem para atualizar diretamente o transform (60 FPS)
   let roseEl = null
   
-  // Estado local para o texto do heading
+  let visible = false
   let displayHeading = 0
   let displayCardinal = 'N'
 
@@ -53,46 +52,39 @@
     animationFrameId = requestAnimationFrame(updateLoop)
   }
 
-  // Ouve atualizacoes da store do compass
-  const unsubscribe = compass.subscribe(($c) => {
-    if ($c && $c.degrees !== undefined) {
-      targetHeading = $c.degrees
+  const handleMessage = (event) => {
+    const data = event.data
+    if (data.action === 'updateCompass') {
+      targetHeading = data.degrees
+      visible = data.visible
     }
-  })
+  }
 
   onMount(() => {
-    // Inicializa variaveis
+    window.addEventListener('message', handleMessage)
     currentHeading = targetHeading
-    
-    // Inicia loop requestAnimationFrame
     animationFrameId = requestAnimationFrame(updateLoop)
   })
 
   onDestroy(() => {
-    // Limpa a store e o frame de animacao ao destruir o componente
-    unsubscribe()
+    window.removeEventListener('message', handleMessage)
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
     }
   })
 </script>
 
-{#if $compass.visible}
+{#if visible}
 <div class="compass-container">
   <div class="compass">
-    <!-- Imagem da rosa dos ventos que rotaciona via requestAnimationFrame -->
     <img 
       bind:this={roseEl} 
       src={roseImg} 
       class="rose" 
       alt="Rose"
     />
-    
-    <!-- Ponteiro de topo fixo (Triângulo vermelho) -->
     <div class="pointer"></div>
   </div>
-
-  <!-- Texto com direcao cardinal e graus logo abaixo -->
   <div class="heading">
     {displayCardinal} {displayHeading}°
   </div>
@@ -113,14 +105,12 @@
     font-family: 'Cinzel', 'Times New Roman', serif;
   }
 
-  /* Estrutura HTML solicitada */
   .compass {
     position: relative;
     width: 130px;
     height: 130px;
     border-radius: 50%;
     overflow: hidden;
-    /* Aro sutil e sombra projetada */
     border: 3px solid #b89047;
     box-shadow: 
       0 4px 15px rgba(0,0,0,0.85),
@@ -131,7 +121,6 @@
     justify-content: center;
   }
 
-  /* Rosa dos ventos (will-change ativo para aceleracao por GPU) */
   .rose {
     width: 100%;
     height: 100%;
@@ -139,11 +128,9 @@
     transform-origin: center center;
     will-change: transform;
     pointer-events: none;
-    /* Transicoes desativadas para a animacao rodar exclusivamente pelo RAF */
     transition: none !important;
   }
 
-  /* Ponteiro do topo fixo (Triangulo Vermelho) */
   .pointer {
     position: absolute;
     top: 4px;
@@ -152,17 +139,16 @@
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 10px solid #ef4444; /* Vermelho RDR2 */
+    border-top: 10px solid #ef4444;
     z-index: 10;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
     pointer-events: none;
   }
 
-  /* Texto com cardinal e graus */
   .heading {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #e5c185; /* Latão envelhecido */
+    color: #e5c185;
     letter-spacing: 1px;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.95);
   }

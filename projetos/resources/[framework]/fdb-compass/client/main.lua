@@ -12,39 +12,50 @@ end
 
 local lastHeading = -1
 
-local hasCompassItem = not Config.Elements.compass.requireItem
+local hasCompassItem = not Config.Compass.requireItem
 local isCompassEquipped = false
 local compassVisible = false
+local isLoggedIn = false
 
-RegisterNetEvent('fdb-hud:client:itemGatedUpdate', function(data)
-    hasCompassItem = data.compass
+RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
+    isLoggedIn = true
+end)
+
+RegisterNetEvent('RSGCore:Client:OnPlayerUnload', function()
+    isLoggedIn = false
+end)
+
+RegisterNetEvent('fdb-compass:client:itemGatedUpdate', function(hasItem)
+    hasCompassItem = hasItem
     -- Se perdeu o item da bussola, avisa a NUI imediatamente
     if not hasCompassItem and compassVisible then
         compassVisible = false
-        SendNUI('updateCompass', { degrees = 0, cardinal = 'N', visible = false })
+        SendNUIMessage({ action = 'updateCompass', degrees = 0, cardinal = 'N', visible = false })
     end
 end)
 
-RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
-    if data.compass ~= nil then
-        isCompassEquipped = data.compass
-        -- Se desequipou a bussola, avisa a NUI imediatamente
-        if not isCompassEquipped and compassVisible then
-            compassVisible = false
-            SendNUI('updateCompass', { degrees = 0, cardinal = 'N', visible = false })
-        end
+RegisterNetEvent('fdb-compass:client:equipUpdate', function(isEquipped)
+    isCompassEquipped = isEquipped
+    -- Se desequipou a bussola, avisa a NUI imediatamente
+    if not isCompassEquipped and compassVisible then
+        compassVisible = false
+        SendNUIMessage({ action = 'updateCompass', degrees = 0, cardinal = 'N', visible = false })
     end
 end)
 
 CreateThread(function()
     while true do
         Wait(100)
-        local canShow = isLoggedIn and Config.Elements.compass.enabled and hasCompassItem and isCompassEquipped
+        local canShow = isLoggedIn and Config.Compass.enabled
+        
+        if Config.Compass.requireItem then
+            canShow = canShow and hasCompassItem and isCompassEquipped
+        end
 
         if not canShow then
             if compassVisible then
                 compassVisible = false
-                SendNUI('updateCompass', { degrees = 0, cardinal = 'N', visible = false })
+                SendNUIMessage({ action = 'updateCompass', degrees = 0, cardinal = 'N', visible = false })
             end
             goto continue
         end
@@ -57,9 +68,10 @@ CreateThread(function()
         if heading ~= lastHeading or not compassVisible then
             lastHeading = heading
             compassVisible = true
-            SendNUI('updateCompass', {
+            SendNUIMessage({
+                action = 'updateCompass',
                 degrees  = heading,
-                cardinal = Config.Elements.compass.showCardinals and GetCardinal(heading) or nil,
+                cardinal = Config.Compass.showCardinals and GetCardinal(heading) or nil,
                 visible  = true,
             })
         end
