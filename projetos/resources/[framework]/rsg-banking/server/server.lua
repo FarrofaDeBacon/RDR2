@@ -1,4 +1,4 @@
-﻿local RSGCore = exports['rsg-core']:GetCoreObject()
+local RSGCore = exports['rsg-core']:GetCoreObject()
 local banking = nil
 lib.locale()
 math = lib.math

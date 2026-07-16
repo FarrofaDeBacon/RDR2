@@ -2,7 +2,7 @@ Config = {}
 Translation = {}
 Prompts = {}
 
-Config.ImageLocation = "nui://rsg-inventory/html/images/"
+Config.ImageLocation = "nui://vorp_inventory/html/img/items/"
 
 --Settings
 Config.Distance = 3.0       --Distance for opening market

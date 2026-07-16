@@ -1,4 +1,4 @@
-﻿local RSGCore = exports['rsg-core']:GetCoreObject()
+local RSGCore = exports['rsg-core']:GetCoreObject()
 
 for _itemName, _ammoType in pairs(Config.BoxAmmo) do
     RSGCore.Functions.CreateUseableItem(_itemName, function(source, item)

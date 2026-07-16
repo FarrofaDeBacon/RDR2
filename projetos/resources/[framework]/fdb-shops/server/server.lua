@@ -1,4 +1,4 @@
-﻿local RSGCore = exports['rsg-core']:GetCoreObject()
+local RSGCore = exports['rsg-core']:GetCoreObject()
 local cooldowns = {}
 local resourceName = GetCurrentResourceName()
 lib.locale()

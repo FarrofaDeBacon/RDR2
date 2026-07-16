@@ -1,18 +1,15 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+local VORPcore = exports.vorp_core:GetCore()  
 local Selected = true
-local playerdatalevel = 1
+local playerdatalevel  = 1
 local targetShop = nil
-local playerjob = nil
-local playerrank = nil
-local playergroup = nil
-local Oncrafting = false
-local producing = false
+local playerjob
+local playerrank
+local Oncrafting
 
 local prompts = GetRandomIntInRange(0, 0xffffff)
-local openMailbox = nil
 
 Citizen.CreateThread(function()
-    Citizen.Wait(2000)
+    Citizen.Wait(5000)
     local str = Config.SubPrompt
     openMailbox = PromptRegisterBegin()
     PromptSetControlAction(openMailbox, Config.PromptKey)
@@ -27,30 +24,34 @@ Citizen.CreateThread(function()
     PromptRegisterEnd(openMailbox)
 end)
 
--- Evento disparado quando o personagem do RSG é carregado
-RegisterNetEvent("RSGCore:Client:OnPlayerLoaded", function()
+MenuData = {}
+TriggerEvent("menuapi:getData", function(call)
+    MenuData = call
+end)
+
+RegisterNetEvent("vorp:SelectedCharacter")
+AddEventHandler("vorp:SelectedCharacter", function(charid)
     Selected = true
     Citizen.Wait(1000)
     TriggerServerEvent('vln-survivalbook:getjob')
 end)
 
--- Evento de sincronização de informações do personagem
-RegisterNetEvent("vln-survivalbook:findjob", function(job, rank, group, level)
-    playerjob = job
-    playerrank = rank
+RegisterNetEvent("vln-survivalbook:findjob")
+AddEventHandler("vln-survivalbook:findjob", function(job, rank, group, level)
+	playerjob = job
+	playerrank = rank
     playergroup = group
     playerdatalevel = level
 end)
 
--- Thread periódica para atualizar dados do jogador
+
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(Config.JobCooldown)
-        if Selected then
-            TriggerServerEvent("vln-survivalbook:getjob")
-        end
+        TriggerServerEvent("vln-survivalbook:getjob")
     end
 end)
+
 
 local function IsStoreClosed(storeConfig)
     local hour = GetClockHours()
@@ -71,16 +72,12 @@ function jobcheck(tbl, element)
     return false
 end
 
--- Thread de proximidade com as mesas de craft
 Citizen.CreateThread(function()
     while true do
         local find = false
-        local sleep = 1000
-        local pedCoords = GetEntityCoords(PlayerPedId())
-        
         for k, v in pairs(Config.CraftLocations) do
             local shopCoord = v.coords 
-            if #(shopCoord - pedCoords) < Config.Distance then
+            if GetDistanceBetweenCoords(shopCoord, GetEntityCoords(PlayerPedId()), true) < Config.Distance then
                 targetShop = k
                 find = true
                 sleep = 0
@@ -89,247 +86,279 @@ Citizen.CreateThread(function()
         end
         if not find then
             targetShop = nil
+            sleep = 1000
         end
         Citizen.Wait(sleep)
     end
 end)
 
--- Abre o menu do Livro de Sobrevivência (receitas portáteis)
+local progressbar = exports.vorp_progressbar:initiate()
+local ClientRPC = VORPcore
+
+local imgPathMenu = "<img style='height:48px; width:48px; margin-right: 10px;' src='" .. Config.ImageLocation .. "%s.png'>"
+local imgPath = "<img style='height:48px; width:48px; margin-right: 10px;' src='" .. Config.ImageLocation .. "%s.png'>"
+local itemLabelStyle = "<div style='font-size: 1.0vw; font-weight: bold; display: flex;  justify-content: center; height: 4rem; text-align: center;'>%s<div style='display: flex; flex-direction: column; justify-content: center; margin-left: 10px;'>%s</div></div>"
+local menuItemStyle = "<div style='height: 4rem; display: flex;  justify-content: center;'>%s</div>"
+local timeStyle = "<span style='opacity:0.6; font-size: 0.8vw;'>Crafting Time: %s seconds</span>"
+local subMenuStyle = "<div style='font-size: 1.0vw; text-align: center; display: flex; justify-content: center;'>%s<div style='display: flex; flex-direction: column; justify-content: center;'>%s%s</div></div>"
+
 function OpenMenu(playerLevel)
-    if producing then return end
     Oncrafting = true
-    
-    local options = {}
+    MenuData.CloseAll()
+    local elements = {}
 
     for recipeName, recipe in pairs(Config.Recipees) do
-        local locked = playerLevel < recipe.requiredlevel
-        local descriptionText = locked and "🔒 Nível Necessário: " .. recipe.requiredlevel or "Tempo: " .. recipe.time .. "s | Clique para ver ingredientes"
+        local recipeImage = string.format(imgPathMenu, recipe.image or "default_image")
+        local recipeLabel = string.format("<div style='font-size: 1.0vw; font-weight: bold;'>%s</div>", recipe.label)
 
-        table.insert(options, {
-            title = recipe.label,
-            description = descriptionText,
-            disabled = locked,
-            icon = Config.ImageLocation .. recipe.image .. ".png",
-            arrow = not locked,
-            onSelect = function()
-                OpenRecipeSubMenu(recipeName, recipe, playerLevel)
-            end
+        local recipeTime = ""
+        if not (playerLevel < recipe.requiredlevel) then
+            recipeTime = string.format(timeStyle, recipe.time or "Unknown")
+        end
+
+        local locked = playerLevel < recipe.requiredlevel
+        local lockText = locked and string.format("<div style='color: red;'>Requires Level %d</div>", recipe.requiredlevel) or ""
+
+        local styledLabel = string.format(itemLabelStyle, recipeImage, recipeLabel .. recipeTime .. lockText)
+
+        table.insert(elements, {
+            label = string.format(menuItemStyle, styledLabel),
+            value = locked and "locked" or recipeName
         })
     end
 
-    lib.registerContext({
-        id = 'survival_book_main',
-        title = 'Livro de Sobrevivência',
-        options = options,
-        onExit = function()
-            Oncrafting = false
-        end
-    })
+    MenuData.Open('default', GetCurrentResourceName(), 'craftingbg_main1', {
+        title    = "Survival Book",
+        elements = elements,
+        align    = 'top-left',
+        itemHeight = "5vh",
+    }, 
 
-    lib.showContext('survival_book_main')
+    function(data, menu)
+        if data.current.value and data.current.value ~= "locked" then
+            local selectedRecipe = Config.Recipees[data.current.value]
+            if selectedRecipe then
+                OpenRecipeSubMenu(selectedRecipe, playerLevel)
+            end
+        elseif data.current.value == "locked" then
+            VORPcore.NotifyRightTip("This recipe is locked!", 4000)
+        end
+    end,
+
+    function(data, menu)
+        menu.close()
+        isInMenu = false
+        DisplayRadar(true)
+        show = true
+        Oncrafting = false
+    end)
 end
 
--- Abre o submenu da receita portátil
-function OpenRecipeSubMenu(recipeName, recipe, playerLevel)
-    local options = {}
+function OpenRecipeSubMenu(recipe, playerLevel)
+    isInMenu = true
+    local elements = {}
 
-    -- Lista os ingredientes necessários
+    if not recipe.items or #recipe.items == 0 then
+        print("No ingredients for recipe: " .. recipe.label)
+    end
+
     for _, ingredient in ipairs(recipe.items) do
-        table.insert(options, {
-            title = ingredient.name,
-            description = "Necessário: x" .. ingredient.amount,
-            icon = Config.ImageLocation .. ingredient.name .. ".png",
-            disabled = true -- Apenas listagem visual
+        local ingredientImage = string.format(imgPath, ingredient.name)
+        local ingredientLabel = string.format("<div style='font-size: 1.0vw;'>%s</div>", ingredient.name)
+        local ingredientAmount = string.format("<span style='font-size: 0.8vw;'>x%d</span>", ingredient.amount)
+        local styledLabel = string.format(subMenuStyle, ingredientImage, ingredientLabel, ingredientAmount)
+
+        table.insert(elements, {
+            label = string.format(menuItemStyle, styledLabel),
+            value = ingredient.name
         })
     end
 
-    -- Botão para fabricar
-    table.insert(options, {
-        title = "Fabricar: " .. recipe.label,
-        description = "Clique para iniciar a fabricação",
-        icon = "fa-solid fa-hammer",
-        onSelect = function()
-            lib.callback('vln-survivalbook:getRequirements', false, function(hasAllItems, missingItems)
-                if hasAllItems then
-                    -- Toca barra de progresso do ox_lib
-                    producing = true
-                    Oncrafting = false
-                    
-                    if lib.progressBar({
-                        duration = recipe.time * 1000,
-                        label = 'Fabricando ' .. recipe.label .. '...',
-                        useWhileDead = false,
-                        canCancel = true,
-                        anim = {
-                            dict = 'amb_work@world_human_farmer_weeding@male_a@idle_a',
-                            name = 'idle_b'
-                        },
-                        disable = {
-                            move = true,
-                            car = true,
-                            combat = true
-                        }
-                    }) then
-                        TriggerServerEvent('vln-survivalbook:giveItem', recipeName, recipe.amount, recipe.catagory)
-                    else
-                        lib.notify({ title = 'Cancelado', description = 'Fabricação cancelada!', type = 'error' })
-                    end
-                    producing = false
-                else
-                    for _, missingItem in ipairs(missingItems) do
-                        lib.notify({
-                            title = 'Ingredientes Ausentes',
-                            description = 'Falta ' .. missingItem.missingCount .. 'x ' .. missingItem.itemName,
-                            type = 'error'
-                        })
-                    end
-                    OpenRecipeSubMenu(recipeName, recipe, playerLevel)
-                end
-            end, recipeName, 1)
-        end
+    local craftButton = string.format("<div style='text-align: center; margin-top: 10px;'>Craft %s (%dx)</div>", recipe.label, recipe.amount)
+    table.insert(elements, {
+        label = string.format(menuItemStyle, craftButton),
+        value = "craft"
     })
 
-    -- Botão Voltar
-    table.insert(options, {
-        title = "Voltar",
-        icon = "fa-solid fa-arrow-left",
-        onSelect = function()
+    table.insert(elements, {
+        label = string.format(menuItemStyle, "<div style='height: 1vw; color: red; text-align: center;'>⬅ Back</div>"),
+        value = "back"
+    })
+
+
+    MenuData.Open('default', GetCurrentResourceName(), 'crafting_submenu', {
+        title    = recipe.label .. " Ingredients",
+        elements = elements,
+        align    = 'top-left',
+        lastmenu = "craftingbg_main1",
+        itemHeight = "5vh",
+    }, function(data, menu)
+        if data.current == "backup" then
+            menu.close()
+            OpenMenu(playerLevel)
+        elseif data.current.value == "craft" then
+            ClientRPC.Callback.TriggerAsync('vln-survivalbook:getRequirements', function(hasAllItems, missingItems)
+                if hasAllItems then
+                    menu.close()
+                    VORPcore.NotifyRightTip("Crafting " .. recipe.label .. ". You must wait " .. recipe.time .. " seconds.", 4000)
+                    producing = true
+                    Citizen.CreateThread(function()
+                        Citizen.Wait(recipe.time * 1000)
+                        TriggerServerEvent('vln-survivalbook:giveItem', recipe.item, recipe.amount, recipe.catagory)
+                        producing = false
+                        VORPcore.NotifyRightTip("Successfully crafted " .. recipe.label .. "!", 4000)
+                    end)
+                else
+                    if #missingItems > 0 then
+                        for _, missingItem in ipairs(missingItems) do
+                            if missingItem and missingItem.itemName and missingItem.missingCount then
+                                VORPcore.NotifyRightTip('You need ' .. missingItem.missingCount .. 'x ' .. missingItem.itemName, 4000)
+                            end
+                        end
+                    end
+                end
+            end, recipe.item, recipe.amount)
+        elseif data.current.value == "back" then
+            menu.close()
             OpenMenu(playerLevel)
         end
-    })
-
-    lib.registerContext({
-        id = 'survival_book_recipe',
-        title = recipe.label .. " (Ingredientes)",
-        menu = 'survival_book_main',
-        options = options,
-        onExit = function()
-            Oncrafting = false
-        end
-    })
-
-    lib.showContext('survival_book_recipe')
+    end, function(menu)
+        menu.close()
+    end)
 end
 
--- Abre o menu de craft no Workshop/NPC
-function OpenCraftMenu(shopId)
-    if producing then return end
+function OpenCraftMenu(targetshop)
     Oncrafting = true
-    
-    local shopData = Config.CraftLocations[shopId]
-    if not shopData then return end
+    local playerdatalevel = playerdatalevel 
+    MenuData.CloseAll()
+    local elements = {}
 
-    local options = {}
+    local shopData = Config.CraftLocations[targetshop]
+    if not shopData then
+        return
+    end
 
     for recipeName, recipe in pairs(shopData.Craftables or {}) do
-        local locked = playerdatalevel < recipe.requiredlevel
-        local descriptionText = locked and "🔒 Nível Necessário: " .. recipe.requiredlevel or "Tempo: " .. recipe.time .. "s | Clique para ver ingredientes"
+        local recipeImage = string.format(imgPathMenu, recipe.image or "default_image")
+        local recipeLabel = string.format("<div style='font-size: 1.0vw; font-weight: bold;'>%s</div>", recipe.label)
 
-        table.insert(options, {
-            title = recipe.label,
-            description = descriptionText,
-            disabled = locked,
-            icon = Config.ImageLocation .. (recipe.image or "default") .. ".png",
-            arrow = not locked,
-            onSelect = function()
-                OpenCraftSubMenu(recipeName, recipe, playerdatalevel, shopId)
-            end
+        local recipeTime = ""
+        if not (playerdatalevel < recipe.requiredlevel) then
+            recipeTime = string.format(timeStyle, recipe.time or "Unknown")
+        end
+
+        local locked = playerdatalevel < recipe.requiredlevel
+        local lockText = locked and string.format("<div style='color: red;'>Requires Level %d</div>", recipe.requiredlevel) or ""
+
+        local styledLabel = string.format(itemLabelStyle, recipeImage, recipeLabel .. recipeTime .. lockText)
+
+        table.insert(elements, {
+            label = string.format(menuItemStyle, styledLabel),
+            value = locked and "locked" or recipeName
         })
     end
 
-    lib.registerContext({
-        id = 'survival_shop_main',
-        title = shopData.title or "Mesa de Trabalho",
-        options = options,
-        onExit = function()
-            Oncrafting = false
+    MenuData.Open('default', GetCurrentResourceName(), 'craftingbg_main2', {
+        title    = shopData.title or "Crafting",
+        elements = elements,
+        align    = 'top-left',
+        itemHeight = "5vh",
+    },
+    function(data, menu)
+        if data.current.value and data.current.value ~= "locked" then
+            local selectedRecipe = shopData.Craftables[data.current.value]
+            if selectedRecipe then
+                menu.close()
+                OpenCraftSubMenu(selectedRecipe, playerdatalevel, targetshop)
+            end
+        elseif data.current.value == "locked" then
+            VORPcore.NotifyRightTip("This recipe is locked!", 4000)
         end
-    })
-
-    lib.showContext('survival_shop_main')
+    end,
+    function(data, menu)
+        menu.close()
+        isInMenu = false
+        DisplayRadar(true)
+        show = true
+        Oncrafting = false
+    end)
 end
 
--- Abre o submenu de ingredientes da mesa de trabalho
-function OpenCraftSubMenu(recipeName, recipe, playerLevel, shopId)
-    local options = {}
+function OpenCraftSubMenu(recipe, playerLevel, targetShop)
+    isInMenu = true
+    local elements = {}
+
+    if not recipe.items or #recipe.items == 0 then
+        print("No ingredients for recipe: " .. recipe.label)
+    end
 
     for _, ingredient in ipairs(recipe.items) do
-        table.insert(options, {
-            title = ingredient.name,
-            description = "Necessário: x" .. ingredient.amount,
-            icon = Config.ImageLocation .. ingredient.name .. ".png",
-            disabled = true
+        local ingredientImage = string.format(imgPathMenu, ingredient.name) 
+        local ingredientLabel = string.format("<div style='font-size: 1.0vw; font-weight: bold;'>%s</div>", ingredient.name)
+        local ingredientAmount = string.format("<div style='font-size: 0.8vw;'>x%d</div>", ingredient.amount)
+        local styledLabel = string.format(itemLabelStyle, ingredientImage, ingredientLabel .. ingredientAmount) 
+
+        table.insert(elements, {
+            label = string.format(menuItemStyle, styledLabel),
+            value = ingredient.name
         })
     end
 
-    -- Botão para fabricar
-    table.insert(options, {
-        title = "Fabricar: " .. recipe.label,
-        description = "Clique para iniciar a fabricação",
-        icon = "fa-solid fa-hammer",
-        onSelect = function()
-            lib.callback('vln-survivalbook:getRequirementsWeapon', false, function(hasAllItems, missingItems)
+    local craftButtonText = string.format("<div>Craft %s (%dx)</div>", recipe.label, recipe.amount)
+    table.insert(elements, {
+        label = string.format(menuItemStyle, craftButtonText),
+        value = "craft"
+    })
+
+    local backButton = "<div style=' color: red;'>⬅ Back</div>"
+    table.insert(elements, {
+        label = string.format(menuItemStyle, backButton),
+        value = "back"
+    })
+
+    MenuData.Open('default', GetCurrentResourceName(), 'crafting_submenuweapon', {
+        title    = recipe.label .. " Ingredients",
+        elements = elements,
+        align    = 'top-left',
+        lastmenu = "craftingbg_main2",
+        itemHeight = "5vh", 
+    }, function(data, menu)
+        if data.current.value == "back" then
+            menu.close()
+            OpenCraftMenu(targetShop)
+
+        elseif data.current.value == "craft" then
+            ClientRPC.Callback.TriggerAsync('vln-survivalbook:getRequirementsWeapon', function(hasAllItems, missingItems)
                 if hasAllItems then
+                    menu.close()
+                    VORPcore.NotifyRightTip("Crafting " .. recipe.label .. ". You must wait " .. recipe.time .. " seconds.", 4000)
                     producing = true
-                    Oncrafting = false
-                    
-                    if lib.progressBar({
-                        duration = recipe.time * 1000,
-                        label = 'Fabricando ' .. recipe.label .. '...',
-                        useWhileDead = false,
-                        canCancel = true,
-                        anim = {
-                            dict = 'amb_work@world_human_farmer_weeding@male_a@idle_a',
-                            name = 'idle_b'
-                        },
-                        disable = {
-                            move = true,
-                            car = true,
-                            combat = true
-                        }
-                    }) then
-                        TriggerServerEvent('vln-survivalbook:giveItem', recipeName, recipe.amount, recipe.catagory, shopId)
-                    else
-                        lib.notify({ title = 'Cancelado', description = 'Fabricação cancelada!', type = 'error' })
-                    end
-                    producing = false
+                    Citizen.CreateThread(function()
+                        Citizen.Wait(recipe.time * 1000)
+                        Oncrafting = false
+                        TriggerServerEvent('vln-survivalbook:giveItem', recipe.item, recipe.amount, recipe.catagory)
+                        producing = false
+                        VORPcore.NotifyRightTip("Successfully crafted " .. recipe.label .. "!", 4000)
+                    end)
                 else
-                    for _, missingItem in ipairs(missingItems) do
-                        lib.notify({
-                            title = 'Ingredientes Ausentes',
-                            description = 'Falta ' .. missingItem.missingCount .. 'x ' .. missingItem.itemName,
-                            type = 'error'
-                        })
+                    if #missingItems > 0 then
+                        for _, missingItem in ipairs(missingItems) do
+                            if missingItem and missingItem.itemName and missingItem.missingCount then
+                                VORPcore.NotifyRightTip('You need ' .. missingItem.missingCount .. 'x ' .. missingItem.itemName, 4000)
+                            end
+                        end
                     end
-                    OpenCraftSubMenu(recipeName, recipe, playerLevel, shopId)
                 end
-            end, recipeName, 1, shopId)
+            end, recipe.item, recipe.amount, targetShop)
         end
-    })
-
-    -- Botão Voltar
-    table.insert(options, {
-        title = "Voltar",
-        icon = "fa-solid fa-arrow-left",
-        onSelect = function()
-            OpenCraftMenu(shopId)
-        end
-    })
-
-    lib.registerContext({
-        id = 'survival_shop_recipe',
-        title = recipe.label .. " (Ingredientes)",
-        menu = 'survival_shop_main',
-        options = options,
-        onExit = function()
-            Oncrafting = false
-        end
-    })
-
-    lib.showContext('survival_shop_recipe')
+    end, function(menu)
+        menu.close()
+    end)
 end
 
--- Thread de controle de prompts para interação no jogo
+
+
+
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0) 
@@ -337,36 +366,53 @@ Citizen.CreateThread(function()
         if targetShop and Selected then
             local store = Config.CraftLocations[targetShop]
             local jobSpecific = store.jobonly
-            local canAccess = true
-            
             if jobSpecific then
-                if not (playerjob and jobcheck(store.job, playerjob)) then
-                    canAccess = false
+                if playerjob and jobcheck(store.job, playerjob) then
+                    if store.StoreHoursAllowed and IsStoreClosed(store) == 'closed' and not Oncrafting then
+                            local label = CreateVarString(10, 'LITERAL_STRING', Config.Closed .. store.StoreOpen .. Config.Am .. store.StoreClose .. Config.Pm )
+                            PromptSetActiveGroupThisFrame(prompts, label)
+                    elseif not Oncrafting then
+                            local coords = Config.CraftLocations[targetShop]["coords"]
+                            
+                            local label = CreateVarString(10, 'LITERAL_STRING', Config.OpenPrompt)
+                            PromptSetActiveGroupThisFrame(prompts, label)
+                            
+                        if Citizen.InvokeNative(0xC92AC953F0A982AE, openMailbox) then
+                            OpenCraftMenu(targetShop)
+                        end
+                    end
                 end
-            end
-            
-            if canAccess then
+            else
                 if store.StoreHoursAllowed and IsStoreClosed(store) == 'closed' then
-                    if not Oncrafting then
                         local label = CreateVarString(10, 'LITERAL_STRING', Config.Closed .. store.StoreOpen .. Config.Am .. store.StoreClose .. Config.Pm )
                         PromptSetActiveGroupThisFrame(prompts, label)
-                    end
-                elseif not Oncrafting and not producing then
-                    local label = CreateVarString(10, 'LITERAL_STRING', Config.OpenPrompt)
-                    PromptSetActiveGroupThisFrame(prompts, label)
-                    
-                    if Citizen.InvokeNative(0xC92AC953F0A982AE, openMailbox) then
-                        OpenCraftMenu(targetShop)
-                    end
+                elseif not Oncrafting then
+                        local coords = Config.CraftLocations[targetShop]["coords"]
+                        
+                        local label = CreateVarString(10, 'LITERAL_STRING', Config.OpenPrompt)
+                        PromptSetActiveGroupThisFrame(prompts, label)
+                        
+                        if Citizen.InvokeNative(0xC92AC953F0A982AE, openMailbox) then
+                            OpenCraftMenu(targetShop)
+                        end
                 end
             end
-        else
-            Citizen.Wait(500)
         end
     end
 end)
 
--- Evento para abrir o livro de sobrevivência externamente
-RegisterNetEvent("vln-survivalbook:openBook", function(level)
-    OpenMenu(level or playerdatalevel)
+RegisterNetEvent("vln-survivalbook:openBook")
+AddEventHandler("vln-survivalbook:openBook", function(level)
+    OpenMenu(level)
 end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then
+       return
+    end
+
+    MenuData.CloseAll()
+   
+end)
+
+
