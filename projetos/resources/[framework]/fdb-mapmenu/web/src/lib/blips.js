@@ -54,7 +54,7 @@ export const blipCategories = [
     }
 ];
 
-// Helper para gerar a URL do GitHub com a imagem real do blip
+// Helper para gerar a URL local com a imagem do blip
 export function getBlipImage(id) {
-    return `https://raw.githubusercontent.com/femga/rdr3_discoveries/a4b4bcd5a3006b0c1434b03e4095d038164932f7/useful_info_from_rpfs/textures/blips_mp/${id}.png`;
+    return `./blips/${id}.png`;
 }

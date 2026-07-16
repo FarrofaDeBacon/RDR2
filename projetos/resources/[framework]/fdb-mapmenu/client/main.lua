@@ -25,22 +25,17 @@ local function LoadPlayerMarkers()
     
     if markers then
         for _, marker in pairs(markers) do
-            -- Se não tiver ícone, usa um hash genérico válido (não a arma). Mas nós sempre teremos ícone.
-            local blipHash = -1282792512 -- default fallback hash
-            if marker.icon and marker.icon ~= "" then
-                blipHash = GetHashKey(marker.icon)
-            end
+            -- Cria o blip nativo do RDR2 com a base genérica
+            local blip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, marker.x, marker.y, marker.z)
             
-            -- Cria o blip nativo do RDR2 com a sprite certa direto na criação
-            local blip = Citizen.InvokeNative(0x554D9D53F696D002, blipHash, marker.x, marker.y, marker.z)
-            
-            -- Verifica se o blip foi criado com sucesso (retorna número, não boolean)
             if type(blip) == "number" then
-                -- O usuário pediu para aumentar o ícone. Vamos colocar a escala em 0.4 (o normal do RedM costuma ser 0.2)
-                Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
+                -- Aplica o ícone correto! (O terceiro argumento 'true' é obrigatório no RedM para funcionar!)
+                if marker.icon and marker.icon ~= "" then
+                    Citizen.InvokeNative(0x74F74DB120614488, blip, GetHashKey(marker.icon), true)
+                end
                 
-                -- Seta o nome do blip
-                Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name)
+                Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
+                Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name) -- SetBlipName
                 
                 activeBlips[marker.id] = blip
             end
