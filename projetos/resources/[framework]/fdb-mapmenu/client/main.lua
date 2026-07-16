@@ -123,6 +123,10 @@ CreateThread(function()
         elseif not isMapOpen and wasMapOpen then
             wasMapOpen = false
             
+            -- Aguarda o menu de pausa fechar completamente e a tela voltar ao normal
+            -- Isso evita que o NUI Focus do ox_lib trave o menu de pausa aberto
+            Wait(1500)
+            
             -- Mapa acabou de ser fechado. Vamos verificar se ele deixou um waypoint!
             local waypointBlip = GetFirstBlipInfoId(8) -- 8 é o ID do Waypoint vermelho padrão
             
