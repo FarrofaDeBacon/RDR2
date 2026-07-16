@@ -105,6 +105,20 @@ RegisterCommand('anotacoes', function()
     end
 end)
 
+RegisterCommand('checkwaypoint', function()
+    local hasWaypoint = Citizen.InvokeNative(0x202B1BBFC6AB5EE4)
+    print("[DEBUG] IsWaypointActive:", tostring(hasWaypoint))
+    
+    local blip8 = GetFirstBlipInfoId(8)
+    print("[DEBUG] GetFirstBlipInfoId(8):", tostring(blip8))
+    
+    local coords = GetWaypointCoords()
+    print("[DEBUG] GetWaypointCoords:", tostring(coords))
+    
+    local natCoord = Citizen.InvokeNative(0x29B30D07C3F7873B, Citizen.ResultAsVector())
+    print("[DEBUG] Native Coords:", tostring(natCoord))
+end)
+
 CreateThread(function()
     -- Carrega os marcadores ao entrar no jogo
     Wait(2000)
