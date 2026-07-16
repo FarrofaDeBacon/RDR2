@@ -1,13 +1,16 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
-local markers = {} -- [citizenid] = { {x=.., y=.., label=..}, ... }
-
+-- Busca os marcadores de um jogador específico
 lib.callback.register('fdb-mapmenu:server:getMarkers', function(source)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return {} end
-    return markers[Player.PlayerData.citizenid] or {}
+    
+    local citizenid = Player.PlayerData.citizenid
+    local result = MySQL.query.await('SELECT * FROM player_markers WHERE citizenid = ?', {citizenid})
+    return result or {}
 end)
 
+-- Verifica se o jogador tem o item mapa
 lib.callback.register('fdb-mapmenu:server:hasMapItem', function(source)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return false end
@@ -41,24 +44,54 @@ lib.callback.register('fdb-mapmenu:server:hasMapItem', function(source)
     return false
 end)
 
-RegisterNetEvent('fdb-mapmenu:server:addMarker', function(x, y, label)
-    local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
-    local cid = Player.PlayerData.citizenid
-    markers[cid] = markers[cid] or {}
-    table.insert(markers[cid], { x = x, y = y, label = label })
+-- Verifica se o jogador tem o item lápis
+lib.callback.register('fdb-mapmenu:server:hasPencilItem', function(source)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return false end
+    
+    for _, item in pairs(Player.PlayerData.items) do
+        if item and item.name == 'pencil' then
+            return true
+        end
+    end
+    
+    return false
 end)
 
-RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(index)
+-- Adiciona um novo marcador no banco de dados
+RegisterNetEvent('fdb-mapmenu:server:addMarker', function(name, icon, coords)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-    local cid = Player.PlayerData.citizenid
-    if markers[cid] and markers[cid][index + 1] then
-        table.remove(markers[cid], index + 1)
+    local citizenid = Player.PlayerData.citizenid
+    
+    local id = MySQL.insert.await('INSERT INTO player_markers (citizenid, name, icon, x, y, z) VALUES (?, ?, ?, ?, ?, ?)', {
+        citizenid, name, icon, coords.x, coords.y, coords.z
+    })
+    
+    if id then
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Marcação Adicionada', type = 'success'})
+        -- Opcional: Acionar um client event para forçar o recarregamento dos blips
+        TriggerClientEvent('fdb-mapmenu:client:refreshMarkers', src)
     end
 end)
 
--- Server log info
-print('^2[fdb-mapmenu]^7 Inicializado com sucesso.')
+-- Remove um marcador pelo ID
+RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(id)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local citizenid = Player.PlayerData.citizenid
+    
+    -- Verifica se o marcador pertence ao jogador para evitar exploit
+    local rows = MySQL.update.await('DELETE FROM player_markers WHERE id = ? AND citizenid = ?', {
+        id, citizenid
+    })
+    
+    if rows > 0 then
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Marcação Removida', type = 'success'})
+        TriggerClientEvent('fdb-mapmenu:client:refreshMarkers', src)
+    end
+end)
+
+print('^2[fdb-mapmenu]^7 Persistência de marcações ativada via DB.')
