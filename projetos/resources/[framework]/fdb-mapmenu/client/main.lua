@@ -34,13 +34,16 @@ local function LoadPlayerMarkers()
             -- Cria o blip nativo do RDR2 com a sprite certa direto na criação
             local blip = Citizen.InvokeNative(0x554D9D53F696D002, blipHash, marker.x, marker.y, marker.z)
             
-            -- O usuário pediu para aumentar o ícone. Vamos colocar a escala em 0.4 (o normal do RedM costuma ser 0.2)
-            Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
-            
-            -- Seta o nome do blip
-            Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name)
-            
-            activeBlips[marker.id] = blip
+            -- Verifica se o blip foi criado com sucesso (retorna número, não boolean)
+            if type(blip) == "number" then
+                -- O usuário pediu para aumentar o ícone. Vamos colocar a escala em 0.4 (o normal do RedM costuma ser 0.2)
+                Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
+                
+                -- Seta o nome do blip
+                Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name)
+                
+                activeBlips[marker.id] = blip
+            end
         end
     end
 end

@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { blipCategories } from './lib/blips.js';
+    import { blipCategories, getBlipImage } from './lib/blips.js';
 
     let isVisible = false;
     let currentTab = 'add'; // 'add' ou 'list'
@@ -135,7 +135,7 @@
                                             title={blip.label}
                                             on:click={() => markerIcon = blip.id}
                                         >
-                                            {blip.emoji}
+                                            <img src={getBlipImage(blip.id)} alt={blip.label} />
                                         </div>
                                     {/each}
                                 </div>
@@ -319,7 +319,6 @@
     }
 
     .icon-option {
-        font-size: 28px;
         cursor: pointer;
         padding: 5px;
         border: 2px solid transparent;
@@ -327,7 +326,17 @@
         transition: 0.2s;
         background: rgba(139, 69, 19, 0.1);
         text-align: center;
-        min-width: 45px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .icon-option img {
+        max-width: 100%;
+        max-height: 100%;
+        filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
     }
 
     .icon-option:hover { background: rgba(139, 69, 19, 0.3); }
