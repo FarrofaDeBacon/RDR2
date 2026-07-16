@@ -173,11 +173,16 @@ CreateThread(function()
                 local input = lib.inputDialog('Nova Anotação no Mapa', {
                     {type = 'input', label = 'Nome da Anotação', description = 'Ex: Ponto de Caça, Esconderijo', required = true},
                     {type = 'select', label = 'Símbolo', required = true, options = {
-                        {value = 'blip_ambient_camp', label = 'Acampamento'},
-                        {value = 'blip_animal_deer', label = 'Caça'},
-                        {value = 'blip_shop_grocery', label = 'Provisões'},
-                        {value = 'blip_shop_gunsmith', label = 'Armas/Perigo'},
-                        {value = 'blip_defend_coach', label = 'Alvo/Destino'}
+                        {value = 'blip_ambient_camp', label = '🏕️ Acampamento'},
+                        {value = 'blip_animal_deer', label = '🦌 Ponto de Caça'},
+                        {value = 'blip_shop_grocery', label = '🍎 Provisões'},
+                        {value = 'blip_shop_gunsmith', label = '🔫 Armas / Perigo'},
+                        {value = 'blip_defend_coach', label = '🎯 Alvo / Destino'},
+                        {value = 'blip_ambient_herb', label = '🌿 Ervas / Coleta'},
+                        {value = 'blip_shop_doctor', label = '➕ Médico / Ajuda'},
+                        {value = 'blip_shop_horses', label = '🐎 Cavalos'},
+                        {value = 'blip_mp_role_bounty_hunter', label = '⭐ Estrela / Xerife'},
+                        {value = 'blip_mp_role_collector', label = '💎 Tesouro / Colecionador'}
                     }}
                 })
                 
