@@ -111,66 +111,57 @@ CreateThread(function()
     LoadPlayerMarkers()
     
     local wasMapOpen = false
+CreateThread(function()
+    -- Carrega os marcadores ao entrar no jogo
+    Wait(2000)
+    LoadPlayerMarkers()
+    
+    local wasWaypointActive = false
     
     while true do
-        Wait(500)
+        Wait(100)
         
-        -- IS_PAUSE_MENU_ACTIVE
-        local isMapOpen = Citizen.InvokeNative(0xA7E95B60ED29B88D)
+        local isWaypointActive = Citizen.InvokeNative(0x202B1BBFC6AB5EE4) -- IS_WAYPOINT_ACTIVE
         
-        if isMapOpen and not wasMapOpen then
-            wasMapOpen = true
-        elseif not isMapOpen and wasMapOpen then
-            wasMapOpen = false
+        if isWaypointActive and not wasWaypointActive then
+            wasWaypointActive = true
             
-            -- Aguarda o menu de pausa fechar completamente e a tela voltar ao normal
-            -- Isso evita que o NUI Focus do ox_lib trave o menu de pausa aberto
-            Wait(1500)
+            -- O jogador acabou de colocar um Waypoint!
+            local coords = GetWaypointCoords()
+            if type(coords) ~= "vector3" then
+                coords = Citizen.InvokeNative(0x29B30D07C3F7873B, Citizen.ResultAsVector())
+            end
             
-            -- Mapa acabou de ser fechado. Vamos verificar se ele deixou um waypoint!
-            print("[fdb-mapmenu] Mapa fechado. Aguardando 1.5s...")
-            Wait(1500)
-            print("[fdb-mapmenu] Verificando Waypoint...")
+            -- Apaga o waypoint imediatamente
+            SetWaypointOff()
+            wasWaypointActive = false
             
-            local hasWaypoint = Citizen.InvokeNative(0x202B1BBFC6AB5EE4) -- IS_WAYPOINT_ACTIVE
-            print("[fdb-mapmenu] hasWaypoint:", tostring(hasWaypoint))
+            -- Verifica se ele tem lápis
+            local hasPencil = lib.callback.await('fdb-mapmenu:server:hasPencilItem', false)
             
-            if hasWaypoint then
-                local coords = GetWaypointCoords()
-                -- Tenta pegar coords pela nativa também caso o GetWaypointCoords() falhe
-                if type(coords) ~= "vector3" then
-                    coords = Citizen.InvokeNative(0x29B30D07C3F7873B, Citizen.ResultAsVector())
-                end
-                print("[fdb-mapmenu] Coords:", tostring(coords))
+            if not hasPencil then
+                lib.notify({ title = 'Você marcou o mapa, mas não tem um Lápis para anotar!', type = 'error' })
+            else
+                -- Força o mapa a fechar para podermos mostrar a UI
+                SetPauseMenuActive(false)
                 
-                -- Apaga o waypoint vermelho imediatamente para ficar invisível e limpo
-                SetWaypointOff()
+                -- Aguarda a tela voltar ao jogo para evitar soft-lock
+                Wait(1000)
                 
-                -- Verifica o item Lápis
-                local hasPencil = lib.callback.await('fdb-mapmenu:server:hasPencilItem', false)
-                print("[fdb-mapmenu] hasPencil:", tostring(hasPencil))
+                -- Mostra a caixinha
+                local input = lib.inputDialog('Nova Anotação no Mapa', {
+                    {type = 'input', label = 'Nome da Anotação', description = 'Ex: Ponto de Caça, Esconderijo', required = true},
+                    {type = 'select', label = 'Símbolo', required = true, options = {
+                        {value = 'blip_ambient_camp', label = 'Acampamento'},
+                        {value = 'blip_animal_deer', label = 'Caça'},
+                        {value = 'blip_shop_grocery', label = 'Provisões'},
+                        {value = 'blip_shop_gunsmith', label = 'Armas/Perigo'},
+                        {value = 'blip_defend_coach', label = 'Alvo/Destino'}
+                    }}
+                })
                 
-                if not hasPencil then
-                    lib.notify({ title = 'Você tentou fazer uma marcação, mas não tem um Lápis!', type = 'error' })
-                else
-                    -- Mostra a caixinha de texto (lib.inputDialog)
-                    local input = lib.inputDialog('Nova Anotação no Mapa', {
-                        {type = 'input', label = 'Nome da Anotação', description = 'Ex: Árvore Antiga, Ouro, etc.', required = true},
-                        {type = 'select', label = 'Símbolo', required = true, options = {
-                            {value = 'blip_ambient_camp', label = 'Acampamento'},
-                            {value = 'blip_animal_deer', label = 'Caça'},
-                            {value = 'blip_shop_grocery', label = 'Provisões'},
-                            {value = 'blip_shop_gunsmith', label = 'Armas/Perigo'},
-                            {value = 'blip_defend_coach', label = 'Alvo/Destino'}
-                        }}
-                    })
-                    
-                    if input then
-                        local name = input[1]
-                        local icon = input[2]
-                        -- Envia pro banco de dados
-                        TriggerServerEvent('fdb-mapmenu:server:addMarker', name, icon, coords)
-                    end
+                if input then
+                    TriggerServerEvent('fdb-mapmenu:server:addMarker', input[1], input[2], coords)
                 end
             end
         end
