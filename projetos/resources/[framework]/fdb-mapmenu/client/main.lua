@@ -27,6 +27,9 @@ local function LoadPlayerMarkers()
                 Citizen.InvokeNative(0x74F74DB120614488, blip, GetHashKey(marker.icon)) -- SET_BLIP_SPRITE
             end
             
+            -- O usuário pediu para aumentar o ícone. Vamos colocar a escala em 0.4 (o normal do RedM costuma ser 0.2)
+            Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
+            
             -- Removemos a escala de 0.2 porque no RedM isso deixa o ícone invisível a olho nu!
             Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name) -- Seta o nome
             
