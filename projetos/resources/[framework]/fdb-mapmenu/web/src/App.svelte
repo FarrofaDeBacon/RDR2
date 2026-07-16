@@ -204,9 +204,11 @@
         width: 100vw;
         height: 100vh;
         display: flex;
-        justify-content: center;
+        justify-content: flex-end; /* Alinha à direita */
         align-items: center;
         background: rgba(0, 0, 0, 0.4);
+        padding-right: 5%; /* Dá uma margem da borda direita */
+        box-sizing: border-box;
         z-index: 9999;
     }
 
