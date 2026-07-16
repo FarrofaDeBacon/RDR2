@@ -13,7 +13,10 @@ local function CreateMapMarker(marker)
     -- Muda a sprite e o nome do blip
     if type(blip) == "number" then
         if marker.icon and marker.icon ~= "" then
-            Citizen.InvokeNative(0x74F74DB120614488, blip, GetHashKey(marker.icon), true)
+            local hash = joaat(marker.icon)
+            print("[fdb-mapmenu] Trocando sprite do blip", blip, "para", marker.icon, "hash:", hash)
+            SetBlipSprite(blip, hash, true)
+            Citizen.InvokeNative(0x74F74DB120614488, blip, hash, true) -- Fallback
         end
         
         Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name)
