@@ -128,16 +128,28 @@ CreateThread(function()
             Wait(1500)
             
             -- Mapa acabou de ser fechado. Vamos verificar se ele deixou um waypoint!
-            local hasWaypoint = IsWaypointActive()
+            print("[fdb-mapmenu] Mapa fechado. Aguardando 1.5s...")
+            Wait(1500)
+            print("[fdb-mapmenu] Verificando Waypoint...")
+            
+            local hasWaypoint = Citizen.InvokeNative(0x202B1BBFC6AB5EE4) -- IS_WAYPOINT_ACTIVE
+            print("[fdb-mapmenu] hasWaypoint:", tostring(hasWaypoint))
             
             if hasWaypoint then
                 local coords = GetWaypointCoords()
+                -- Tenta pegar coords pela nativa também caso o GetWaypointCoords() falhe
+                if type(coords) ~= "vector3" then
+                    coords = Citizen.InvokeNative(0x29B30D07C3F7873B, Citizen.ResultAsVector())
+                end
+                print("[fdb-mapmenu] Coords:", tostring(coords))
                 
                 -- Apaga o waypoint vermelho imediatamente para ficar invisível e limpo
                 SetWaypointOff()
                 
                 -- Verifica o item Lápis
                 local hasPencil = lib.callback.await('fdb-mapmenu:server:hasPencilItem', false)
+                print("[fdb-mapmenu] hasPencil:", tostring(hasPencil))
+                
                 if not hasPencil then
                     lib.notify({ title = 'Você tentou fazer uma marcação, mas não tem um Lápis!', type = 'error' })
                 else
