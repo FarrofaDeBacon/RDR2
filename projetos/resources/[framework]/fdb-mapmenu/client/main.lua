@@ -6,6 +6,62 @@ local RSGCore = exports['rsg-core']:GetCoreObject()
 
 local activeBlips = {} -- Guarda os blips criados { [id] = blipHandle }
 
+local blipMapping = {
+    ['blip_animal_buck'] = 'blip_animal',
+    ['blip_animal_bear'] = 'blip_animal',
+    ['blip_animal_boar'] = 'blip_animal',
+    ['blip_animal_cougar'] = 'blip_animal',
+    ['blip_animal_coyote'] = 'blip_animal',
+    ['blip_animal_elk'] = 'blip_animal',
+    ['blip_animal_fox'] = 'blip_animal',
+    ['blip_animal_moose'] = 'blip_animal',
+    ['blip_animal_wolf'] = 'blip_animal',
+    ['blip_animal_alligator'] = 'blip_animal',
+    ['blip_fish_legendary'] = 'blip_mg_fishing',
+    
+    ['blip_shop_grocery'] = 'blip_shop_store',
+    ['blip_shop_gunsmith'] = 'blip_shop_gunsmith',
+    ['blip_shop_doctor'] = 'blip_shop_doctor',
+    ['blip_shop_horses'] = 'blip_shop_horse',
+    ['blip_shop_tailor'] = 'blip_shop_tailor',
+    ['blip_shop_barber'] = 'blip_shop_barber',
+    ['blip_shop_fence'] = 'blip_shop_shady_store',
+    ['blip_shop_saloon'] = 'blip_shop_saloon',
+    ['blip_shop_butcher'] = 'blip_shop_butcher',
+    ['blip_post_office'] = 'blip_shop_train',
+    ['blip_hotel'] = 'blip_ambient_camp',
+    
+    ['blip_ambient_camp'] = 'blip_ambient_camp',
+    ['blip_ambient_coach'] = 'blip_ambient_coach',
+    ['blip_ambient_telegraph'] = 'blip_ambient_telegraph',
+    ['blip_ambient_train'] = 'blip_ambient_train',
+    ['blip_ambient_herb'] = 'blip_ambient_herb',
+    ['blip_defend_coach'] = 'blip_defend_coach',
+    
+    ['blip_mp_role_bounty_hunter'] = 'blip_ambient_bounty_target',
+    ['blip_mp_role_collector'] = 'blip_shop_shady_store',
+    ['blip_mp_role_trader'] = 'blip_shop_animal_trapper',
+    ['blip_mp_role_moonshiner'] = 'blip_shop_saloon',
+    ['blip_mp_role_naturalist'] = 'blip_animal_quality_01'
+}
+
+local function CreateMapMarker(marker)
+    -- blip genérico base do RDR2 (1664425300)
+    local blip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, marker.x, marker.y, marker.z)
+    
+    -- Muda a sprite e o nome do blip
+    if type(blip) == "number" then
+        if marker.icon and marker.icon ~= "" then
+            local realBlipSprite = blipMapping[marker.icon] or marker.icon
+            Citizen.InvokeNative(0x74F74DB120614488, blip, GetHashKey(realBlipSprite), true)
+        end
+        
+        Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name)
+    end
+    
+    return blip
+end
+
 local function RemoveAllBlips()
     for _, blip in pairs(activeBlips) do
         RemoveBlip(blip)
@@ -25,18 +81,9 @@ local function LoadPlayerMarkers()
     
     if markers then
         for _, marker in pairs(markers) do
-            -- Cria o blip nativo do RDR2 com a base genérica
-            local blip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, marker.x, marker.y, marker.z)
-            
-            if type(blip) == "number" then
-                -- Aplica o ícone correto! (O terceiro argumento 'true' é obrigatório no RedM para funcionar!)
-                if marker.icon and marker.icon ~= "" then
-                    Citizen.InvokeNative(0x74F74DB120614488, blip, GetHashKey(marker.icon), true)
-                end
-                
+            local blip = CreateMapMarker(marker)
+            if blip then
                 Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.4) -- SetBlipScale
-                Citizen.InvokeNative(0x9CB1A1623062F402, blip, marker.name) -- SetBlipName
-                
                 activeBlips[marker.id] = blip
             end
         end
