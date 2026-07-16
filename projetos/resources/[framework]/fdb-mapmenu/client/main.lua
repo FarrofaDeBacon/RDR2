@@ -48,45 +48,15 @@ end)
 -- =======================================================
 
 -- Menu Principal do Mapa (Gerenciamento)
+-- Menu Principal do Mapa (Gerenciamento)
 local function OpenMapMenu()
     local markers = lib.callback.await('fdb-mapmenu:server:getMarkers', false)
-    local menuOptions = {}
     
-    if markers and #markers > 0 then
-        for _, marker in pairs(markers) do
-            table.insert(menuOptions, {
-                title = marker.name,
-                description = 'Clique para deletar esta marcação.',
-                icon = 'map-pin',
-                onSelect = function()
-                    local confirm = lib.alertDialog({
-                        header = 'Deletar Marcação?',
-                        content = 'Tem certeza que deseja rasgar esta anotação do seu mapa?',
-                        centered = true,
-                        cancel = true
-                    })
-                    if confirm == 'confirm' then
-                        TriggerServerEvent('fdb-mapmenu:server:removeMarker', marker.id)
-                    else
-                        lib.showContext('map_markers_list')
-                    end
-                end
-            })
-        end
-    else
-        table.insert(menuOptions, {
-            title = 'Nenhuma anotação feita',
-            disabled = true
-        })
-    end
-    
-    lib.registerContext({
-        id = 'map_markers_list',
-        title = 'Minhas Anotações',
-        options = menuOptions
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = "openNotebook",
+        markers = markers or {}
     })
-    
-    lib.showContext('map_markers_list')
 end
 
 -- =======================================================
@@ -169,29 +139,39 @@ CreateThread(function()
             if not hasPencil then
                 lib.notify({ title = 'Você marcou o mapa, mas não tem um Lápis para anotar!', type = 'error' })
             else
-                -- Mostra a caixinha diretamente (ela vai aparecer por cima do mapa)
-                local input = lib.inputDialog('Nova Anotação no Mapa', {
-                    {type = 'input', label = 'Nome da Anotação', description = 'Ex: Ponto de Caça, Esconderijo', required = true},
-                    {type = 'select', label = 'Símbolo', required = true, options = {
-                        {value = 'blip_ambient_camp', label = '🏕️ Acampamento'},
-                        {value = 'blip_animal_deer', label = '🦌 Ponto de Caça'},
-                        {value = 'blip_shop_grocery', label = '🍎 Provisões'},
-                        {value = 'blip_shop_gunsmith', label = '🔫 Armas / Perigo'},
-                        {value = 'blip_defend_coach', label = '🎯 Alvo / Destino'},
-                        {value = 'blip_ambient_herb', label = '🌿 Ervas / Coleta'},
-                        {value = 'blip_shop_doctor', label = '➕ Médico / Ajuda'},
-                        {value = 'blip_shop_horses', label = '🐎 Cavalos'},
-                        {value = 'blip_mp_role_bounty_hunter', label = '⭐ Estrela / Xerife'},
-                        {value = 'blip_mp_role_collector', label = '💎 Tesouro / Colecionador'}
-                    }}
+                -- Mostra a nova UI de Pergaminho
+                SetNuiFocus(true, true)
+                SendNUIMessage({
+                    action = "openMenu",
+                    coords = safeCoords
                 })
-                
-                if input then
-                    TriggerServerEvent('fdb-mapmenu:server:addMarker', input[1], input[2], safeCoords)
-                end
             end
         end
     end
+end)
+
+-- =======================================================
+-- NUI CALLBACKS
+-- =======================================================
+
+RegisterNUICallback('closeUI', function(data, cb)
+    SetNuiFocus(false, false)
+    cb('ok')
+end)
+
+RegisterNUICallback('saveMarker', function(data, cb)
+    TriggerServerEvent('fdb-mapmenu:server:addMarker', data.name, data.icon, data.coords)
+    cb('ok')
+end)
+
+RegisterNUICallback('deleteMarker', function(data, cb)
+    TriggerServerEvent('fdb-mapmenu:server:removeMarker', data.id)
+    cb('ok')
+end)
+
+RegisterNUICallback('requestMarkers', function(data, cb)
+    local markers = lib.callback.await('fdb-mapmenu:server:getMarkers', false)
+    cb(markers or {})
 end)
 
 

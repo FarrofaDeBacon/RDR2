@@ -3,27 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa RDR2</title>
+    <title>Mapa Anotações</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="map-container" style="display: none;">
-        <div id="map-wrapper">
-            <img id="map-image" src="map.svg" alt="Mapa Mundi RDR2">
-            
-            <!-- Marcador do Jogador -->
-            <div id="player-marker" class="marker">
-                <div class="pin"></div>
-                <div class="pulse"></div>
+    <div id="ui-container" class="hidden">
+        <div class="paper">
+            <!-- Header Tabs -->
+            <div class="tabs">
+                <button id="tab-add" class="tab-btn active">Nova Anotação</button>
+                <button id="tab-list" class="tab-btn">Minhas Anotações</button>
             </div>
-        </div>
-        
-        <!-- Dica de como fechar o mapa -->
-        <div class="legend-box">
-            <p>Pressione <strong>ESC</strong> ou clique fora para fechar</p>
+
+            <!-- Tab Content: Add Marker -->
+            <div id="content-add" class="tab-content active">
+                <h2>Desenhar no Mapa</h2>
+                
+                <div class="input-group">
+                    <label for="marker-name">O que há aqui?</label>
+                    <input type="text" id="marker-name" placeholder="Ex: Acampamento, Caça..." autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="marker-icon">Escolha o Símbolo</label>
+                    <select id="marker-icon">
+                        <option value="blip_ambient_camp">🏕️ Acampamento</option>
+                        <option value="blip_animal_deer">🦌 Ponto de Caça</option>
+                        <option value="blip_shop_grocery">🍎 Provisões</option>
+                        <option value="blip_shop_gunsmith">🔫 Armas / Perigo</option>
+                        <option value="blip_defend_coach">🎯 Alvo / Destino</option>
+                        <option value="blip_ambient_herb">🌿 Ervas / Coleta</option>
+                        <option value="blip_shop_doctor">➕ Médico / Ajuda</option>
+                        <option value="blip_shop_horses">🐎 Cavalos</option>
+                        <option value="blip_mp_role_bounty_hunter">⭐ Estrela / Xerife</option>
+                        <option value="blip_mp_role_collector">💎 Tesouro / Colecionador</option>
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button id="btn-cancel" class="btn btn-secondary">Rasgar (Cancelar)</button>
+                    <button id="btn-save" class="btn btn-primary">Anotar</button>
+                </div>
+            </div>
+
+            <!-- Tab Content: List Markers -->
+            <div id="content-list" class="tab-content">
+                <h2>Anotações Feitas</h2>
+                <div class="marker-list-container">
+                    <ul id="marker-list">
+                        <!-- Markers injected via JS -->
+                    </ul>
+                </div>
+                <div class="actions">
+                    <button id="btn-close-list" class="btn btn-secondary">Fechar Diário</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

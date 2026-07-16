@@ -1,85 +1,112 @@
-const mapContainer = document.getElementById('map-container');
-const playerMarker = document.getElementById('player-marker');
+let currentCoords = null;
 
-// Limites reais de coordenadas do mundo RedM/RDR2
-// Esses limites mapeiam o retangulo de coordenadas da imagem do mapa
-const MAP_LIMITS = {
-    minX: -6000,
-    maxX: 6000,
-    minY: -6000,
-    maxY: 6000
-};
-
-// -------------------------------------------------------
-// Funções de Conversão Bidirecional
-// -------------------------------------------------------
-
-/**
- * Converte coordenadas 3D do mundo real para porcentagens X/Y na imagem do mapa
- * @param {number} worldX 
- * @param {number} worldY 
- * @returns {{x: number, y: number}} porcentagens de 0 a 100
- */
-function worldToImage(worldX, worldY) {
-    const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX;
-    const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY;
+// Escuta as mensagens do Client (Lua)
+window.addEventListener('message', function(event) {
+    const data = event.data;
     
-    const pctX = ((worldX - MAP_LIMITS.minX) / rangeX) * 100;
-    // Y real cresce para cima (Norte), mas a tela cresce para baixo, entao invertemos
-    const pctY = (1 - (worldY - MAP_LIMITS.minY) / rangeY) * 100;
-    
-    return {
-        x: Math.max(0, Math.min(100, pctX)),
-        y: Math.max(0, Math.min(100, pctY))
-    };
-}
-
-/**
- * Converte porcentagens X/Y da imagem do mapa de volta para coordenadas reais do mundo
- * @param {number} pctX porcentagem de 0 a 100
- * @param {number} pctY porcentagem de 0 a 100
- * @returns {{x: number, y: number}} coordenadas X e Y do mundo
- */
-function imageToWorld(pctX, pctY) {
-    const rangeX = MAP_LIMITS.maxX - MAP_LIMITS.minX;
-    const rangeY = MAP_LIMITS.maxY - MAP_LIMITS.minY;
-    
-    const worldX = (pctX / 100) * rangeX + MAP_LIMITS.minX;
-    // Inverte o Y de volta
-    const worldY = (1 - (pctY / 100)) * rangeY + MAP_LIMITS.minY;
-    
-    return { x: worldX, y: worldY };
-}
-
-// -------------------------------------------------------
-// Message Listener da NUI
-// -------------------------------------------------------
-window.addEventListener('message', (e) => {
-    const { action, coords } = e.data ?? {};
-    
-    if (action === 'openMap') {
-        mapContainer.style.display = 'flex';
+    if (data.action === "openMenu") {
+        $("#ui-container").removeClass("hidden");
+        currentCoords = data.coords; // Coordenadas que vieram do duplo clique
         
-        if (coords) {
-            // Converte a coordenada atual do jogador
-            const pos = worldToImage(coords.x, coords.y);
-            
-            // Posiciona o marcador na tela
-            playerMarker.style.left = `${pos.x}%`;
-            playerMarker.style.top = `${pos.y}%`;
-        }
-    } else if (action === 'closeMap') {
-        mapContainer.style.display = 'none';
+        // Abre na aba de adicionar
+        switchTab('add');
+        
+        // Limpa o input
+        $("#marker-name").val('');
+        $("#marker-icon").prop('selectedIndex', 0);
+        $("#marker-name").focus();
+    } else if (data.action === "openNotebook") {
+        $("#ui-container").removeClass("hidden");
+        currentCoords = null; // Não estamos criando nada novo
+        
+        // Abre na aba da lista
+        switchTab('list');
+        updateMarkerList(data.markers);
     }
 });
 
-// Fechamento da NUI ao clicar fora do wrapper do mapa
-mapContainer.addEventListener('click', (e) => {
-    if (e.target === mapContainer) {
-        fetch('https://fdb-mapmenu/closeMap', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({})
-        }).catch(() => {});
+// Troca de Abas
+$(".tab-btn").click(function() {
+    const tabId = $(this).attr("id").replace("tab-", "");
+    switchTab(tabId);
+    
+    // Se clicou na lista, pede pro cliente as anotações
+    if (tabId === 'list') {
+        $.post('https://fdb-mapmenu/requestMarkers', JSON.stringify({}), function(markers) {
+            updateMarkerList(markers);
+        });
     }
 });
+
+function switchTab(tabId) {
+    $(".tab-btn").removeClass("active");
+    $(".tab-content").removeClass("active");
+    
+    $("#tab-" + tabId).addClass("active");
+    $("#content-" + tabId).addClass("active");
+}
+
+// Fechar UI (Botão Rasgar ou Esc)
+function closeUI() {
+    $("#ui-container").addClass("hidden");
+    $.post('https://fdb-mapmenu/closeUI', JSON.stringify({}));
+}
+
+$("#btn-cancel").click(closeUI);
+$("#btn-close-list").click(closeUI);
+
+$(document).keyup(function(e) {
+    if (e.key === "Escape") {
+        closeUI();
+    }
+});
+
+// Salvar Anotação
+$("#btn-save").click(function() {
+    const name = $("#marker-name").val().trim();
+    const icon = $("#marker-icon").val();
+    
+    if (name.length === 0) {
+        return; // Não deixa salvar sem nome
+    }
+    
+    $.post('https://fdb-mapmenu/saveMarker', JSON.stringify({
+        name: name,
+        icon: icon,
+        coords: currentCoords
+    }));
+    
+    closeUI();
+});
+
+// Atualizar Lista
+function updateMarkerList(markers) {
+    const list = $("#marker-list");
+    list.empty();
+    
+    if (!markers || markers.length === 0) {
+        list.append('<li class="marker-item">Nenhuma anotação no mapa.</li>');
+        return;
+    }
+    
+    markers.forEach(function(marker) {
+        const li = $(`
+            <li class="marker-item">
+                <div class="marker-info">
+                    <span>📝</span>
+                    <span>${marker.name}</span>
+                </div>
+                <button class="btn-delete" data-id="${marker.id}">❌</button>
+            </li>
+        `);
+        
+        list.append(li);
+    });
+    
+    // Deletar
+    $(".btn-delete").click(function() {
+        const id = $(this).data("id");
+        $.post('https://fdb-mapmenu/deleteMarker', JSON.stringify({ id: id }));
+        $(this).closest('li').remove();
+    });
+}
