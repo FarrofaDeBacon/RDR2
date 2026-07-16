@@ -118,6 +118,24 @@ RSGCore.Functions.CreateUseableItem('map', function(source, item)
     end
 end)
 
+RSGCore.Functions.CreateUseableItem('compass', function(source, item)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return end
+    local cid = Player.PlayerData.citizenid
+    
+    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    
+    -- Só permite equipar se possuir o item válido
+    local hasCompass = HasValidItem(Player, 'compass')
+    if not hasCompass then
+        equipped[cid].compass = false
+        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = false })
+        return
+    end
+
+    equipped[cid].compass = not equipped[cid].compass
+    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = equipped[cid].compass })
+end)
 
 
 
@@ -132,16 +150,19 @@ CreateThread(function()
             local Player = RSGCore.Functions.GetPlayer(src)
             if Player then
                 local cid = Player.PlayerData.citizenid
-                equipped[cid] = equipped[cid] or { map = false }
+                equipped[cid] = equipped[cid] or { map = false, compass = false }
 
                 -- Checa se ainda possui os itens validos
                 local hasMap = HasValidItem(Player, 'map')
+                local hasCompass = HasValidItem(Player, 'compass')
 
                 -- Se perdeu o item, desliga forçado
                 if not hasMap then equipped[cid].map = false end
+                if not hasCompass then equipped[cid].compass = false end
 
                 TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
                     map = hasMap and equipped[cid].map,
+                    compass = hasCompass and equipped[cid].compass,
                 })
             end
         end
@@ -184,6 +205,7 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
         -- Atualiza gated status imediatamente
         TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
             map = false,
+            compass = equipped[cid].compass and HasValidItem(Player, 'compass'),
         })
 
         TriggerClientEvent('ox_lib:notify', src, {

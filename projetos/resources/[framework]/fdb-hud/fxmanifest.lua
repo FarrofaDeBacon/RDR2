@@ -14,6 +14,7 @@ client_scripts {
     'client/main.lua',
     'client/status.lua',
     'client/vehicle.lua',
+    'client/compass.lua',
     'client/nui.lua',
     'client/minimap.lua',
     'client/hidenatives.lua',
