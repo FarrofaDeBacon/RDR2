@@ -1,12 +1,5 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
--- Abre o mapa nativo do jogo
-local function OpenNativeMapWithAnimation()
-    print("[fdb-mapmenu] Abrindo mapa nativo...")
-    -- Usa a hash correta para o menu de pausa/mapa
-    Citizen.InvokeNative(0xEF01D36B9C9D0C7B, GetHashKey("FE_MENU_VERSION_MP_PAUSE"), true, -1)
-end
-
 -- =======================================================
 -- SISTEMA DE MARCAÇÕES E BLIPS
 -- =======================================================
@@ -55,16 +48,8 @@ end)
 local function OpenMapMenu()
     lib.registerContext({
         id = 'map_main_menu',
-        title = 'Mapa e Anotações',
+        title = 'Anotações do Mapa',
         options = {
-            {
-                title = 'Abrir Mapa',
-                description = 'Desdobrar e olhar o mapa nativo',
-                icon = 'map',
-                onSelect = function()
-                    OpenNativeMapWithAnimation()
-                end,
-            },
             {
                 title = 'Nova Anotação',
                 description = 'Marcar sua localização atual no mapa',
@@ -159,25 +144,10 @@ RegisterNetEvent('fdb-mapmenu:client:OpenMapMenu', function()
     OpenMapMenu()
 end)
 
--- Thread de Interceptação da Tecla M (INPUT_MAP)
 CreateThread(function()
     -- Carrega os marcadores ao entrar no jogo
     Wait(2000)
     LoadPlayerMarkers()
-    
-    while true do
-        Wait(0)
-        DisableControlAction(0, 0xE31C6A41, true) -- INPUT_MAP (M)
-
-        if IsDisabledControlJustReleased(0, 0xE31C6A41) then
-            local hasMap = lib.callback.await('fdb-mapmenu:server:hasMapItem', false)
-            if hasMap then
-                OpenMapMenu()
-            else
-                lib.notify({ title = 'Você não possui um mapa equipado.', type = 'error' })
-            end
-        end
-    end
 end)
 
 

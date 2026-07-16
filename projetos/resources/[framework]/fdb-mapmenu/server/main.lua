@@ -94,4 +94,9 @@ RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(id)
     end
 end)
 
+-- Adiciona o item mapa como utilizável
+RSGCore.Functions.CreateUseableItem('map', function(source, item)
+    TriggerClientEvent('fdb-mapmenu:client:OpenMapMenu', source)
+end)
+
 print('^2[fdb-mapmenu]^7 Persistência de marcações ativada via DB.')
