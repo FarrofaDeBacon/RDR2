@@ -128,10 +128,10 @@ CreateThread(function()
             Wait(1500)
             
             -- Mapa acabou de ser fechado. Vamos verificar se ele deixou um waypoint!
-            local waypointBlip = GetFirstBlipInfoId(8) -- 8 é o ID do Waypoint vermelho padrão
+            local hasWaypoint = IsWaypointActive()
             
-            if DoesBlipExist(waypointBlip) then
-                local coords = Citizen.InvokeNative(0xFA7C7F0AADF25D09, waypointBlip, Citizen.ResultAsVector())
+            if hasWaypoint then
+                local coords = GetWaypointCoords()
                 
                 -- Apaga o waypoint vermelho imediatamente para ficar invisível e limpo
                 SetWaypointOff()
