@@ -104,21 +104,27 @@ RegisterNetEvent('fdb-mapmenu:server:addMarker', function(name, icon, coords)
     end
 end)
 
--- Remove um marcador pelo ID
-RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(id)
+-- Remove um marcador
+RegisterNetEvent('fdb-mapmenu:server:removeMarker', function(markerId)
     local src = source
+    print("[fdb-mapmenu] removeMarker received for ID: " .. tostring(markerId))
+    
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
+    
     local citizenid = Player.PlayerData.citizenid
     
-    -- Verifica se o marcador pertence ao jogador para evitar exploit
-    local rows = MySQL.update.await('DELETE FROM player_markers WHERE id = ? AND citizenid = ?', {
-        id, citizenid
-    })
+    local success, affectedRows = pcall(function()
+        return MySQL.update.await('DELETE FROM player_markers WHERE id = ? AND citizenid = ?', {markerId, citizenid})
+    end)
     
-    if rows > 0 then
+    print("[fdb-mapmenu] Delete success: " .. tostring(success) .. " | Affected Rows: " .. tostring(affectedRows))
+    
+    if success and affectedRows > 0 then
         TriggerClientEvent('ox_lib:notify', src, {title = 'Marcação Removida', type = 'success'})
         TriggerClientEvent('fdb-mapmenu:client:refreshMarkers', src)
+    else
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Erro ao remover', type = 'error'})
     end
 end)
 
