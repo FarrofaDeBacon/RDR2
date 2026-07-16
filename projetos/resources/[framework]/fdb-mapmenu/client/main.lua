@@ -110,12 +110,6 @@ CreateThread(function()
     Wait(2000)
     LoadPlayerMarkers()
     
-    local wasMapOpen = false
-CreateThread(function()
-    -- Carrega os marcadores ao entrar no jogo
-    Wait(2000)
-    LoadPlayerMarkers()
-    
     local wasWaypointActive = false
     
     while true do
