@@ -140,6 +140,22 @@ CreateThread(function()
                 coords = Citizen.InvokeNative(0x29B30D07C3F7873B, Citizen.ResultAsVector())
             end
             
+            -- Extrai coordenadas com segurança para evitar crash no server ou no ox_lib
+            local cx, cy, cz = 0.0, 0.0, 0.0
+            if type(coords) == "vector3" then
+                cx, cy, cz = coords.x, coords.y, coords.z
+            elseif type(coords) == "table" and coords.x then
+                cx, cy, cz = coords.x, coords.y, coords.z
+            end
+            
+            -- Se por acaso a nativa retornar 0, usa a coord do player como fallback temporario
+            if cx == 0.0 and cy == 0.0 then
+                local pCoords = GetEntityCoords(PlayerPedId())
+                cx, cy, cz = pCoords.x, pCoords.y, pCoords.z
+            end
+            
+            local safeCoords = { x = cx, y = cy, z = cz }
+            
             -- Apaga o waypoint imediatamente
             SetWaypointOff()
             wasWaypointActive = false
@@ -163,7 +179,7 @@ CreateThread(function()
                 })
                 
                 if input then
-                    TriggerServerEvent('fdb-mapmenu:server:addMarker', input[1], input[2], coords)
+                    TriggerServerEvent('fdb-mapmenu:server:addMarker', input[1], input[2], safeCoords)
                 end
             end
         end
