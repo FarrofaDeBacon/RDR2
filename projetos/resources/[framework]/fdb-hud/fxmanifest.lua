@@ -29,8 +29,7 @@ ui_page 'ui/public/index.html'
 files {
     'ui/public/index.html',
     'ui/public/index.js',
-    'ui/public/index.css',
-    'ui/public/rose.svg',
+    'ui/public/index.css'
 }
 
 dependencies {

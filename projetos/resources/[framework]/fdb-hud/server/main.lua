@@ -108,7 +108,7 @@ end
 -- -------------------------------------------------------
 -- Registrar os useable items (toggle de equipar)
 -- -------------------------------------------------------
-RSGCore.Functions.CreateUseableItem(Config.Elements.minimap.itemName, function(source, item)
+RSGCore.Functions.CreateUseableItem(Config.Minimap.itemName, function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return end
     local cid = Player.PlayerData.citizenid
@@ -116,7 +116,7 @@ RSGCore.Functions.CreateUseableItem(Config.Elements.minimap.itemName, function(s
     equipped[cid] = equipped[cid] or { map = false }
     
     -- Só permite equipar se possuir o item válido (e não estiver encharcado, se a lógica de molhado for aplicada depois)
-    local hasMap = HasValidItem(Player, Config.Elements.minimap.itemName)
+    local hasMap = HasValidItem(Player, Config.Minimap.itemName)
     if not hasMap then
         equipped[cid].map = false
         TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = false })
