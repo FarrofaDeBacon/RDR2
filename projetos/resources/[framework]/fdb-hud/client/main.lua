@@ -73,4 +73,17 @@ AddEventHandler('onResourceStart', function(res)
         InitNUI()
     end
 end)
+local inEditMode = false
 
+RegisterCommand('hudedit', function()
+    inEditMode = not inEditMode
+    SetNuiFocus(inEditMode, inEditMode)
+    SendNUI('setEditMode', inEditMode)
+end)
+
+RegisterNUICallback('closeEditMode', function(data, cb)
+    inEditMode = false
+    SetNuiFocus(false, false)
+    SendNUI('setEditMode', false)
+    cb(1)
+end)
