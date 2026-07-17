@@ -56,7 +56,7 @@ CreateThread(function()
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
             DisplayRadar(true)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
-            SetMinimapType(2)
+            SetMinimapType(3)
         else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
