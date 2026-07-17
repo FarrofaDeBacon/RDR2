@@ -109,17 +109,23 @@ end
 -- Registrar os useable items (toggle de equipar)
 -- -------------------------------------------------------
 RSGCore.Functions.CreateUseableItem(Config.Minimap.itemName, function(source, item)
+    TriggerClientEvent('fdb-hud:client:openMapMenu', source)
+end)
+
+RegisterServerEvent('fdb-hud:server:toggleMinimap')
+AddEventHandler('fdb-hud:server:toggleMinimap', function()
+    local source = source
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return end
     local cid = Player.PlayerData.citizenid
     
     equipped[cid] = equipped[cid] or { map = false }
     
-    -- Só permite equipar se possuir o item válido (e não estiver encharcado, se a lógica de molhado for aplicada depois)
     local hasMap = HasValidItem(Player, Config.Minimap.itemName)
     if not hasMap then
         equipped[cid].map = false
         TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = false })
+        TriggerClientEvent('ox_lib:notify', source, {title = 'Você não possui um mapa válido.', type = 'error'})
         return
     end
 

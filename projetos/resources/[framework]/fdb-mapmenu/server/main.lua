@@ -152,9 +152,6 @@ RegisterNetEvent('fdb-mapmenu:server:editMarker', function(markerId, newName, ne
     end
 end)
 
--- Adiciona o item mapa como utilizável
-RSGCore.Functions.CreateUseableItem('map', function(source, item)
-    TriggerClientEvent('fdb-mapmenu:client:OpenMapMenu', source)
-end)
+-- O uso do item map agora é controlado centralmente pelo fdb-hud (context menu)
 
 print('^2[fdb-mapmenu]^7 Persistência de marcações ativada via DB.')

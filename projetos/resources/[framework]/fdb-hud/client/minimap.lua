@@ -16,6 +16,40 @@ RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
     end
 end)
 
+RegisterNetEvent('fdb-hud:client:openMapMenu', function()
+    lib.registerContext({
+        id = 'map_action_menu',
+        title = 'Ações do Mapa',
+        options = {
+            {
+                title = 'Visualizar Mapa',
+                description = 'Abre o mapa gigante nativo.',
+                icon = 'map',
+                onSelect = function()
+                    ActivateFrontendMenu(joaat("MAP"), false, 1)
+                end
+            },
+            {
+                title = isMapEquipped and 'Guardar Minimapa' or 'Equipar Minimapa',
+                description = 'Liga ou desliga a bússola/radar na sua tela.',
+                icon = isMapEquipped and 'eye-slash' or 'eye',
+                onSelect = function()
+                    TriggerServerEvent('fdb-hud:server:toggleMinimap')
+                end
+            },
+            {
+                title = 'Mapa de Anotações',
+                description = 'Abre o mapa de papel customizado.',
+                icon = 'pen',
+                onSelect = function()
+                    TriggerEvent('fdb-mapmenu:client:OpenMapMenu')
+                end
+            }
+        }
+    })
+    lib.showContext('map_action_menu')
+end)
+
 CreateThread(function()
     while true do
         Wait(500)
