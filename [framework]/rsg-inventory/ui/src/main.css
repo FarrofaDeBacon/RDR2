@@ -8,6 +8,11 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: hapnaslabserif;
+    src: url('../public/assets/HapnaSlabSerif-DemiBold.ttf') format('truetype');
+}
+
 :root {
     --grid-pt: 0.8vh;
     --divider-h: 0.25vh;
@@ -271,7 +276,7 @@ div {
 .player-inventory-header .inventory-label p,
 .other-inventory-header .inventory-label p,
 .centered-inventory-header .inventory-label p {
-    font-family: 'RDR Lino', sans-serif;
+    font-family: 'hapnaslabserif', sans-serif;
     font-size: calc(var(--bg-width) * 0.0405); 
     margin: 0;
 }
@@ -327,8 +332,10 @@ div {
     justify-content: center;
     width: calc((100% - (var(--slot-gap) * (var(--columns) - 1)) - (var(--slot-pad) * 2)) / var(--columns));
     aspect-ratio: 1 / 1;
-    background: rgba(10, 10, 10, 0.45) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background-color: rgb(38 35 35 / 30%);
+    -webkit-mask-image: url(../public/assets/menu_ink_4.png);
+    -webkit-mask-size: cover;
+    background: #ffffff1a;
     margin: -0.5px;
     flex-shrink: 0;
     box-sizing: border-box;
@@ -337,10 +344,7 @@ div {
 
 .item-slot:hover {
     background: rgba(198, 11, 13, 0.15) !important;
-    border-color: rgba(198, 11, 13, 0.85) !important;
-    outline: 1.5px solid rgba(198, 11, 13, 0.85);
     z-index: 5;
-    box-shadow: 0 0 10px rgba(198, 11, 13, 0.35);
 }
 
 .custom-tooltip {
@@ -2106,3 +2110,109 @@ div {
     z-index: 1;
     max-height: calc(100vh - calc(19.4vh + 2.2vh + 2.2vh + 0.5vh + var(--divider-h) + var(--grid-pt)) - 2vh); 
 }
+
+
+.item-quality-stars {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+div.item-quality-stars img {
+    width: 3.0vmin;
+    height: 3.0vmin;
+}
+
+.item-effects {
+	width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5.5vmin;
+	padding-top: 0.7vmin;
+}
+.effects-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2vmin;
+    flex-wrap: nowrap;
+}
+.effect-icon {
+    width: 5.5vmin;
+    height: 5.5vmin;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+}
+.effect-ring {
+    position: absolute;
+    inset: 0;
+    width: 5.5vmin;
+    height: 5.5vmin;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+}
+.effect-color-normal {
+    filter: none;
+}
+.effect-item {
+    position: relative;
+    width: 5.5vmin;
+    height: 5.5vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+.effect-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+}
+.effect-level {
+    position: absolute;
+    top: -0.5vmin;
+    right: -0.5vmin;
+    width: 2.5vmin;
+    height: 2.5vmin;
+    padding: 0.4vmin 0.3vmin 0.2vmin 0.3vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+	background-image: url('../public/assets/item_effect_duration_category_background.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    font-family: "RDR Lino";
+    font-size: 2.0vmin;
+    z-index: 4;
+    pointer-events: none;
+}
+
+#icon-all  { background-image: url('../public/assets/satchel_nav_all.png'); }
+#icon-clothes  { background-image: url('../public/assets/satchel_nav_clothes.png'); }
+#icon-weapons   { background-image: url('../public/assets/satchel_nav_weapons.png'); }
+#icon-provision    { background-image: url('../public/assets/satchel_nav_provisions.png'); }
+#icon-remedies    { background-image: url('../public/assets/satchel_nav_remedies.png'); }
+#icon-ingridient    { background-image: url('../public/assets/satchel_nav_ingredients.png'); }
+#icon-material    { background-image: url('../public/assets/satchel_nav_materials.png'); }
+#icon-kit    { background-image: url('../public/assets/satchel_nav_kit.png'); }
+#icon-valuable    { background-image: url('../public/assets/satchel_nav_valuables.png'); }
+#icon-documents    { background-image: url('../public/assets/satchel_nav_documents.png'); }
+#icon-herbs    { background-image: url('../public/assets/satchel_nav_herbs.png'); }
+#icon-animals    { background-image: url('../public/assets/satchel_nav_animals.png'); }
+#icon-collections    { background-image: url('../public/assets/satchel_nav_collections.png'); }
+#icon-horse    { background-image: url('../public/assets/satchel_nav_horse_items.png'); }
+#icon-sell    { background-image: url('../public/assets/satchel_nav_sell.png'); }
+#icon-misc    { background-image: url('../public/assets/satchel_nav_fire.png'); }
+#icon-shopsell    { background-image: url('../public/assets/satchel_nav_shop_sell.png'); }
+#icon-shopbuy    { background-image: url('../public/assets/satchel_nav_shop_buy.png'); }
