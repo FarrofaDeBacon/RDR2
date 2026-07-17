@@ -9,11 +9,11 @@
 <style>
   .minimap-mask {
     position: absolute;
-    /* Valores baseados em viewport width (vw) para escalar com a tela */
-    bottom: 1.2vw;
-    left: 1.2vw;
-    width: 9.5vw;
-    height: 9.5vw;
+    /* Usando Viewport Height (vh) para ancorar na mesma proporção do minimapa em qualquer resolução (Ultrawide etc) */
+    bottom: 1.5vh;
+    left: 1.5vh;
+    width: 16vh;
+    height: 16vh;
 
     /* Removemos a borda preta grossa antiga */
     border: none;
