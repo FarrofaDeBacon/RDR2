@@ -142,7 +142,7 @@ CreateThread(function()
                 local cid = Player.PlayerData.citizenid
                 equipped[cid] = equipped[cid] or { map = false }
 
-                local hasMap = HasValidItem(Player, Config.Elements.minimap.itemName)
+                local hasMap = HasValidItem(Player, Config.Minimap.itemName)
 
                 if not hasMap then equipped[cid].map = false end
 
