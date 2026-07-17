@@ -133,7 +133,7 @@
      <Name>TXT_East</Name>
      <UseLayoutEngine value="true"/>
      <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
-     <RawText></RawText>
+     <RawText> </RawText>
      <LayoutParams type="rage__LayoutParamInstanceAsset">
        <params>
          <horizontalAlignment>HALIGN_RIGHT</horizontalAlignment>
@@ -172,7 +172,7 @@
      <Name>TXT_West</Name>
      <UseLayoutEngine value="true"/>
      <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
-     <RawText></RawText>
+     <RawText> </RawText>
      <LayoutParams type="rage__LayoutParamInstanceAsset">
        <params>
          <horizontalAlignment>HALIGN_LEFT</horizontalAlignment>

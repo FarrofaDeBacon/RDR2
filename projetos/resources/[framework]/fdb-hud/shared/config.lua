@@ -19,6 +19,7 @@ Config.Elements = {
     stress  = { enabled = false }, -- ainda nao implementado
     money   = { enabled = true },
     vehicle = { enabled = true },
+    minimapMask = { enabled = true },
 }
 
 -- -------------------------------------------------------
@@ -52,5 +53,6 @@ Config.DefaultLayout = {
     vehicle = { x = 0.78, y = 0.80 }, -- canto inferior direito
     compass = { x = 0.35, y = 0.90 }, -- inferior central
     money   = { x = 0.78, y = 0.02 }, -- topo direito
+    minimapMask = { x = 0.05, y = 0.75 }, -- em cima do radar
 }
 
