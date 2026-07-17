@@ -54,7 +54,7 @@ local function GetMinimapAnchor()
     local safezone = GetSafeZoneSize()
     local safezone_x = 1.0 / 20.0
     local safezone_y = 1.0 / 20.0
-    local aspect_ratio = GetAspectRatio(0)
+    local aspect_ratio = GetAspectRatio(false) -- MUST BE BOOLEAN
     local res_x, res_y = GetActiveScreenResolution()
     local xscale = 1.0 / res_x
     local yscale = 1.0 / res_y
@@ -84,7 +84,11 @@ CreateThread(function()
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             SetMinimapType(1)
             
-            local anchor = GetMinimapAnchor()
+            local success, anchor = pcall(GetMinimapAnchor)
+            if not success then
+                print("Erro ao calcular o minimap anchor: " .. tostring(anchor))
+                anchor = nil
+            end
             
             SendNUIMessage({
                 action = 'updateMinimap',
