@@ -30,7 +30,7 @@ files {
     'ui/public/index.html',
     'ui/public/index.js',
     'ui/public/index.css',
-    'ui/public/img/mask.png'
+    'ui/public/img/*'
 }
 
 dependencies {
