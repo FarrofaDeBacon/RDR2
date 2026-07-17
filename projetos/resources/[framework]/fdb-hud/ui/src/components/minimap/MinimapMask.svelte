@@ -1,11 +1,11 @@
 <script>
-    import { hudStore } from '../../stores/hudStore.js';
+    import { minimap } from '../../stores/hudStore.js';
 
     // The mask relies on the minimap state
     export let isVisible = false;
 
     // Use a reactive statement to sync visibility from the store
-    $: isVisible = $hudStore.minimap && $hudStore.minimap.visible;
+    $: isVisible = $minimap && $minimap.visible;
 </script>
 
 {#if isVisible}
