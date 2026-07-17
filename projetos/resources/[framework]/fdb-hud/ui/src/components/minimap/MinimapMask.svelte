@@ -10,10 +10,10 @@
   .minimap-mask {
     position: absolute;
     /* Usando Viewport Height (vh) para ancorar na mesma proporção do minimapa em qualquer resolução (Ultrawide etc) */
-    bottom: 1.8vh;
-    left: 1.8vh;
-    width: 25.5vh;
-    height: 25.5vh;
+    bottom: 2.2vh;
+    left: 2.2vh;
+    width: 27.0vh;
+    height: 27.0vh;
 
     /* Removemos a borda preta grossa antiga */
     border: none;
