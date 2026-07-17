@@ -16,6 +16,9 @@
     onDoubleClick = null,
     onClick = null
   } = $props();
+
+  import ItemEffectsTooltip from './ItemEffectsTooltip.svelte';
+  let isHovered = $state(false);
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -33,8 +36,14 @@
     }
   }}
   onmousedown={(event) => onMouseDown && onMouseDown(event, slot, inventoryType)}
-  onmouseenter={() => item && onMouseEnter && onMouseEnter(item, inventoryType)}
-  onmouseleave={onMouseLeave}
+  onmouseenter={() => {
+    isHovered = true;
+    if (item && onMouseEnter) onMouseEnter(item, inventoryType);
+  }}
+  onmouseleave={() => {
+    isHovered = false;
+    if (onMouseLeave) onMouseLeave();
+  }}
   ondragover={(event) => event.preventDefault()}
 >
   {#if showSlotKey}
@@ -76,6 +85,10 @@
           class:low={item.info.quality <= 25}
         ></div>
       </div>
+    {/if}
+
+    {#if isHovered}
+      <ItemEffectsTooltip itemName={item.name} />
     {/if}
   {:else if placeholderIcon}
     <div class="equipment-placeholder">
