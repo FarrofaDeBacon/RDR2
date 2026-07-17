@@ -1,5 +1,6 @@
 <script>
   import { minimap, editMode } from "../../stores/hudStore.js";
+  import { fade } from 'svelte/transition';
 
   // Valores iniciais (em vh) ajustados pelo jogador
   let maskWidth = 22.6;
@@ -12,6 +13,7 @@
   <div 
     class="minimap-mask" 
     aria-hidden="true"
+    transition:fade={{ duration: 400 }}
     style="width: {maskWidth}vh; height: {maskHeight}vh; left: {maskLeft}vh; bottom: {maskBottom}vh;"
   ></div>
 {/if}
