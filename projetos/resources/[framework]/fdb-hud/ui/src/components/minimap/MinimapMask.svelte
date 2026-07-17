@@ -20,8 +20,7 @@
   <div class="editor-panel">
     <h3>Ajuste do Minimapa</h3>
     <label>Tamanho (vh): {maskWidth}
-      <input type="range" min="10" max="60" step="0.1" bind:value={maskWidth} />
-      <input type="range" min="10" max="60" step="0.1" bind:value={maskHeight} />
+      <input type="range" min="10" max="60" step="0.1" bind:value={maskWidth} on:input={() => maskHeight = maskWidth} />
     </label>
     <label>Esquerda (vh): {maskLeft}
       <input type="range" min="-10" max="50" step="0.1" bind:value={maskLeft} />
