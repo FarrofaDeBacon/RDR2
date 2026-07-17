@@ -21,10 +21,10 @@ Config.Elements = {
     vehicle = { enabled = true },
     minimapMask = { 
         enabled = true,
-        size = 278,      -- Tamanho da máscara em pixels (o tamanho do buraco transparente)
-        thickness = 24,  -- Espessura do anel de couro ao redor do buraco
-        left = 5.7,      -- Posição horizontal (em VW, ou seja, porcentagem da tela)
-        bottom = 8.7,   -- Posição vertical (em VH, ou seja, porcentagem da tela)
+        size = 239,      -- Tamanho da máscara em pixels (o tamanho do buraco transparente)
+        thickness = 40,  -- Espessura do anel de couro ao redor do buraco
+        left = 7.2,      -- Posição horizontal (em VW, ou seja, porcentagem da tela)
+        bottom = 13.9,   -- Posição vertical (em VH, ou seja, porcentagem da tela)
     },
 }
 
