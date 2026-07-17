@@ -2,10 +2,10 @@
   import { minimap, editMode } from "../../stores/hudStore.js";
 
   // Valores iniciais (em vh) ajustados pelo jogador
-  let maskWidth = 41.6;
-  let maskHeight = 41.6;
-  let maskLeft = -3.4;
-  let maskBottom = 3.2;
+  let maskWidth = 33.6;
+  let maskHeight = 33.6;
+  let maskLeft = 0.5;
+  let maskBottom = 1.6;
 </script>
 
 {#if $minimap.visible}
@@ -44,8 +44,8 @@
     pointer-events: none;
     z-index: 9999;
     
-    /* Sombra projetada aumentada a pedido do jogador (mais escura e com maior espalhamento) */
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.9)) drop-shadow(0 0 20px rgba(0,0,0,0.7));
+    /* Sombra projetada suavizada a pedido do jogador */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 0 15px rgba(0,0,0,0.4));
   }
 
   .editor-panel {
