@@ -43,6 +43,9 @@
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: 9999;
+    
+    /* Sombra projetada no contorno do SVG para dar profundidade (efeito 3D) */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)) drop-shadow(0 0 12px rgba(0,0,0,0.4));
   }
 
   .editor-panel {
