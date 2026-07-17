@@ -62,10 +62,16 @@ local function UpdateRadarState()
     if isRadarEnabled ~= shouldBeEnabled then
         isRadarEnabled = shouldBeEnabled
         if shouldBeEnabled then
-            DisplayRadar(true)
-            Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
-            local minimapType = Config.Minimap.type or 1
-            SetMinimapType(minimapType)
+            -- Espera a máscara dourada (Svelte) fazer o fade-in para depois ligar o radar nativo
+            CreateThread(function()
+                Wait(350)
+                if isRadarEnabled then
+                    DisplayRadar(true)
+                    Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
+                    local minimapType = Config.Minimap.type or 1
+                    SetMinimapType(minimapType)
+                end
+            end)
         else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
