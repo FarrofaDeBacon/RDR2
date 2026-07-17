@@ -10,10 +10,10 @@
   .minimap-mask {
     position: absolute;
     /* Valores baseados em viewport width (vw) para escalar com a tela */
-    bottom: 2vw;
-    left: 2vw;
-    width: 14vw;
-    height: 14vw;
+    bottom: 1.2vw;
+    left: 1.2vw;
+    width: 9.5vw;
+    height: 9.5vw;
 
     /* Removemos a borda preta grossa antiga */
     border: none;
