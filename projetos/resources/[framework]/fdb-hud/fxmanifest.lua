@@ -29,7 +29,8 @@ ui_page 'ui/public/index.html'
 files {
     'ui/public/index.html',
     'ui/public/index.js',
-    'ui/public/index.css'
+    'ui/public/index.css',
+    'ui/public/img/mask.svg'
 }
 
 dependencies {

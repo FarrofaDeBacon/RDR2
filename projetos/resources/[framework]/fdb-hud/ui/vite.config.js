@@ -6,7 +6,6 @@ export default defineConfig({
   root: '.',           // index.html fica na raiz de ui/
   build: {
     outDir: 'public',
-    emptyOutDir: true,
     rollupOptions: {
       input: 'index.html',
       output: {
