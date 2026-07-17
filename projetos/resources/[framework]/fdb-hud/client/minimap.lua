@@ -80,19 +80,13 @@ CreateThread(function()
     end
 end)
 
-RegisterCommand('testradar', function(source, args)
-    local mode = tonumber(args[1]) or 0
-    print("TESTANDO MINIMAP TYPE:", mode)
-    SetMinimapType(mode)
-    
-    if mode == 1 then
-        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
-    else
-        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
+-- Esconde as letras da bússola ativamente a cada frame
+CreateThread(function()
+    local compassHash = GetHashKey("HUD_CTX_COMPASS")
+    while true do
+        Wait(0)
+        if Config.Minimap.enabled and hasMapItem and isMapEquipped then
+            Citizen.InvokeNative(0x4CC5F2FC1332577F, compassHash)
+        end
     end
-end)
-
-RegisterCommand('testcompass', function()
-    print("Escondendo HUD_CTX_COMPASS e hud component 15...")
-    Citizen.InvokeNative(0x4CC5F2FC1332577F, GetHashKey("HUD_CTX_COMPASS"))
 end)
