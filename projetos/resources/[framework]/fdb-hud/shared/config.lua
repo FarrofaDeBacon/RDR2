@@ -19,7 +19,12 @@ Config.Elements = {
     stress  = { enabled = false }, -- ainda nao implementado
     money   = { enabled = true },
     vehicle = { enabled = true },
-    minimapMask = { enabled = true },
+    minimapMask = { 
+        enabled = true,
+        size = 288,     -- Tamanho da máscara em pixels (aumente se não cobrir tudo)
+        left = 45,      -- Posição a partir da esquerda da tela (ajuste para alinhar)
+        bottom = 45,    -- Posição a partir do fundo da tela (ajuste para alinhar)
+    },
 }
 
 -- -------------------------------------------------------
