@@ -6,13 +6,16 @@
     $: isVisible = $minimap && $minimap.visible && ($config && $config.minimapMask ? $config.minimapMask.enabled : false);
     
     $: maskSize = ($config && $config.minimapMask && $config.minimapMask.size) ? $config.minimapMask.size : 278;
-    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? $config.minimapMask.left : 34;
-    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? $config.minimapMask.bottom : 34;
+    
+    // Se o cliente enviar o "anchor" matemático, usamos VW e VH. Senão, caímos para o valor fixo do config (px).
+    $: maskLeft = ($minimap && $minimap.anchor) ? `${$minimap.anchor.leftVw}vw` : (($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}px` : '34px');
+    $: maskBottom = ($minimap && $minimap.anchor) ? `${$minimap.anchor.bottomVh}vh` : (($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}px` : '34px');
+    
     $: maskThickness = ($config && $config.minimapMask && $config.minimapMask.thickness) ? $config.minimapMask.thickness : 24;
 </script>
 
 {#if isVisible}
-<div class="radar-mask-container" style="width: {maskSize}px; height: {maskSize}px; left: {maskLeft}px; bottom: {maskBottom}px; border-width: {maskThickness}px;">
+<div class="radar-mask-container" style="width: {maskSize}px; height: {maskSize}px; left: {maskLeft}; bottom: {maskBottom}; border-width: {maskThickness}px;">
     <div class="radar-hole"></div>
 </div>
 {/if}

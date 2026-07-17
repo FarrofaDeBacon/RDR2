@@ -74,6 +74,7 @@
             <input type="range" min="0" max="80" bind:value={maskThickness} on:input={updateConfig}>
         </div>
 
+        {#if !($minimap && $minimap.anchor)}
         <div class="setting-row">
             <label>Posição Horizontal - X ({maskLeft}px)</label>
             <input type="range" min="0" max="300" bind:value={maskLeft} on:input={updateConfig}>
@@ -83,6 +84,12 @@
             <label>Posição Vertical - Y ({maskBottom}px)</label>
             <input type="range" min="0" max="300" bind:value={maskBottom} on:input={updateConfig}>
         </div>
+        {:else}
+        <div class="setting-row auto-pos">
+            <span class="auto-badge">✓ Posição Automática Rockstar Ativada</span>
+            <small>O HUD está seguindo o minimapa nativo do jogo.</small>
+        </div>
+        {/if}
 
         <div class="actions">
             <button class="btn-cancel" on:click={closeMenu}>Cancelar</button>
@@ -133,6 +140,28 @@
         font-size: 0.9rem;
         margin-bottom: 5px;
         color: #b09e82;
+    }
+
+    .auto-pos {
+        margin-top: 10px;
+        background: #110d0a;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 3px solid #3a7c39;
+        text-align: center;
+    }
+
+    .auto-badge {
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 0.95rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .auto-pos small {
+        color: #8c6a3f;
+        font-size: 0.8rem;
     }
 
     input[type=range] {

@@ -50,6 +50,32 @@ RegisterNetEvent('fdb-hud:client:openMapMenu', function()
     lib.showContext('map_action_menu')
 end)
 
+local function GetMinimapAnchor()
+    local safezone = GetSafeZoneSize()
+    local safezone_x = 1.0 / 20.0
+    local safezone_y = 1.0 / 20.0
+    local aspect_ratio = GetAspectRatio(0)
+    local res_x, res_y = GetActiveScreenResolution()
+    local xscale = 1.0 / res_x
+    local yscale = 1.0 / res_y
+    
+    local left_x = xscale * (res_x * (safezone_x * ((math.abs(safezone - 1.0)) * 10)))
+    local bottom_y = 1.0 - yscale * (res_y * (safezone_y * ((math.abs(safezone - 1.0)) * 10)))
+    local width = xscale * (res_x / (4 * aspect_ratio))
+    local height = yscale * (res_y / 5.674)
+    
+    -- O RedM tem o radar circular, mas a lógica da Rockstar para o safezone é similar ao GTA 5
+    -- O centro do radar é aproximadamente no meio dessa bounding box
+    local center_x = left_x + (width / 2)
+    local center_y = bottom_y - (height / 2)
+    
+    -- Convertemos para Viewport Units (vw / vh) para o CSS
+    return {
+        leftVw = center_x * 100,
+        bottomVh = (1.0 - center_y) * 100
+    }
+end
+
 CreateThread(function()
     while true do
         Wait(500)
@@ -57,9 +83,12 @@ CreateThread(function()
             DisplayRadar(true)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             SetMinimapType(1)
+            
+            local anchor = GetMinimapAnchor()
+            
             SendNUIMessage({
                 action = 'updateMinimap',
-                data = { visible = true }
+                data = { visible = true, anchor = anchor }
             })
         else
             DisplayRadar(false)
