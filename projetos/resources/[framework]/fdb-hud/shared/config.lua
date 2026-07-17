@@ -22,8 +22,8 @@ Config.Elements = {
     minimapMask = { 
         enabled = true,
         size = 278,     -- Tamanho da máscara em pixels
-        left = 34,      -- Posição a partir da esquerda da tela
-        bottom = 34,    -- Posição a partir do fundo da tela
+        left = 110,      -- Posição a partir da esquerda da tela
+        bottom = 63,    -- Posição a partir do fundo da tela
     },
 }
 
