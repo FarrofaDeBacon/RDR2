@@ -77,7 +77,6 @@ CreateThread(function()
                 TriggerServerEvent('fdb-hud:server:checkWet', isSwimming, isRaining)
             end
         end
-        end
     end
 end)
 
