@@ -51,7 +51,11 @@ RegisterNetEvent('fdb-hud:client:openMapMenu', function()
 end)
 
 local function GetMinimapAnchor()
-    local safezone = GetSafeZoneSize()
+    local safezone = 1.0
+    if type(GetSafeZoneSize) == "function" then
+        safezone = GetSafeZoneSize()
+    end
+    
     local safezone_x = 1.0 / 20.0
     local safezone_y = 1.0 / 20.0
     
