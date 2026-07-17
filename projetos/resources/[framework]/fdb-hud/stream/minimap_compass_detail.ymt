@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<UIPanel>
+ <Name>PNL_CompassDetail</Name>
+ <UseLayoutEngine value="true"/>
+ <LayoutParams type="rage__LayoutParamInstanceAsset">
+   <params>
+     <horizontalAlignment>HALIGN_STRETCH</horizontalAlignment>
+     <verticalAlignment>VALIGN_STRETCH</verticalAlignment>
+     <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+     <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+   </params>
+ </LayoutParams>
+ <Children>
+   <Item type="UIImage">
+     <Name>IMG_CompassDetail</Name>
+     <TextureDictionary>HUD_TEXTURES</TextureDictionary>
+     <Texture>MAP_INNER_RING_DETAIL</Texture>
+     <UseLayoutEngine value="true"/>
+     <LayoutParams type="rage__LayoutParamInstanceAsset">
+       <params>
+         <horizontalAlignment>HALIGN_STRETCH</horizontalAlignment>
+         <verticalAlignment>VALIGN_STRETCH</verticalAlignment>
+         <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+         <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+         <topMargin value="-5"/>
+         <leftMargin value="-5"/>
+       </params>
+     </LayoutParams>
+     <SpecializedLayoutParams>
+       <Item type="rage__SpecializedParamInstanceAsset">
+         <params type="rage__fwuiStretchParams">
+           <Stretch>UNIFORM</Stretch>
+         </params>
+       </Item>
+     </SpecializedLayoutParams>
+   </Item>
+   <Item type="UIText">
+     <Name>TXT_North</Name>
+     <UseLayoutEngine value="true"/>
+     <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
+     <RawText></RawText>
+     <LayoutParams type="rage__LayoutParamInstanceAsset">
+       <params>
+         <horizontalAlignment>HALIGN_CENTER</horizontalAlignment>
+         <verticalAlignment>VALIGN_TOP</verticalAlignment>
+         <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+         <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+       </params>
+     </LayoutParams>
+     <BehaviorSet>
+       <Behaviors>
+         <Item type="uiLayoutDataBindingBehavior">
+           <MemberBindingLinks>
+             <Item>
+               <MemberPath>
+                 <Path>LayoutParams.topMargin</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </MemberPath>
+               <BindingSetup>
+                 <Path>@.MINIMAP_VIEW.RadarMode</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </BindingSetup>
+               <Converter type="rage__fwuiIntFloatDictionaryConversion">
+                 <Dictionary>
+                   <Item key="1" value="25.00000000"/>
+                   <Item key="2" value="35.00000000"/>
+                   <Item key="3" value="15.00000000"/>
+                 </Dictionary>
+               </Converter>
+             </Item>
+           </MemberBindingLinks>
+         </Item>
+       </Behaviors>
+     </BehaviorSet>
+   </Item>
+   <Item type="UIText">
+     <Name>TXT_South</Name>
+     <UseLayoutEngine value="true"/>
+     <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
+     <RawText></RawText>
+     <LayoutParams type="rage__LayoutParamInstanceAsset">
+       <params>
+         <horizontalAlignment>HALIGN_CENTER</horizontalAlignment>
+         <verticalAlignment>VALIGN_BOTTOM</verticalAlignment>
+         <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+         <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+       </params>
+     </LayoutParams>
+     <BehaviorSet>
+       <Behaviors>
+         <Item type="uiLayoutDataBindingBehavior">
+           <MemberBindingLinks>
+             <Item>
+               <MemberPath>
+                 <Path>LayoutParams.bottomMargin</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </MemberPath>
+               <BindingSetup>
+                 <Path>@.MINIMAP_VIEW.RadarMode</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </BindingSetup>
+               <Converter type="rage__fwuiIntFloatDictionaryConversion">
+                 <Dictionary>
+                   <Item key="1" value="20.00000000"/>
+                   <Item key="2" value="25.00000000"/>
+                   <Item key="3" value="12.00000000"/>
+                 </Dictionary>
+               </Converter>
+             </Item>
+             <Item>
+               <MemberPath>
+                 <Path>LayoutParams.leftMargin</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </MemberPath>
+               <BindingSetup>
+                 <Path>@.MINIMAP_VIEW.RadarMode</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </BindingSetup>
+               <Converter type="rage__fwuiIntFloatDictionaryConversion">
+                 <Dictionary>
+                   <Item key="1" value="1.00000000"/>
+                   <Item key="2" value="3.00000000"/>
+                   <Item key="3" value="0.00000000"/>
+                 </Dictionary>
+               </Converter>
+             </Item>
+           </MemberBindingLinks>
+         </Item>
+       </Behaviors>
+     </BehaviorSet>
+   </Item>
+   <Item type="UIText">
+     <Name>TXT_East</Name>
+     <UseLayoutEngine value="true"/>
+     <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
+     <RawText></RawText>
+     <LayoutParams type="rage__LayoutParamInstanceAsset">
+       <params>
+         <horizontalAlignment>HALIGN_RIGHT</horizontalAlignment>
+         <verticalAlignment>VALIGN_CENTER</verticalAlignment>
+         <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+         <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+       </params>
+     </LayoutParams>
+     <BehaviorSet>
+       <Behaviors>
+         <Item type="uiLayoutDataBindingBehavior">
+           <MemberBindingLinks>
+             <Item>
+               <MemberPath>
+                 <Path>LayoutParams.rightMargin</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </MemberPath>
+               <BindingSetup>
+                 <Path>@.MINIMAP_VIEW.RadarMode</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </BindingSetup>
+               <Converter type="rage__fwuiIntFloatDictionaryConversion">
+                 <Dictionary>
+                   <Item key="1" value="20.00000000"/>
+                   <Item key="2" value="25.00000000"/>
+                   <Item key="3" value="12.00000000"/>
+                 </Dictionary>
+               </Converter>
+             </Item>
+           </MemberBindingLinks>
+         </Item>
+       </Behaviors>
+     </BehaviorSet>
+   </Item>
+   <Item type="UIText">
+     <Name>TXT_West</Name>
+     <UseLayoutEngine value="true"/>
+     <Style>RADAR_COMPASS_DETAIL_TEXT</Style>
+     <RawText></RawText>
+     <LayoutParams type="rage__LayoutParamInstanceAsset">
+       <params>
+         <horizontalAlignment>HALIGN_LEFT</horizontalAlignment>
+         <verticalAlignment>VALIGN_CENTER</verticalAlignment>
+         <widthContentMode>CONTENT_MODE_AUTO</widthContentMode>
+         <heightContentMode>CONTENT_MODE_AUTO</heightContentMode>
+       </params>
+     </LayoutParams>
+     <BehaviorSet>
+       <Behaviors>
+         <Item type="uiLayoutDataBindingBehavior">
+           <MemberBindingLinks>
+             <Item>
+               <MemberPath>
+                 <Path>LayoutParams.leftMargin</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </MemberPath>
+               <BindingSetup>
+                 <Path>@.MINIMAP_VIEW.RadarMode</Path>
+                 <PathType>PATH_LOCAL</PathType>
+               </BindingSetup>
+               <Converter type="rage__fwuiIntFloatDictionaryConversion">
+                 <Dictionary>
+                   <Item key="1" value="20.00000000"/>
+                   <Item key="2" value="25.00000000"/>
+                   <Item key="3" value="12.00000000"/>
+                 </Dictionary>
+               </Converter>
+             </Item>
+           </MemberBindingLinks>
+         </Item>
+       </Behaviors>
+     </BehaviorSet>
+   </Item>
+ </Children>
+</UIPanel>
