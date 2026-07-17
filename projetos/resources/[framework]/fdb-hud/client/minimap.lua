@@ -84,12 +84,22 @@ CreateThread(function()
         if isRadarEnabled then
             shouldShowMask = true
             
-            -- Esconde a máscara se estiver no pause menu, mapa grande, ou tela preta
+            -- Esconde a máscara se estiver no pause menu (ESC), tela preta, etc.
             if IsPauseMenuActive() or IsScreenFadedOut() then
                 shouldShowMask = false
             end
             
-            -- Se o radar nativo foi ocultado por outro script (ex: Inventário)
+            -- Esconde a máscara no MAPA GRANDE (M)
+            if IsAppActive(joaat("MAP")) == 1 then
+                shouldShowMask = false
+            end
+            
+            -- Esconde a máscara se qualquer NUI estiver aberto (ex: Inventário, Lojas), exceto se estivermos editando o HUD
+            if IsNuiFocused() and not InEditMode then
+                shouldShowMask = false
+            end
+            
+            -- Se o radar nativo foi ocultado por outro script nativo
             if IsHudHidden() then
                 shouldShowMask = false
             end
