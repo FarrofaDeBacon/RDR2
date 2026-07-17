@@ -9,12 +9,19 @@
     let maskBottom = 34;
     let maskThickness = 24;
 
-    // Sincroniza os sliders sempre que o menu abrir
-    $: if (visible && $config && $config.minimapMask) {
-        maskSize = $config.minimapMask.size ?? 278;
-        maskLeft = $config.minimapMask.left ?? 34;
-        maskBottom = $config.minimapMask.bottom ?? 34;
-        maskThickness = $config.minimapMask.thickness ?? 24;
+    let wasVisible = false;
+
+    // Sincroniza os sliders APENAS quando o menu abre
+    $: if (visible && !wasVisible) {
+        if ($config && $config.minimapMask) {
+            maskSize = $config.minimapMask.size ?? 278;
+            maskLeft = $config.minimapMask.left ?? 34;
+            maskBottom = $config.minimapMask.bottom ?? 34;
+            maskThickness = $config.minimapMask.thickness ?? 24;
+        }
+        wasVisible = true;
+    } else if (!visible && wasVisible) {
+        wasVisible = false;
     }
 
     // Atualiza a loja em tempo real enquanto move o slider
