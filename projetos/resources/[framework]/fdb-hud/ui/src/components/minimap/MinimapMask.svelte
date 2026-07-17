@@ -2,10 +2,10 @@
   import { minimap, editMode } from "../../stores/hudStore.js";
 
   // Valores iniciais (em vh) ajustados pelo jogador
-  let maskWidth = 33.6;
-  let maskHeight = 33.6;
-  let maskLeft = 0.5;
-  let maskBottom = 1.6;
+  let maskWidth = 33.4;
+  let maskHeight = 33.4;
+  let maskLeft = 0.9;
+  let maskBottom = 2.0;
 </script>
 
 {#if $minimap.visible}
