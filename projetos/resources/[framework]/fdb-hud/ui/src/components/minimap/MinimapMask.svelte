@@ -19,7 +19,7 @@
     border: none;
     
     /* Carrega a imagem da borda/mascara personalizada */
-    background-image: url('img/mask.svg');
+    background-image: url('img/mask.png');
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
