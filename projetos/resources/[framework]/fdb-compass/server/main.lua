@@ -34,7 +34,7 @@ end
 -- -------------------------------------------------------
 -- Registrar os useable items (toggle de equipar)
 -- -------------------------------------------------------
-RSGCore.Functions.CreateUseableItem(Config.Compass.itemName, function(source, item)
+RSGCore.Functions.CreateUseableItem('compass', function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return end
     local cid = Player.PlayerData.citizenid

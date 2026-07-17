@@ -1,7 +1,6 @@
 <script>
   import StatusHud    from './components/status/StatusHud.svelte'
   import VehicleHud  from './components/vehicle/VehicleHud.svelte'
-  import CompassHud  from './components/compass/CompassHud.svelte'
   import MoneyHud    from './components/money/MoneyHud.svelte'
   import MinimapMask from './components/minimap/MinimapMask.svelte'
   import { hudStore } from './stores/hudStore.js'
@@ -51,7 +50,6 @@
 {#if visible}
   <main class="hud-root">
     <MinimapMask />
-    <CompassHud />
     <StatusHud  />
     <VehicleHud />
     <MoneyHud   />

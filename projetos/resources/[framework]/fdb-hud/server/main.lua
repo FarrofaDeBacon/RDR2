@@ -108,33 +108,23 @@ end
 -- -------------------------------------------------------
 -- Registrar os useable items (toggle de equipar)
 -- -------------------------------------------------------
-RSGCore.Functions.CreateUseableItem('map', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
-    if not Player then return end
-    
-    local hasMap = HasValidItem(Player, 'map')
-    if hasMap then
-        TriggerClientEvent('fdb-mapmenu:client:openMap', source)
-    end
-end)
-
-RSGCore.Functions.CreateUseableItem('compass', function(source, item)
+RSGCore.Functions.CreateUseableItem(Config.Elements.minimap.itemName, function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if not Player then return end
     local cid = Player.PlayerData.citizenid
     
-    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    equipped[cid] = equipped[cid] or { map = false }
     
-    -- Só permite equipar se possuir o item válido
-    local hasCompass = HasValidItem(Player, 'compass')
-    if not hasCompass then
-        equipped[cid].compass = false
-        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = false })
+    -- Só permite equipar se possuir o item válido (e não estiver encharcado, se a lógica de molhado for aplicada depois)
+    local hasMap = HasValidItem(Player, Config.Elements.minimap.itemName)
+    if not hasMap then
+        equipped[cid].map = false
+        TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = false })
         return
     end
 
-    equipped[cid].compass = not equipped[cid].compass
-    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { compass = equipped[cid].compass })
+    equipped[cid].map = not equipped[cid].map
+    TriggerClientEvent('fdb-hud:client:equipUpdate', source, { map = equipped[cid].map })
 end)
 
 
@@ -150,19 +140,14 @@ CreateThread(function()
             local Player = RSGCore.Functions.GetPlayer(src)
             if Player then
                 local cid = Player.PlayerData.citizenid
-                equipped[cid] = equipped[cid] or { map = false, compass = false }
+                equipped[cid] = equipped[cid] or { map = false }
 
-                -- Checa se ainda possui os itens validos
-                local hasMap = HasValidItem(Player, 'map')
-                local hasCompass = HasValidItem(Player, 'compass')
+                local hasMap = HasValidItem(Player, Config.Elements.minimap.itemName)
 
-                -- Se perdeu o item, desliga forçado
                 if not hasMap then equipped[cid].map = false end
-                if not hasCompass then equipped[cid].compass = false end
 
                 TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
-                    map = hasMap and equipped[cid].map,
-                    compass = hasCompass and equipped[cid].compass,
+                    map = hasMap
                 })
             end
         end

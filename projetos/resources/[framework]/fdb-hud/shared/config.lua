@@ -17,7 +17,6 @@ Config.Elements = {
     hunger  = { enabled = true },
     thirst  = { enabled = true },
     stress  = { enabled = false }, -- ainda nao implementado
-    compass = { enabled = true, showCardinals = true, requireItem = true, itemName = 'compass' },
     money   = { enabled = true },
     vehicle = { enabled = true },
 }
