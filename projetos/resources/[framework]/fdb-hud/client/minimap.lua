@@ -50,20 +50,54 @@ RegisterNetEvent('fdb-hud:client:openMapMenu', function()
     lib.showContext('map_action_menu')
 end)
 
-CreateThread(function()
-    while true do
-        Wait(500)
-        if Config.Minimap.enabled and hasMapItem and isMapEquipped then
+local isRadarEnabled = false
+local maskVisible = false
+
+local function UpdateRadarState()
+    if Config.Minimap.enabled and hasMapItem and isMapEquipped then
+        if not isRadarEnabled then
+            isRadarEnabled = true
             DisplayRadar(true)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             local minimapType = Config.Minimap.type or 1
             SetMinimapType(minimapType)
-            SendNUIMessage({ action = 'updateMinimap', data = { visible = true } })
-        else
+        end
+    else
+        if isRadarEnabled then
+            isRadarEnabled = false
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
             SetMinimapType(0)
-            SendNUIMessage({ action = 'updateMinimap', data = { visible = false } })
+        end
+    end
+end
+
+CreateThread(function()
+    while true do
+        Wait(200)
+        
+        -- Garante que o radar nativo está no estado correto
+        UpdateRadarState()
+        
+        -- Controla a visibilidade da máscara dourada (Svelte)
+        local shouldShowMask = false
+        if isRadarEnabled then
+            shouldShowMask = true
+            
+            -- Esconde a máscara se estiver no pause menu, mapa grande, ou tela preta
+            if IsPauseMenuActive() or IsScreenFadedOut() then
+                shouldShowMask = false
+            end
+            
+            -- Se o radar nativo foi ocultado por outro script (ex: Inventário)
+            if IsHudHidden() then
+                shouldShowMask = false
+            end
+        end
+        
+        if maskVisible ~= shouldShowMask then
+            maskVisible = shouldShowMask
+            SendNUIMessage({ action = 'updateMinimap', data = { visible = shouldShowMask } })
         end
     end
 end)
