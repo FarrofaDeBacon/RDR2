@@ -55,8 +55,9 @@ CreateThread(function()
         Wait(500)
         if Config.Minimap.enabled and hasMapItem and isMapEquipped then
             DisplayRadar(true)
-            Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
-            SetMinimapType(1)
+            -- TESTE DO CLAUDE: Comentado para não forçar o estado a cada 500ms e permitir os testes!
+            -- Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
+            -- SetMinimapType(1)
         else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
@@ -80,4 +81,12 @@ CreateThread(function()
     end
 end)
 
-
+RegisterCommand('claudetest', function()
+    CreateThread(function()
+        for i = 0, 3 do
+            print("Radar Mode:", i)
+            SetMinimapType(i)
+            Wait(5000)
+        end
+    end)
+end)
