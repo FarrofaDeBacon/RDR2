@@ -16,14 +16,18 @@ RegisterNetEvent('fdb-hud:client:equipUpdate', function(data)
     end
 end)
 
-local mapVisible = false
--- Desativa permanentemente o radar nativo
 CreateThread(function()
     while true do
-        Wait(0)
-        DisplayRadar(false)
-        -- Força a ocultação nativa do minimapa do RedM a cada frame
-        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
+        Wait(500)
+        if Config.Minimap.enabled and hasMapItem and isMapEquipped then
+            DisplayRadar(true)
+            Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
+            SetMinimapType(1)
+        else
+            DisplayRadar(false)
+            Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
+            SetMinimapType(0)
+        end
     end
 end)
 
