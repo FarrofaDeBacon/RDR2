@@ -27,9 +27,7 @@
       case 'setVehicleVisible':
         hudStore.setVehicleVisible(data)
         break
-      case 'updateCompass':
-        hudStore.setCompass(data)
-        break
+
       case 'updateMinimap':
         hudStore.setMinimap(data)
         break

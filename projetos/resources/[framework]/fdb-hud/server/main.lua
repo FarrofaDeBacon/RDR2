@@ -65,7 +65,7 @@ end)
 -- -------------------------------------------------------
 -- Estado por jogador (equipado ou nao) - server-side
 -- -------------------------------------------------------
-local equipped = {} -- [citizenid] = { map = bool, compass = bool }
+local equipped = {} -- [citizenid] = { map = bool }
 
 -- -------------------------------------------------------
 -- Helper: Verifica posse real do item (bolso ou satchel)
@@ -164,7 +164,7 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
     if not Player then return end
     local cid = Player.PlayerData.citizenid
 
-    equipped[cid] = equipped[cid] or { map = false, compass = false }
+    equipped[cid] = equipped[cid] or { map = false }
     if not equipped[cid].map then return end -- mapa nao esta de fora (equipado)
 
     local hasMap, mapLoc, mapItem = HasValidItem(Player, 'map')
@@ -189,8 +189,7 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
         
         -- Atualiza gated status imediatamente
         TriggerClientEvent('fdb-hud:client:itemGatedUpdate', src, {
-            map = false,
-            compass = equipped[cid].compass and HasValidItem(Player, 'compass'),
+            map = false
         })
 
         TriggerClientEvent('ox_lib:notify', src, {
