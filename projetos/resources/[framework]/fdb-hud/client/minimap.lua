@@ -50,21 +50,23 @@ RegisterNetEvent('fdb-hud:client:openMapMenu', function()
     lib.showContext('map_action_menu')
 end)
 
-local isRadarEnabled = false
+local isRadarEnabled = nil
 local maskVisible = false
 
 local function UpdateRadarState()
+    local shouldBeEnabled = false
     if Config.Minimap.enabled and hasMapItem and isMapEquipped then
-        if not isRadarEnabled then
-            isRadarEnabled = true
+        shouldBeEnabled = true
+    end
+
+    if isRadarEnabled ~= shouldBeEnabled then
+        isRadarEnabled = shouldBeEnabled
+        if shouldBeEnabled then
             DisplayRadar(true)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             local minimapType = Config.Minimap.type or 1
             SetMinimapType(minimapType)
-        end
-    else
-        if isRadarEnabled then
-            isRadarEnabled = false
+        else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
             SetMinimapType(0)
