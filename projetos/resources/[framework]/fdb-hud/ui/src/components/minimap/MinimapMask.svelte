@@ -9,20 +9,20 @@
 <style>
   .minimap-mask {
     position: absolute;
-    /* Posição e dimensões em pixels para alinhar perfeitamente com o radar */
-    bottom: 22px;
-    left: 22px;
-    width: 270px;
-    height: 270px;
-    border-radius: 50%;
+    /* Valores baseados em viewport width (vw) para escalar com a tela */
+    bottom: 2vw;
+    left: 2vw;
+    width: 14vw;
+    height: 14vw;
     
-    /* Borda preta bem espessa para garantir a cobertura das letras cardinais */
-    border: 14px solid #0a0705;
+    /* Removemos a borda preta grossa antiga */
+    border: none;
     
-    /* Brilho e sombreamento para integrar com o visual do radar */
-    box-shadow: 
-      0 0 10px rgba(0, 0, 0, 0.95),
-      inset 0 0 8px rgba(0, 0, 0, 0.95);
+    /* Carrega a imagem da borda/mascara personalizada */
+    background-image: url('../img/mask.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
       
     pointer-events: none;
     z-index: 9999;
