@@ -24,7 +24,7 @@ end)
 -- Modo edição para reposicionar a bússola/radar
 RegisterCommand('hudedit', function()
     SetNuiFocus(true, true)
-    SendNUI('setEditMode', true)
+    SendNUI('openMenu', {})
 end, false)
 
 RegisterNUICallback('saveMaskSettings', function(data, cb)
