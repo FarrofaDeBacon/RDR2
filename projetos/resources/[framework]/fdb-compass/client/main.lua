@@ -59,7 +59,10 @@ CreateThread(function()
             canShow = canShow and hasCompassItem and isCompassEquipped
         end
 
-        if not canShow then
+        local isPaused = IsPauseMenuActive()
+        local isNuiFocused = IsNuiFocused()
+
+        if not canShow or isPaused or isNuiFocused then
             if compassVisible then
                 compassVisible = false
                 SendNUIMessage({ action = 'updateCompass', degrees = 0, cardinal = 'N', visible = false })
