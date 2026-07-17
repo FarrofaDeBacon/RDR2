@@ -58,12 +58,12 @@ CreateThread(function()
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             local minimapType = Config.Minimap.type or 1
             SetMinimapType(minimapType)
-            SendNUIMessage({ action = 'setMinimap', data = { visible = true } })
+            SendNUIMessage({ action = 'updateMinimap', data = { visible = true } })
         else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
             SetMinimapType(0)
-            SendNUIMessage({ action = 'setMinimap', data = { visible = false } })
+            SendNUIMessage({ action = 'updateMinimap', data = { visible = false } })
         end
     end
 end)
