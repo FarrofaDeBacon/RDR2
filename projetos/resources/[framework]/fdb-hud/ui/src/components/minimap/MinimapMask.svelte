@@ -5,11 +5,11 @@
     export let isVisible = false;
 
     // Use a reactive statement to sync visibility from the store
-    $: isVisible = $minimap && $minimap.visible && $config?.minimapMask?.enabled;
+    $: isVisible = $minimap && $minimap.visible && ($config && $config.minimapMask ? $config.minimapMask.enabled : false);
     
-    $: maskSize = $config?.minimapMask?.size ?? 288;
-    $: maskLeft = $config?.minimapMask?.left ?? 45;
-    $: maskBottom = $config?.minimapMask?.bottom ?? 45;
+    $: maskSize = ($config && $config.minimapMask && $config.minimapMask.size) ? $config.minimapMask.size : 278;
+    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? $config.minimapMask.left : 34;
+    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? $config.minimapMask.bottom : 34;
 </script>
 
 {#if isVisible}
