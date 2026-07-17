@@ -21,9 +21,9 @@ Config.Elements = {
     vehicle = { enabled = true },
     minimapMask = { 
         enabled = true,
-        size = 288,     -- Tamanho da máscara em pixels (aumente se não cobrir tudo)
-        left = 45,      -- Posição a partir da esquerda da tela (ajuste para alinhar)
-        bottom = 45,    -- Posição a partir do fundo da tela (ajuste para alinhar)
+        size = 278,     -- Tamanho da máscara em pixels
+        left = 34,      -- Posição a partir da esquerda da tela
+        bottom = 34,    -- Posição a partir do fundo da tela
     },
 }
 
