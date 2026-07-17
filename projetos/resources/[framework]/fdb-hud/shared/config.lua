@@ -30,6 +30,7 @@ Config.Minimap = {
     enabled = true,       -- switch geral do dono
     requireItem = true,
     itemName = 'map',
+    type = 1,             -- 0: Off, 1: Small, 2: Big, 3: Compass
 }
 
 
