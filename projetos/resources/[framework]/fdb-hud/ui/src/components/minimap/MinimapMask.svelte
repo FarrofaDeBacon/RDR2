@@ -22,6 +22,7 @@
         position: absolute;
         border-radius: 50%;
         box-sizing: content-box;
+        transform: translate(-50%, 50%);
         
         /* Borda estilo couro rústico / anel que cobre as letras N, S, E, W */
         border: solid #241b12; /* A espessura vem do inline style */
