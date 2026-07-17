@@ -54,15 +54,16 @@ local function GetMinimapAnchor()
     local safezone = GetSafeZoneSize()
     local safezone_x = 1.0 / 20.0
     local safezone_y = 1.0 / 20.0
-    local aspect_ratio = GetAspectRatio(false) -- MUST BE BOOLEAN
-    local res_x, res_y = GetActiveScreenResolution()
-    local xscale = 1.0 / res_x
-    local yscale = 1.0 / res_y
     
-    local left_x = xscale * (res_x * (safezone_x * ((math.abs(safezone - 1.0)) * 10)))
-    local bottom_y = 1.0 - yscale * (res_y * (safezone_y * ((math.abs(safezone - 1.0)) * 10)))
-    local width = xscale * (res_x / (4 * aspect_ratio))
-    local height = yscale * (res_y / 5.674)
+    local success, aspect_ratio = pcall(GetAspectRatio, false)
+    if not success or not aspect_ratio then
+        aspect_ratio = 16.0 / 9.0 -- Fallback seguro
+    end
+    
+    local left_x = safezone_x * ((math.abs(safezone - 1.0)) * 10)
+    local bottom_y = 1.0 - (safezone_y * ((math.abs(safezone - 1.0)) * 10))
+    local width = 1.0 / (4 * aspect_ratio)
+    local height = 1.0 / 5.674
     
     -- O RedM tem o radar circular, mas a lógica da Rockstar para o safezone é similar ao GTA 5
     -- O centro do radar é aproximadamente no meio dessa bounding box
