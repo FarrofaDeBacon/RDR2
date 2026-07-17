@@ -46,6 +46,17 @@
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
   }).catch(() => {})
+
+  // ── Key handler (ESC) ───────────────────────────────────────────
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape') {
+      fetch('https://fdb-hud/closeEditMode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      }).catch(() => {})
+    }
+  })
 </script>
 
 {#if visible}
