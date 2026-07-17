@@ -80,13 +80,4 @@ CreateThread(function()
     end
 end)
 
--- Esconde as letras da bússola ativamente a cada frame
-CreateThread(function()
-    local compassHash = GetHashKey("HUD_CTX_COMPASS")
-    while true do
-        Wait(0)
-        if Config.Minimap.enabled and hasMapItem and isMapEquipped then
-            Citizen.InvokeNative(0x4CC5F2FC1332577F, compassHash)
-        end
-    end
-end)
+
