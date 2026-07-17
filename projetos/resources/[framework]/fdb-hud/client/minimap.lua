@@ -59,9 +59,10 @@ CreateThread(function()
             -- Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             -- SetMinimapType(1)
         else
-            DisplayRadar(false)
-            Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
-            SetMinimapType(0)
+            -- TESTE DO CLAUDE: Comentando para não forçar o radar a desligar
+            -- DisplayRadar(false)
+            -- Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
+            -- SetMinimapType(0)
         end
     end
 end)
@@ -83,7 +84,9 @@ end)
 
 RegisterCommand('claudetest', function()
     CreateThread(function()
-        for i = 0, 3 do
+        DisplayRadar(true)
+        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
+        for i = 0, 5 do
             print("Radar Mode:", i)
             SetMinimapType(i)
             Wait(5000)
