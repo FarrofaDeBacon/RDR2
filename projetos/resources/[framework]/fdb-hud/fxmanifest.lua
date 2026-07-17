@@ -33,6 +33,8 @@ files {
     'stream/minimap_compass_detail.ymt'
 }
 
+data_file 'UIPANEL_FILE' 'stream/minimap_compass_detail.ymt'
+
 dependencies {
     'rsg-core',
     'ox_lib',
