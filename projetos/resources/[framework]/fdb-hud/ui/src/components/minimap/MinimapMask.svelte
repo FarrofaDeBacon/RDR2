@@ -1,5 +1,5 @@
 <script>
-  import { minimap } from '../../stores/hudStore.js'
+  import { minimap } from "../../stores/hudStore.js";
 </script>
 
 {#if $minimap.visible}
@@ -14,16 +14,16 @@
     left: 2vw;
     width: 14vw;
     height: 14vw;
-    
+
     /* Removemos a borda preta grossa antiga */
     border: none;
-    
+
     /* Carrega a imagem da borda/mascara personalizada */
-    background-image: url('img/mask.png');
+    background-image: url("img/mask.svg");
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
-      
+
     pointer-events: none;
     z-index: 9999;
   }
