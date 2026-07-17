@@ -7,11 +7,11 @@
     
     $: maskSize = ($config && $config.minimapMask && $config.minimapMask.size) ? $config.minimapMask.size : 278;
     
-    // Agora usamos diretamente vw/vh da config, que será perfeitamente responsivo
-    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}vw` : '8.6vw';
-    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}vh` : '13.3vh';
+    // Usamos '%' para se alinhar perfeitamente ao safezone 16:9 de .hud-root
+    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}%` : '7.2%';
+    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}%` : '13.9%';
     
-    $: maskThickness = ($config && $config.minimapMask && $config.minimapMask.thickness) ? $config.minimapMask.thickness : 24;
+    $: maskThickness = ($config && $config.minimapMask && $config.minimapMask.thickness) ? $config.minimapMask.thickness : 40;
 </script>
 
 {#if isVisible}

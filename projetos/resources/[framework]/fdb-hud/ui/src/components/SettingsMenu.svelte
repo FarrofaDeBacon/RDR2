@@ -75,12 +75,12 @@
         </div>
 
         <div class="setting-row">
-            <label>Posição Horizontal - X ({maskLeft}vw)</label>
+            <label>Posição Horizontal - X ({maskLeft}%)</label>
             <input type="range" min="0" max="50" step="0.1" bind:value={maskLeft} on:input={updateConfig}>
         </div>
 
         <div class="setting-row">
-            <label>Posição Vertical - Y ({maskBottom}vh)</label>
+            <label>Posição Vertical - Y ({maskBottom}%)</label>
             <input type="range" min="0" max="50" step="0.1" bind:value={maskBottom} on:input={updateConfig}>
         </div>
 

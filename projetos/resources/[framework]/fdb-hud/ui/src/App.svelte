@@ -68,9 +68,14 @@
   :global(body) { background: transparent; overflow: hidden; font-family: 'Cinzel', serif; }
 
   .hud-root {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 100vw;
     height: 100vh;
-    position: relative;
+    max-width: calc(100vh * (16 / 9));
+    max-height: calc(100vw * (9 / 16));
     pointer-events: none;
   }
 </style>
