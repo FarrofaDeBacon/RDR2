@@ -1,53 +1,30 @@
 <script>
-    import { minimap, config } from '../../stores/hudStore.js';
-
-    export let isVisible = false;
-
-    $: isVisible = $minimap && $minimap.visible && ($config && $config.minimapMask ? $config.minimapMask.enabled : false);
-    
-    $: maskSize = ($config && $config.minimapMask && $config.minimapMask.size) ? $config.minimapMask.size : 278;
-    
-    // Usamos '%' para se alinhar perfeitamente ao safezone 16:9 de .hud-root
-    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}%` : '7.2%';
-    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}%` : '13.9%';
-    
-    $: maskThickness = ($config && $config.minimapMask && $config.minimapMask.thickness) ? $config.minimapMask.thickness : 40;
+  import { minimap } from '../../stores/hudStore.js'
 </script>
 
-{#if isVisible}
-<div class="radar-mask-container" style="width: {maskSize}px; height: {maskSize}px; left: {maskLeft}; bottom: {maskBottom}; border-width: {maskThickness}px;">
-    <div class="radar-hole"></div>
-</div>
+{#if $minimap.visible}
+  <div class="minimap-mask" aria-hidden="true"></div>
 {/if}
 
 <style>
-    .radar-mask-container {
-        position: absolute;
-        border-radius: 50%;
-        box-sizing: content-box;
-        transform: translate(-50%, 50%);
-        
-        /* Borda estilo couro rústico / anel que cobre as letras N, S, E, W */
-        border: solid #241b12; /* A espessura vem do inline style */
-        
-        box-shadow: 
-            inset 0px 0px 8px rgba(0,0,0,0.9), /* Sombra interna para profundidade */
-            inset 0px 0px 2px rgba(0,0,0,1), 
-            0px 0px 10px rgba(0,0,0,0.6), /* Sombra externa */
-            0px 0px 0px 2px #0a0705; /* Borda fininha externa preta */
-            
-        pointer-events: none; /* A máscara normal não bloqueia cliques */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    }
-
-    .radar-hole {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background-color: transparent;
-        box-shadow: 0 0 0 1px #0a0705; /* Borda fininha interna preta */
-    }
+  .minimap-mask {
+    position: absolute;
+    /* Posição e dimensões em pixels para alinhar perfeitamente com o radar */
+    bottom: 22px;
+    left: 22px;
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    
+    /* Borda preta bem espessa para garantir a cobertura das letras cardinais */
+    border: 14px solid #0a0705;
+    
+    /* Brilho e sombreamento para integrar com o visual do radar */
+    box-shadow: 
+      0 0 10px rgba(0, 0, 0, 0.95),
+      inset 0 0 8px rgba(0, 0, 0, 0.95);
+      
+    pointer-events: none;
+    z-index: 9999;
+  }
 </style>

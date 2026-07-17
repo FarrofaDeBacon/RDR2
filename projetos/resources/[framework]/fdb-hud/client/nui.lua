@@ -24,16 +24,15 @@ end)
 -- Modo edição para reposicionar a bússola/radar
 RegisterCommand('hudedit', function()
     SetNuiFocus(true, true)
-    SendNUI('openMenu', {})
+    SendNUI('setEditMode', true)
 end, false)
 
-RegisterNUICallback('saveMaskSettings', function(data, cb)
-    local msg = string.format('Size: %s | Left: %s | Bottom: %s | Thickness: %s', data.size, data.left, data.bottom, data.thickness)
-    print('[HUD Edit] Novos valores para config.lua: ' .. msg)
+RegisterNUICallback('saveMaskPosition', function(data, cb)
+    print(string.format('[HUD Edit] Nova posição do anel: left: %s, bottom: %s', data.left, data.bottom))
     TriggerEvent('chat:addMessage', {
         color = {255, 255, 255},
         multiline = true,
-        args = {"Sistema", "Copiado para o F8: " .. msg}
+        args = {"Sistema", "Copiado para o F8: left: " .. data.left .. " | bottom: " .. data.bottom}
     })
     cb('ok')
 end)

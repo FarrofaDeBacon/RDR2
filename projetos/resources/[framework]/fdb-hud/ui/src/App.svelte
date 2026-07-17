@@ -3,11 +3,9 @@
   import VehicleHud  from './components/vehicle/VehicleHud.svelte'
   import MoneyHud    from './components/money/MoneyHud.svelte'
   import MinimapMask from './components/minimap/MinimapMask.svelte'
-  import SettingsMenu from './components/SettingsMenu.svelte'
   import { hudStore } from './stores/hudStore.js'
 
   let visible = false
-  let settingsVisible = false
 
   // ── NUI message handler ─────────────────────────────────────────
   window.addEventListener('message', (e) => {
@@ -37,10 +35,7 @@
         hudStore.setEditMode(data)
         break
       case 'openMenu':
-        settingsVisible = true
-        break
-      case 'closeMenu':
-        settingsVisible = false
+        // TODO: abrir painel de configuração
         break
     }
   })
@@ -59,7 +54,6 @@
     <StatusHud  />
     <VehicleHud />
     <MoneyHud   />
-    <SettingsMenu bind:visible={settingsVisible} />
   </main>
 {/if}
 
@@ -68,14 +62,9 @@
   :global(body) { background: transparent; overflow: hidden; font-family: 'Cinzel', serif; }
 
   .hud-root {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: 100vw;
     height: 100vh;
-    max-width: calc(100vh * (16 / 9));
-    max-height: calc(100vw * (9 / 16));
+    position: relative;
     pointer-events: none;
   }
 </style>

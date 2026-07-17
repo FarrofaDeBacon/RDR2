@@ -20,7 +20,7 @@ lib.callback.register('fdb-hud:server:getConfig', function(source)
     local allowedElements = {}
     for name, data in pairs(Config.Elements) do
         if data.enabled then
-            allowedElements[name] = data
+            allowedElements[name] = true
         end
     end
     return allowedElements

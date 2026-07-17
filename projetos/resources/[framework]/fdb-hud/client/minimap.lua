@@ -57,19 +57,10 @@ CreateThread(function()
             DisplayRadar(true)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
             SetMinimapType(1)
-            
-            SendNUIMessage({
-                action = 'updateMinimap',
-                data = { visible = true }
-            })
         else
             DisplayRadar(false)
             Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
             SetMinimapType(0)
-            SendNUIMessage({
-                action = 'updateMinimap',
-                data = { visible = false }
-            })
         end
     end
 end)
@@ -86,5 +77,23 @@ CreateThread(function()
                 TriggerServerEvent('fdb-hud:server:checkWet', isSwimming, isRaining)
             end
         end
+        end
     end
+end)
+
+RegisterCommand('testradar', function(source, args)
+    local mode = tonumber(args[1]) or 0
+    print("TESTANDO MINIMAP TYPE:", mode)
+    SetMinimapType(mode)
+    
+    if mode == 1 then
+        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
+    else
+        Citizen.InvokeNative(0xDE1A30F38D0DEE5C, false)
+    end
+end)
+
+RegisterCommand('testcompass', function()
+    print("Escondendo HUD_CTX_COMPASS e hud component 15...")
+    Citizen.InvokeNative(0x4CC5F2FC1332577F, GetHashKey("HUD_CTX_COMPASS"))
 end)

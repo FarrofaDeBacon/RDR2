@@ -27,7 +27,7 @@ local function InitNUI()
     -- Envia tudo ao NUI numa unica mensagem init
     -- Config.Minimap nunca e incluido aqui
     SendNUIMessage({ action = 'init', data = {
-        config     = allowedElements,
+        allowed    = allowedElements,
         visibility = savedLayout and savedLayout.visibility or nil,
         job        = PlayerData.job,
     }})
