@@ -31,8 +31,8 @@
         if (!newConfig.minimapMask) newConfig.minimapMask = {};
         
         newConfig.minimapMask.size = parseInt(maskSize);
-        newConfig.minimapMask.left = parseInt(maskLeft);
-        newConfig.minimapMask.bottom = parseInt(maskBottom);
+        newConfig.minimapMask.left = parseFloat(maskLeft);
+        newConfig.minimapMask.bottom = parseFloat(maskBottom);
         newConfig.minimapMask.thickness = parseInt(maskThickness);
         
         hudStore.init({ config: newConfig });
@@ -74,22 +74,15 @@
             <input type="range" min="0" max="80" bind:value={maskThickness} on:input={updateConfig}>
         </div>
 
-        {#if !($minimap && $minimap.anchor)}
         <div class="setting-row">
-            <label>Posição Horizontal - X ({maskLeft}px)</label>
-            <input type="range" min="0" max="300" bind:value={maskLeft} on:input={updateConfig}>
+            <label>Posição Horizontal - X ({maskLeft}vw)</label>
+            <input type="range" min="0" max="50" step="0.1" bind:value={maskLeft} on:input={updateConfig}>
         </div>
 
         <div class="setting-row">
-            <label>Posição Vertical - Y ({maskBottom}px)</label>
-            <input type="range" min="0" max="300" bind:value={maskBottom} on:input={updateConfig}>
+            <label>Posição Vertical - Y ({maskBottom}vh)</label>
+            <input type="range" min="0" max="50" step="0.1" bind:value={maskBottom} on:input={updateConfig}>
         </div>
-        {:else}
-        <div class="setting-row auto-pos">
-            <span class="auto-badge">✓ Posição Automática Rockstar Ativada</span>
-            <small>O HUD está seguindo o minimapa nativo do jogo.</small>
-        </div>
-        {/if}
 
         <div class="actions">
             <button class="btn-cancel" on:click={closeMenu}>Cancelar</button>

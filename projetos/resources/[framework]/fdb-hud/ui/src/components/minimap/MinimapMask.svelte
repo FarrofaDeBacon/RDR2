@@ -7,9 +7,9 @@
     
     $: maskSize = ($config && $config.minimapMask && $config.minimapMask.size) ? $config.minimapMask.size : 278;
     
-    // Se o cliente enviar o "anchor" matemático, usamos VW e VH. Senão, caímos para o valor fixo do config (px).
-    $: maskLeft = ($minimap && $minimap.anchor) ? `${$minimap.anchor.leftVw}vw` : (($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}px` : '34px');
-    $: maskBottom = ($minimap && $minimap.anchor) ? `${$minimap.anchor.bottomVh}vh` : (($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}px` : '34px');
+    // Agora usamos diretamente vw/vh da config, que será perfeitamente responsivo
+    $: maskLeft = ($config && $config.minimapMask && $config.minimapMask.left) ? `${$config.minimapMask.left}vw` : '8.6vw';
+    $: maskBottom = ($config && $config.minimapMask && $config.minimapMask.bottom) ? `${$config.minimapMask.bottom}vh` : '13.3vh';
     
     $: maskThickness = ($config && $config.minimapMask && $config.minimapMask.thickness) ? $config.minimapMask.thickness : 24;
 </script>
