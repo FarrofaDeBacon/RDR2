@@ -8,7 +8,7 @@ local ped = nil
 -- Cache para evitar updates desnecessários
 local lastStatus = { 
     health = -1, stamina = -1, dead = false, 
-    hunger = -1, thirst = -1, stress = -1, bladder = -1, 
+    hunger = -1, thirst = -1, stress = -1, bladder = -1, alcohol = -1,
     isMounted = false, horseHealth = -1, horseStamina = -1 
 }
 
@@ -39,12 +39,14 @@ CreateThread(function()
         local thirst = 100
         local stress = 0
         local bladder = 0
+        local alcohol = 0
 
         if PlayerData and PlayerData.metadata then
             hunger = PlayerData.metadata["hunger"] or 100
             thirst = PlayerData.metadata["thirst"] or 100
             stress = PlayerData.metadata["stress"] or 0
             bladder = PlayerData.metadata["bladder"] or 0
+            alcohol = PlayerData.metadata["alcohol"] or 0
         end
 
         -- Horse Status
@@ -67,7 +69,7 @@ CreateThread(function()
         local changed = false
         if health ~= lastStatus.health or stamina ~= lastStatus.stamina or dead ~= lastStatus.dead 
            or hunger ~= lastStatus.hunger or thirst ~= lastStatus.thirst 
-           or stress ~= lastStatus.stress or bladder ~= lastStatus.bladder 
+           or stress ~= lastStatus.stress or bladder ~= lastStatus.bladder or alcohol ~= lastStatus.alcohol
            or isMounted ~= lastStatus.isMounted 
            or horseHealth ~= lastStatus.horseHealth or horseStamina ~= lastStatus.horseStamina then
             changed = true
@@ -76,7 +78,7 @@ CreateThread(function()
         if changed then
             lastStatus = { 
                 health = health, stamina = stamina, dead = dead,
-                hunger = hunger, thirst = thirst, stress = stress, bladder = bladder,
+                hunger = hunger, thirst = thirst, stress = stress, bladder = bladder, alcohol = alcohol,
                 isMounted = isMounted, horseHealth = horseHealth, horseStamina = horseStamina
             }
             SendNUI('updateStatus', lastStatus)
@@ -86,6 +88,7 @@ CreateThread(function()
             LocalPlayer.state:set("thirst", thirst, false)
             LocalPlayer.state:set("stress", stress, false)
             LocalPlayer.state:set("bladder", bladder, false)
+            LocalPlayer.state:set("alcohol", alcohol, false)
         end
 
         ::continue::
@@ -111,6 +114,15 @@ RegisterNetEvent('hud:client:UpdateHunger', function(newHunger)
     local amount = newHunger - currentHunger
     if amount > 0 then
         TriggerServerEvent('fdb-hud:server:UpdateHunger', amount)
+    end
+end)
+
+RegisterNetEvent('hud:client:UpdateAlcohol', function(newAlcohol)
+    print("DEBUG HUD: Recebido hud:client:UpdateAlcohol! newAlcohol=", newAlcohol)
+    local currentAlcohol = PlayerData.metadata and PlayerData.metadata['alcohol'] or 0
+    local amount = newAlcohol - currentAlcohol
+    if amount ~= 0 then
+        TriggerServerEvent('fdb-hud:server:UpdateAlcohol', amount)
     end
 end)
 

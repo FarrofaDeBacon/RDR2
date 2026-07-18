@@ -87,7 +87,8 @@ end
 local function handlePassOut(ped)
     lib.notify(config.AlcoholEffects.PassOutNotification)
 
-    playAnim(ped, 'amb_misc@world_human_vomit@male_a@idle_b', 'idle_f', 31, config.AlcoholEffects.VomitDuration)
+    -- Nova animação de vômito do gum_metabolism
+    playAnim(ped, 'amb_misc@world_human_vomit@male_a@base', 'base', 31, config.AlcoholEffects.VomitDuration)
     ClearPedTasks(ped)
 
     playAnim(ped, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, config.AlcoholEffects.SleepDuration)
@@ -146,13 +147,15 @@ end
 CreateThread(function()
     while true do
         local ped = getPed()
-        if alcoholCount > 0 then
+        local currentAlcohol = LocalPlayer.state.alcohol or 0
+        if currentAlcohol > 0 then
             Wait(config.AlcoholSystem.DecreaseInterval)
-            alcoholCount = math.max(0, alcoholCount - config.AlcoholSystem.DecreaseAmount)
+            local newAlcohol = math.max(0, currentAlcohol - config.AlcoholSystem.DecreaseAmount)
+            TriggerEvent('hud:client:UpdateAlcohol', newAlcohol)
 
-            if alcoholCount > config.AlcoholSystem.PassOutThreshold then
+            if newAlcohol > config.AlcoholSystem.PassOutThreshold then
                 handlePassOut(ped)
-            elseif alcoholCount > config.AlcoholSystem.DrunkThreshold then
+            elseif newAlcohol > config.AlcoholSystem.DrunkThreshold then
                 handleDrunk(ped)
             else
                 handleSober(ped)
@@ -233,10 +236,11 @@ local function handleConsumption(itemName, type)
     safeDelete(prop2)
 
     if data.alcohol then
+        local currentAlcohol = LocalPlayer.state.alcohol or 0
         if data.alcohol > 0 then
-            alcoholCount = math.min(config.AlcoholSystem.MaxAlcoholLevel, alcoholCount + data.alcohol)
+            TriggerEvent('hud:client:UpdateAlcohol', math.min(config.AlcoholSystem.MaxAlcoholLevel, currentAlcohol + data.alcohol))
         else
-            alcoholCount = math.max(0, alcoholCount + data.alcohol)
+            TriggerEvent('hud:client:UpdateAlcohol', math.max(0, currentAlcohol + data.alcohol))
         end
     end
     TriggerServerEvent('rsg-consume:server:removeitem', data.item, 1)

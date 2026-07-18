@@ -5,6 +5,7 @@
   export let thirst = 100;
   export let stress = 0;
   export let bladder = 0;
+  export let alcohol = 0;
 
   // Calculamos os graus para o conic-gradient
   $: healthDeg = (health / 100) * 360;
@@ -13,6 +14,7 @@
   $: thirstDeg = (thirst / 100) * 360;
   $: stressDeg = (stress / 100) * 360;
   $: bladderDeg = (bladder / 100) * 360;
+  $: alcoholDeg = (alcohol / 100) * 360;
 
   // Lógica de visibilidade dinâmica: só aparece se não estiver 100% 
   // (Para stress e bladder, aparece se maior que 0)
@@ -22,6 +24,7 @@
   $: showThirst = thirst < 100;
   $: showStress = stress > 0;
   $: showBladder = bladder > 0;
+  $: showAlcohol = alcohol > 0;
 
 </script>
 
@@ -72,6 +75,14 @@
       <div class="core-bg"></div>
       <div class="core-progress" style="background: conic-gradient(#fff {bladderDeg}deg, transparent 0);"></div>
       <div class="core-icon">🚽</div>
+    </div>
+  {/if}
+
+  {#if showAlcohol}
+    <div class="core-wrapper">
+      <div class="core-bg"></div>
+      <div class="core-progress" style="background: conic-gradient(#fff {alcoholDeg}deg, transparent 0);"></div>
+      <div class="core-icon">🍻</div>
     </div>
   {/if}
 

@@ -253,6 +253,19 @@ AddEventHandler('fdb-hud:server:RelieveStress', function(amount)
     Player.Functions.SetMetaData('stress', newStress)
 end)
 
+-- Atualização de Álcool
+RegisterServerEvent('fdb-hud:server:UpdateAlcohol')
+AddEventHandler('fdb-hud:server:UpdateAlcohol', function(amount)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local newAlcohol = (Player.PlayerData.metadata['alcohol'] or 0) + amount
+    if newAlcohol > 100 then newAlcohol = 100 end
+    if newAlcohol < 0 then newAlcohol = 0 end
+    Player.Functions.SetMetaData('alcohol', newAlcohol)
+end)
+
 -- Comando /mijar
 RSGCore.Commands.Add('mijar', 'Aliviar a bexiga', {}, false, function(source, args)
     local src = source

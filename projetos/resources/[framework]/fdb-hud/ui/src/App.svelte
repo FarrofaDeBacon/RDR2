@@ -16,6 +16,7 @@
     thirst: 100,
     stress: 0,
     bladder: 0,
+    alcohol: 0,
     isPoisoned: false,
     isMounted: false,
     horseHealth: 100,
@@ -77,6 +78,7 @@
       thirst={state.thirst}
       stress={state.stress}
       bladder={state.bladder}
+      alcohol={state.alcohol}
     />
 
     <!-- Horse Status Condicional -->
