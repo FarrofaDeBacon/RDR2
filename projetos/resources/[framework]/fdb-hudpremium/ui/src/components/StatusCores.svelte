@@ -14,13 +14,31 @@
     $: horseHealth = $horseStatus.horseHealth;
     $: horseStamina = $horseStatus.horseStamina;
 
+    // Novos Survival Engines
+    $: urine = $survivalEngines.urine;
+    $: hygiene = $survivalEngines.hygiene;
+    $: temp = $survivalEngines.temp;
+    $: poison = $survivalEngines.poison;
+    $: illness = $survivalEngines.illness;
+    $: drunkenness = $survivalEngines.drunkenness;
+
     // A cor interna dos ícones baseados no status (ex: vermelho se a vida tiver baixa)
     $: getInnerColor = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 20) => val <= threshold ? dangerColor : defaultColor;
+    // Invertido para coisas que sobem (ex: estresse, bexiga, veneno)
+    $: getInnerColorReverse = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 80) => val >= threshold ? dangerColor : defaultColor;
 
     // Condicionais de visibilidade
     $: showArmor = armor > 0;
     $: showOxygen = oxygen < 100;
-    $: showHorse = horseHealth > 0 && horseHealth <= 100; // assumindo que o horse status atualize pra 0 quando não montado
+    $: showHorse = horseHealth > 0 && horseHealth <= 100;
+
+    // Condicionais Survival Engines
+    $: showUrine = urine > 50; // Mostra quando bexiga passa da metade
+    $: showHygiene = hygiene < 100; // Mostra quando não está 100% limpo
+    $: showTemp = temp < 15 || temp > 35; // Mostra em extremos térmicos
+    $: showPoison = poison > 0;
+    $: showIllness = illness > 0;
+    $: showDrunkenness = drunkenness > 0;
 </script>
 
 <div class="status-cores-container">
@@ -118,6 +136,73 @@
             />
         </div>
     {/if}
+
+    <!-- Sobrevivência Hardcore -->
+    <div class="survival-group">
+        {#if showUrine}
+            <HUDItem 
+                value={urine} 
+                innerValue={urine} 
+                icon="/assets/urine.png" 
+                outerColor="#ffff00" 
+                innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
+                isFlashing={urine >= 90}
+            />
+        {/if}
+
+        {#if showHygiene}
+            <HUDItem 
+                value={hygiene} 
+                innerValue={hygiene} 
+                icon="/assets/hygiene.png" 
+                outerColor="#8b4513" 
+                innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
+            />
+        {/if}
+
+        {#if showTemp}
+            <HUDItem 
+                value={temp < 15 ? (15 - temp)*5 : (temp - 35)*5} 
+                innerValue={100} 
+                icon="/assets/temp.png" 
+                outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
+                innerColor="#ffffff"
+                isFlashing={temp <= 0 || temp >= 45}
+            />
+        {/if}
+
+        {#if showPoison}
+            <HUDItem 
+                value={poison} 
+                innerValue={poison} 
+                icon="/assets/poison.png" 
+                outerColor="#32cd32" 
+                innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
+                isFlashing={true}
+            />
+        {/if}
+
+        {#if showIllness}
+            <HUDItem 
+                value={illness} 
+                innerValue={illness} 
+                icon="/assets/illness.png" 
+                outerColor="#808000" 
+                innerColor="#ffffff"
+                isFlashing={illness >= 80}
+            />
+        {/if}
+
+        {#if showDrunkenness}
+            <HUDItem 
+                value={drunkenness} 
+                innerValue={drunkenness} 
+                icon="/assets/alcohol.png" 
+                outerColor="#ff69b4" 
+                innerColor="#ffffff"
+            />
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -132,7 +217,7 @@
         align-items: center;
     }
 
-    .cores-group, .horse-group {
+    .cores-group, .horse-group, .survival-group {
         display: flex;
         flex-direction: row;
         gap: 8px;
