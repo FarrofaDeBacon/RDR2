@@ -1,8 +1,10 @@
 <script>
   import StatusCores from './components/StatusCores.svelte';
+  import ScreenEffects from './components/ScreenEffects.svelte';
 </script>
 
 <main>
+  <ScreenEffects />
   <StatusCores />
 </main>
 
