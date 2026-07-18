@@ -21,7 +21,12 @@ local function attachProp(ped, model, boneId, x, y, z, pitch, roll, yaw)
 end
 
 local function safeDelete(entity)
-    if entity and DoesEntityExist(entity) then DeleteObject(entity) end
+    if entity and DoesEntityExist(entity) then 
+        DetachEntity(entity, true, true)
+        SetEntityAsMissionEntity(entity, true, true)
+        DeleteObject(entity)
+        DeleteEntity(entity)
+    end
 end
 
 -- Evento de Consumir (Vem Seguro do Servidor)
