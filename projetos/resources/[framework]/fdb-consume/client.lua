@@ -29,14 +29,20 @@ local function safeDelete(entity)
     end
 end
 
+local isBusy = false
+
 -- Evento de Consumir (Vem Seguro do Servidor)
 RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
+    if isBusy then return end
+    isBusy = true
+
     print("DEBUG fdb-consume: Recebeu playAnim com tipo: " .. tostring(animType))
     local ped = PlayerPedId()
     local anim = Config.Animations[animType]
     
     if not anim then 
         print("DEBUG fdb-consume: ERRO! Animação não encontrada para: " .. tostring(animType))
+        isBusy = false
         return 
     end
 
@@ -108,6 +114,7 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
     safeDelete(prop)
     safeDelete(prop2)
     LocalPlayer.state:set("inv_busy", false, true)
+    isBusy = false
 end)
 
 -- Efeitos do Álcool (Controlados pelo Servidor)
