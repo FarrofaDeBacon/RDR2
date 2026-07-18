@@ -206,6 +206,65 @@ AddEventHandler('fdb-hud:server:checkWet', function(isSwimming, isRaining)
     end
 end)
 
+-- ============================================================
+-- Status & Consumables (Metadata Segura)
+-- ============================================================
 
+-- Atualização de Sede e Bexiga (quando o player bebe algo)
+RegisterServerEvent('fdb-hud:server:UpdateThirstBladder')
+AddEventHandler('fdb-hud:server:UpdateThirstBladder', function(amount)
+    local src = source
+    print("DEBUG HUD SERVER: Recebido UpdateThirstBladder do ID", src, "amount=", amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
 
+    local newThirst = (Player.PlayerData.metadata['thirst'] or 0) + amount
+    if newThirst > 100 then newThirst = 100 end
+    Player.Functions.SetMetaData('thirst', newThirst)
+    print("DEBUG HUD SERVER: Sede atualizada para", newThirst)
 
+    local newBladder = (Player.PlayerData.metadata['bladder'] or 0) + amount
+    if newBladder > 100 then newBladder = 100 end
+    Player.Functions.SetMetaData('bladder', newBladder)
+    print("DEBUG HUD SERVER: Bexiga atualizada para", newBladder)
+end)
+
+-- Atualização de Fome (quando o player come algo)
+RegisterServerEvent('fdb-hud:server:UpdateHunger')
+AddEventHandler('fdb-hud:server:UpdateHunger', function(amount)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local newHunger = (Player.PlayerData.metadata['hunger'] or 0) + amount
+    if newHunger > 100 then newHunger = 100 end
+    Player.Functions.SetMetaData('hunger', newHunger)
+end)
+
+-- Alívio de Estresse
+RegisterServerEvent('fdb-hud:server:RelieveStress')
+AddEventHandler('fdb-hud:server:RelieveStress', function(amount)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local newStress = (Player.PlayerData.metadata['stress'] or 0) - amount
+    if newStress < 0 then newStress = 0 end
+    Player.Functions.SetMetaData('stress', newStress)
+end)
+
+-- Comando /mijar
+RSGCore.Commands.Add('mijar', 'Aliviar a bexiga', {}, false, function(source, args)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local currentBladder = Player.PlayerData.metadata['bladder'] or 0
+    if currentBladder <= 0 then
+        TriggerClientEvent('RSGCore:Notify', src, 'Sua bexiga ja esta vazia!', 'error')
+        return
+    end
+
+    Player.Functions.SetMetaData('bladder', 0)
+    TriggerClientEvent('RSGCore:Notify', src, 'Voce aliviou sua bexiga.', 'success')
+end)
