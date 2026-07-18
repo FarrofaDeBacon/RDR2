@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 // ============================================================================
 // STORES POR DOMÍNIO
@@ -85,6 +85,11 @@ window.addEventListener('message', (event) => {
     const data = event.data;
     if (!data || !data.action) return;
 
+    // Previne gravação de undefined em actions simples
+    if (data.action !== 'updateTick' && data.action !== 'loadSettings' && data.action !== 'itemConsumed' && data.value === undefined) {
+        return;
+    }
+
     switch (data.action) {
         // --- TICK DE ALTA FREQUÊNCIA ---
         case 'updateTick':
@@ -103,7 +108,10 @@ window.addEventListener('message', (event) => {
         case 'food':
         case 'water':
         case 'stress':
-            coreStatus.update(s => ({ ...s, [data.action]: data.value }));
+            pendingCoreUpdates = { ...pendingCoreUpdates, [data.action]: data.value };
+            if (!rafId) {
+                rafId = requestAnimationFrame(applyBatchedUpdates);
+            }
             break;
 
         // --- HORSE STATUS ---
