@@ -11,10 +11,14 @@ end
 
 -- Evento de Consumir (Vem Seguro do Servidor)
 RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
+    print("DEBUG fdb-consume: Recebeu playAnim com tipo: " .. tostring(animType))
     local ped = PlayerPedId()
     local anim = Config.Animations[animType]
     
-    if not anim then return end
+    if not anim then 
+        print("DEBUG fdb-consume: ERRO! Animação não encontrada para: " .. tostring(animType))
+        return 
+    end
 
     -- Cria o Prop na mão
     local propObj = nil

@@ -7,9 +7,12 @@ CreateThread(function()
             local src = source
             local Player = RSGCore.Functions.GetPlayer(src)
             if not Player then return end
+            
+            print("DEBUG fdb-consume: Jogador " .. src .. " tentou usar " .. itemName)
 
             -- Servidor é quem retira o item (impossível fraudar no cliente)
             if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+                print("DEBUG fdb-consume: Item removido com sucesso!")
                 -- Opcional: Atualizar o inventário visualmente
                 TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], "remove")
 
