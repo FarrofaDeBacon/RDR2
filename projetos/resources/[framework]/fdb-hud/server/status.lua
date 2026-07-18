@@ -10,7 +10,6 @@ local RSGCore = exports['rsg-core']:GetCoreObject()
 -- -------------------------------------------------------
 RegisterNetEvent('fdb-hud:server:UpdateThirstBladder', function(amount)
     local src = source
-    print("DEBUG HUD SERVER: Recebido UpdateThirstBladder do ID", src, "amount=", amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
 
@@ -18,13 +17,11 @@ RegisterNetEvent('fdb-hud:server:UpdateThirstBladder', function(amount)
     local newThirst = (Player.PlayerData.metadata['thirst'] or 0) + amount
     if newThirst > 100 then newThirst = 100 end
     Player.Functions.SetMetaData('thirst', newThirst)
-    print("DEBUG HUD SERVER: Sede atualizada para", newThirst)
 
     -- Atualiza Bladder (proporção 1:1, configurável se necessário)
     local newBladder = (Player.PlayerData.metadata['bladder'] or 0) + amount
     if newBladder > 100 then newBladder = 100 end
     Player.Functions.SetMetaData('bladder', newBladder)
-    print("DEBUG HUD SERVER: Bexiga atualizada para", newBladder)
 end)
 
 -- -------------------------------------------------------
