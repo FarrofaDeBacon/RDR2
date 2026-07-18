@@ -29,6 +29,9 @@
     $: getInnerColor = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 20) => val <= threshold ? dangerColor : defaultColor;
     // Invertido para coisas que sobem (ex: estresse, bexiga, veneno)
     $: getInnerColorReverse = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 80) => val >= threshold ? dangerColor : defaultColor;
+    
+    // Clamp para o valor da temperatura
+    $: getTempValue = (t) => Math.min(100, t < 15 ? (15 - t)*5 : (t - 35)*5);
 
     // Condicionais de visibilidade
     $: showArmor = armor > 0;
@@ -165,7 +168,7 @@
 
         {#if showTemp}
             <HUDItem 
-                value={temp < 15 ? (15 - temp)*5 : (temp - 35)*5} 
+                value={getTempValue(temp)} 
                 innerValue={100} 
                 icon="/assets/temp.png" 
                 outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
@@ -181,7 +184,7 @@
                 icon="/assets/poison.png" 
                 outerColor="#32cd32" 
                 innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
-                isFlashing={true}
+                isFlashing={poison >= 80}
             />
         {/if}
 

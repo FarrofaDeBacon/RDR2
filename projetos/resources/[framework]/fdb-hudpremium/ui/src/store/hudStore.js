@@ -72,12 +72,22 @@ export const editorState = writable({
 // Isso impede que um 'updateTick' que altera fome/sede/vida dispare dezenas de
 // re-renders no DOM em um único ciclo do event loop.
 let pendingCoreUpdates = null;
+let pendingSurvivalUpdates = null;
+let pendingBuffsUpdates = null;
 let rafId = null;
 
 function applyBatchedUpdates() {
     if (pendingCoreUpdates) {
         coreStatus.update(current => ({ ...current, ...pendingCoreUpdates }));
         pendingCoreUpdates = null;
+    }
+    if (pendingSurvivalUpdates) {
+        survivalEngines.update(current => ({ ...current, ...pendingSurvivalUpdates }));
+        pendingSurvivalUpdates = null;
+    }
+    if (pendingBuffsUpdates) {
+        activeBuffs.update(current => ({ ...current, ...pendingBuffsUpdates }));
+        pendingBuffsUpdates = null;
     }
     rafId = null;
 }
@@ -145,11 +155,17 @@ window.addEventListener('message', (event) => {
         case 'poison':
         case 'illness':
         case 'drunkenness':
-            survivalEngines.update(s => ({ ...s, [data.action]: data.value }));
+            pendingSurvivalUpdates = { ...pendingSurvivalUpdates, [data.action]: data.value };
+            if (!rafId) {
+                rafId = requestAnimationFrame(applyBatchedUpdates);
+            }
             break;
         case 'coldResistance':
         case 'heatResistance':
-            activeBuffs.update(s => ({ ...s, [data.action]: data.value }));
+            pendingBuffsUpdates = { ...pendingBuffsUpdates, [data.action]: data.value };
+            if (!rafId) {
+                rafId = requestAnimationFrame(applyBatchedUpdates);
+            }
             break;
 
         // --- EXTRAS ---
