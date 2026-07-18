@@ -96,17 +96,17 @@ end)
 -- Interceptadores de consumíveis (rsg-consume, etc.)
 -- -------------------------------------------------------
 RegisterNetEvent('hud:client:UpdateThirst', function(newThirst)
-    -- Os scripts antigos enviam o valor absoluto (ex: thirst atual + amount).
-    -- Nós queremos enviar apenas o 'amount' pro servidor somar de forma segura?
-    -- Não, se o rsg-consume envia (thirst + amount), vamos subtrair o thirst atual.
+    print("DEBUG HUD: Recebido hud:client:UpdateThirst! newThirst=", newThirst)
     local currentThirst = PlayerData.metadata and PlayerData.metadata['thirst'] or 100
     local amount = newThirst - currentThirst
+    print("DEBUG HUD: amount a enviar=", amount, "currentThirst=", currentThirst)
     if amount > 0 then
         TriggerServerEvent('fdb-hud:server:UpdateThirstBladder', amount)
     end
 end)
 
 RegisterNetEvent('hud:client:UpdateHunger', function(newHunger)
+    print("DEBUG HUD: Recebido hud:client:UpdateHunger! newHunger=", newHunger)
     local currentHunger = PlayerData.metadata and PlayerData.metadata['hunger'] or 100
     local amount = newHunger - currentHunger
     if amount > 0 then
