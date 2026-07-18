@@ -24,6 +24,8 @@ local function InitNUI()
     local allowedElements = lib.callback.await('fdb-hud:server:getConfig', false)
     local savedLayout     = lib.callback.await('fdb-hud:server:getLayout', false)
 
+    TriggerEvent('chat:addSuggestion', '/mijar', 'Alivia sua bexiga (precisa estar maior que 0)', {})
+
     -- Envia tudo ao NUI numa unica mensagem init
     -- Config.Minimap nunca e incluido aqui
     SendNUIMessage({ action = 'init', data = {
