@@ -1,6 +1,5 @@
-<script>
     import HUDItem from './HUDItem.svelte';
-    import { coreStatus, horseStatus, survivalEngines } from '../store/hudStore';
+    import { coreStatus, horseStatus, survivalEngines, activeBuffs } from '../store/hudStore';
 
     // Para facilitar, extraímos as reatividades do store
     $: health = $coreStatus.health;
@@ -21,6 +20,10 @@
     $: poison = $survivalEngines.poison;
     $: illness = $survivalEngines.illness;
     $: drunkenness = $survivalEngines.drunkenness;
+
+    // Buffs Térmicos
+    $: coldResistance = $activeBuffs.coldResistance;
+    $: heatResistance = $activeBuffs.heatResistance;
 
     // A cor interna dos ícones baseados no status (ex: vermelho se a vida tiver baixa)
     $: getInnerColor = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 20) => val <= threshold ? dangerColor : defaultColor;
@@ -203,6 +206,31 @@
             />
         {/if}
     </div>
+
+    <!-- Buffs Ativos -->
+    <div class="buffs-group">
+        {#if coldResistance > 0}
+            <HUDItem 
+                value={coldResistance > 100 ? 100 : coldResistance} 
+                innerValue={100} 
+                icon="/assets/buff_cold.png" 
+                outerColor="#00ffff" 
+                innerColor="#ffffff"
+                isFlashing={coldResistance <= 10}
+            />
+        {/if}
+
+        {#if heatResistance > 0}
+            <HUDItem 
+                value={heatResistance > 100 ? 100 : heatResistance} 
+                innerValue={100} 
+                icon="/assets/buff_heat.png" 
+                outerColor="#ff4500" 
+                innerColor="#ffffff"
+                isFlashing={heatResistance <= 10}
+            />
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -217,7 +245,7 @@
         align-items: center;
     }
 
-    .cores-group, .horse-group, .survival-group {
+    .cores-group, .horse-group, .survival-group, .buffs-group {
         display: flex;
         flex-direction: row;
         gap: 8px;

@@ -41,6 +41,11 @@ export const survivalEngines = writable({
     hygiene: 100, // Cleanliness
 });
 
+export const activeBuffs = writable({
+    coldResistance: 0, // tempo restante do buff em segundos (ou valor)
+    heatResistance: 0
+});
+
 export const extras = writable({
     cash: 0,
     gold: 0,
@@ -133,18 +138,18 @@ window.addEventListener('message', (event) => {
             comms.update(s => ({ ...s, [data.action]: data.value }));
             break;
 
-        // --- SURVIVAL ENGINES (Antigas) ---
+        // --- SURVIVAL ENGINES ---
         case 'urine':
+        case 'hygiene':
         case 'temp':
-            survivalEngines.update(s => ({ ...s, [data.action]: data.value }));
-            break;
-
-        // --- SURVIVAL ENGINES (Novas propostas) ---
         case 'poison':
         case 'illness':
         case 'drunkenness':
-        case 'hygiene':
             survivalEngines.update(s => ({ ...s, [data.action]: data.value }));
+            break;
+        case 'coldResistance':
+        case 'heatResistance':
+            activeBuffs.update(s => ({ ...s, [data.action]: data.value }));
             break;
 
         // --- EXTRAS ---
