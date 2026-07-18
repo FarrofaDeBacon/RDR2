@@ -9,8 +9,8 @@ local ped = nil
 local lastStatus = { health = -1, stamina = -1, dead = false }
 
 local function GetNormalized(current, max)
-    if max == 0 then return 0.0 end
-    return math.max(0.0, math.min(1.0, current / max))
+    if max == 0 then return 0 end
+    return math.max(0, math.min(100, math.floor((current / max) * 100)))
 end
 
 CreateThread(function()
