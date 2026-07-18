@@ -9,6 +9,21 @@ local function PlayAnimation(ped, dict, name, flag, duration)
     TaskPlayAnim(ped, dict, name, 8.0, -8.0, duration, flag, 0, false, false, false)
 end
 
+-- Auxiliares Nativos do RedM
+local function attachProp(ped, model, boneId, x, y, z, pitch, roll, yaw)
+    local hash = (type(model) == "string") and GetHashKey(model) or model
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(10) end
+    local prop = CreateObject(hash, GetEntityCoords(ped), true, true, false, false, true)
+    local boneIndex = GetEntityBoneIndexByName(ped, boneId)
+    AttachEntityToEntity(prop, ped, boneIndex, x, y, z, pitch, roll, yaw, true, true, false, true, 1, true)
+    return prop
+end
+
+local function safeDelete(entity)
+    if entity and DoesEntityExist(entity) then DeleteObject(entity) end
+end
+
 -- Evento de Consumir (Vem Seguro do Servidor)
 RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
     print("DEBUG fdb-consume: Recebeu playAnim com tipo: " .. tostring(animType))
@@ -20,34 +35,74 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
         return 
     end
 
-    -- Cria o Prop na mão
-    local propObj = nil
-    if anim.prop then
-        local x,y,z = table.unpack(GetEntityCoords(ped))
-        local hash = GetHashKey(anim.prop)
-        RequestModel(hash)
-        while not HasModelLoaded(hash) do Wait(10) end
-        propObj = CreateObject(hash, x, y, z, true, true, false)
-        local boneIndex = GetEntityBoneIndexByName(ped, "SKEL_R_Hand")
-        AttachEntityToEntity(propObj, ped, boneIndex, 0.02, 0.028, 0.001, 15.0, 175.0, 0.0, true, true, false, true, 1, true)
-    end
+    LocalPlayer.state:set("inv_busy", true, true)
+    SetCurrentPedWeapon(ped, `WEAPON_UNARMED`)
 
-    -- Toca Animação
-    PlayAnimation(ped, anim.dict, anim.name, 31, anim.time)
+    local prop, prop2
+    local taskDuration = anim.time or 4000
+
+    if animType == "Eat" then
+        prop = attachProp(ped, anim.prop, "SKEL_L_Finger01", 0.04, -0.03, -0.01, 0.0, 19.0, 46.0)
+        PlayAnimation(ped, 'mech_inventory@eating@multi_bite@sphere_d8-2_sandwich', 'quick_left_hand', 31, -1)
+        taskDuration = 5000
+
+    elseif animType == "Drink" then
+        prop = attachProp(ped, anim.prop, "PH_R_HAND", 0.0, 0.0, 0.04, 0.0, 0.0, 0.0)
+        if not IsPedOnMount(ped) and not IsPedInAnyVehicle(ped) then
+            PlayAnimation(ped, 'mech_inventory@drinking@bottle_cylinder_d1-3_h30-5_neck_a13_b2-5', 'uncork', 31, 500)
+            PlayAnimation(ped, 'mech_inventory@drinking@bottle_cylinder_d1-3_h30-5_neck_a13_b2-5', 'chug_a', 31, -1)
+            taskDuration = 5000
+        else
+            Citizen.InvokeNative(0x5E8C96BA532298F2, ped, 1737033966, prop, `p_bottleJD01x_ph_r_hand`, `DRINK_Bottle_Cylinder_d1-55_H18_Neck_A8_B1-8_QUICK_RIGHT_HAND`, true, 0, 0)
+            taskDuration = 4000
+        end
+
+    elseif animType == "Stew" then
+        prop = CreateObject(`p_bowl04x_stew`, GetEntityCoords(ped), true, true, false, false, true)
+        prop2 = CreateObject(`p_spoon01x`, GetEntityCoords(ped), true, true, false, false, true)
+        Citizen.InvokeNative(0x669655FFB29EF1A9, prop, 0, "Stew_Fill", 1.0)
+        Citizen.InvokeNative(0xCAAF2BCCFEF37F77, prop, 20)
+        Citizen.InvokeNative(0xCAAF2BCCFEF37F77, prop2, 82)
+        Citizen.InvokeNative(0x5E8C96BA532298F2, ped, 599184882, prop, `p_bowl04x_stew_ph_l_hand`, -583731576, 1, 0, 0.0)
+        Citizen.InvokeNative(0x5E8C96BA532298F2, ped, 599184882, prop2, `p_spoon01x_ph_r_hand`, -583731576, 1, 0, 0.0)
+        Citizen.InvokeNative(0xB35370D5353995CB, ped, -583731576, 1.0)
+        taskDuration = 5000
+
+    elseif animType == "Coffee" then
+        prop = CreateObject(`P_MUGCOFFEE01X`, GetEntityCoords(ped), true, true, false, false, true)
+        Citizen.InvokeNative(0x669655FFB29EF1A9, prop, 0, "CTRL_cupFill", 1.0)
+        Citizen.InvokeNative(0x5E8C96BA532298F2, ped, `CONSUMABLE_COFFEE`, prop, `P_MUGCOFFEE01X_PH_R_HAND`, `DRINK_COFFEE_HOLD`, 1, 0, -1)
+        taskDuration = 5000
+
+    elseif animType == "Canned" then
+        prop = attachProp(ped, anim.prop, "SKEL_L_Finger00", 0.10, -0.03, 0.02, 20.0, -70.0, -20.0)
+        if not IsPedOnMount(ped) and not IsPedInAnyVehicle(ped) and not IsPedUsingAnyScenario(ped) then
+            PlayAnimation(ped, 'mech_inventory@eating@canned_food@cylinder@d8-2_h10-5', 'left_hand', 31, -1)
+            taskDuration = 2750
+        else
+            Citizen.InvokeNative(0x5E8C96BA532298F2, ped, nil, `EAT_CANNED_FOOD_CYLINDER@D8-2_H10-5_QUICK_LEFT`, true, 0, 0)
+            taskDuration = 2750
+        end
+    end
     
-    -- Barra de Progresso
-    RSGCore.Functions.Progressbar("consume_item", "Consumindo...", anim.time, false, true, {
-        disableMovement = false,
-        disableCarMovement = false,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function() -- Done
-        ClearPedTasks(ped)
-        if propObj then DeleteObject(propObj) end
-    end, function() -- Cancel
-        ClearPedTasks(ped)
-        if propObj then DeleteObject(propObj) end
+    -- Barra de Progresso visual (Assíncrona para não quebrar a Task)
+    CreateThread(function()
+        RSGCore.Functions.Progressbar("consume_item", "Consumindo...", taskDuration, false, true, {
+            disableMovement = false,
+            disableCarMovement = false,
+            disableMouse = false,
+            disableCombat = true,
+        }, {}, {}, {}, function() end, function() end)
     end)
+
+    -- Aguarda o tempo da animação
+    Wait(taskDuration)
+    
+    -- Finaliza e Limpa
+    ClearPedTasks(ped)
+    safeDelete(prop)
+    safeDelete(prop2)
+    LocalPlayer.state:set("inv_busy", false, true)
 end)
 
 -- Efeitos do Álcool (Controlados pelo Servidor)
