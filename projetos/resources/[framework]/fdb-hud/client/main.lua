@@ -40,13 +40,13 @@ AddEventHandler('RSGCore:Client:OnPlayerLoaded', function()
     PlayerData = RSGCore.Functions.GetPlayerData()
     isLoggedIn = true
     InitNUI()
-    SendNUI('setVisible', true)
+    SendNUI('showHud', true)
 end)
 
 AddEventHandler('RSGCore:Client:OnPlayerLogout', function()
     PlayerData  = {}
     isLoggedIn  = false
-    SendNUI('setVisible', false)
+    SendNUI('showHud', false)
 end)
 
 AddEventHandler('RSGCore:Client:OnJobUpdate', function(job)
@@ -63,6 +63,9 @@ end)
 RegisterNUICallback('hudReady', function(_, cb)
     nuiReady = true
     InitNUI()
+    if isLoggedIn then
+        SendNUI('showHud', true)
+    end
     cb('ok')
 end)
 
@@ -75,6 +78,7 @@ AddEventHandler('onResourceStart', function(res)
         PlayerData = RSGCore.Functions.GetPlayerData()
         isLoggedIn = true
         InitNUI()
+        SendNUI('showHud', true)
     end
 end)
 local inEditMode = false
