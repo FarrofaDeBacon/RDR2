@@ -102,10 +102,7 @@ CreateThread(function()
                 shouldShowMask = false
             end
             
-            -- Esconde a máscara se qualquer NUI estiver aberto (ex: Inventário, Lojas), exceto se estivermos editando o HUD
-            if IsNuiFocused() and not InEditMode then
-                shouldShowMask = false
-            end
+            -- (Removido: Não esconde a máscara em NUIs como o inventário para que a bússola continue visível junto com o radar nativo)
             
             -- Se o radar nativo foi ocultado por outro script nativo
             if IsHudHidden() then
