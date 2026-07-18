@@ -13,7 +13,7 @@
   <div 
     class="minimap-mask" 
     aria-hidden="true"
-    transition:fade={{ duration: 400 }}
+    transition:fade={{ duration: 200 }}
     style="width: {maskWidth}vh; height: {maskHeight}vh; left: {maskLeft}vh; bottom: {maskBottom}vh;"
   ></div>
 {/if}

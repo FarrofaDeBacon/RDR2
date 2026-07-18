@@ -64,7 +64,7 @@ local function UpdateRadarState()
         if shouldBeEnabled then
             -- Espera a máscara dourada (Svelte) fazer o fade-in para depois ligar o radar nativo
             CreateThread(function()
-                Wait(350)
+                Wait(500)
                 if isRadarEnabled then
                     DisplayRadar(true)
                     Citizen.InvokeNative(0xDE1A30F38D0DEE5C, true)
