@@ -123,22 +123,13 @@ RegisterNetEvent('fdb-hud:client:DoPee', function()
     local ped = PlayerPedId()
     ClearPedTasks(ped)
     
-    -- 1. Animação
-    local animDict = "amb_misc@world_human_pee@male_a@idle_a"
-    local animName = "idle_a" -- idle_a é a animação contínua
+    -- Inicia o cenário completo (com abrir e fechar a calça)
+    TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_PEE'), -1, true, false, false, false)
 
-    RequestAnimDict(animDict)
-    while not HasAnimDictLoaded(animDict) do
-        Wait(10)
-    end
+    -- Espera a parte de abrir a calça terminar (aprox 4 segundos)
+    Wait(4000)
 
-    -- Toca a animação
-    TaskPlayAnim(ped, animDict, animName, 8.0, -8.0, -1, 1, 0, false, false, false)
-
-    -- Espera 3.5 segundos para a animação "abrir a calça e se preparar" terminar
-    Wait(3500)
-
-    -- 2. Configuração da Partícula (PTFX)
+    -- Configuração da Partícula (PTFX)
     local assetName = "core" 
     local ptfxName = "ent_anim_dog_peeing" 
 
@@ -149,32 +140,30 @@ RegisterNetEvent('fdb-hud:client:DoPee', function()
 
     UseParticleFxAsset(assetName)
 
-    -- Pega o index do osso da pélvis para o fluxo sair do local correto
     local boneIndex = GetEntityBoneIndexByName(ped, "SKEL_Pelvis")
-
-    -- Offsets e Rotação para o jato sair da frente
     local offsetX, offsetY, offsetZ = 0.0, 0.15, -0.1
     local rotX, rotY, rotZ = -90.0, 0.0, 0.0
 
-    -- Inicia a partícula em loop (Networked para outros jogadores verem)
+    -- Jato mais grosso (escala aumentada para 2.5)
     local peeParticle = StartNetworkedParticleFxLoopedOnEntityBone(
-        ptfxName,
-        ped,
+        ptfxName, ped,
         offsetX, offsetY, offsetZ,
         rotX, rotY, rotZ,
         boneIndex,
-        1.0, -- Escala da partícula
+        2.5, -- <== ESCALA (Grossura do jato)
         false, false, false
     )
 
-    -- 3. Tempo de Duração
-    Wait(7000) -- mija por 7 segundos
+    -- Tempo de duração do jato de água
+    Wait(6000)
 
-    -- 4. Limpeza
+    -- Desliga o jato, mas deixa o personagem terminar de fechar a calça!
     StopParticleFxLooped(peeParticle, false)
-    ClearPedTasks(ped)
-    RemoveAnimDict(animDict)
     RemoveNamedPtfxAsset(assetName)
+
+    -- Espera o cenário terminar naturalmente (aprox 3 a 4 segundos)
+    Wait(3500)
+    ClearPedTasks(ped)
 end)
 
 -- Thread para bloquear corrida/pulo quando estiver apertado
