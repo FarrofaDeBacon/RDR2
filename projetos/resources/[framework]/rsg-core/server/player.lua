@@ -269,7 +269,7 @@ function RSGCore.Player.CreatePlayer(PlayerData, Offline)
 
     function self.Functions.SetMetaData(meta, val)
         local function validateData(key, value)
-            if key == 'hunger' or key == 'thirst' or key == 'cleanliness' or key == 'bladder' or key == 'alcohol' then
+            if key == 'hunger' or key == 'thirst' or key == 'cleanliness' then
                 value = lib.math.clamp(value, 0, 100)
             end
 
@@ -430,7 +430,7 @@ function RSGCore.Player.CreatePlayer(PlayerData, Offline)
 
     function self.Functions.PersistStateBags()
         local metadata = {}
-        local keys = { "hunger", "thirst", "cleanliness", "stress", "health", "bladder", "alcohol" }
+        local keys = { "hunger", "thirst", "cleanliness", "stress", "health" }
     
         local state = Player(self.PlayerData.source).state
         for _, key in ipairs(keys) do
@@ -446,7 +446,7 @@ function RSGCore.Player.CreatePlayer(PlayerData, Offline)
 
     function self.Functions.InitializeStateBags()
         local metadata = self.PlayerData.metadata
-        local keys = { "hunger", "thirst", "cleanliness", "stress", "health", "bladder", "alcohol" }
+        local keys = { "hunger", "thirst", "cleanliness", "stress", "health" }
     
         local state = Player(self.PlayerData.source).state
         for _, key in ipairs(keys) do
