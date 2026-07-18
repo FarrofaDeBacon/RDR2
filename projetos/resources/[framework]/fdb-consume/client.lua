@@ -31,6 +31,13 @@ end
 
 local isBusy = false
 
+local function createProp(model, ped)
+    local hash = (type(model) == "string") and GetHashKey(model) or model
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(10) end
+    return CreateObject(hash, GetEntityCoords(ped), true, true, false, false, true)
+end
+
 -- Evento de Consumir (Vem Seguro do Servidor)
 RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
     if isBusy then return end
@@ -69,8 +76,8 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
         end
 
     elseif animType == "Stew" then
-        prop = CreateObject(`p_bowl04x_stew`, GetEntityCoords(ped), true, true, false, false, true)
-        prop2 = CreateObject(`p_spoon01x`, GetEntityCoords(ped), true, true, false, false, true)
+        prop = createProp(`p_bowl04x_stew`, ped)
+        prop2 = createProp(`p_spoon01x`, ped)
         Citizen.InvokeNative(0x669655FFB29EF1A9, prop, 0, "Stew_Fill", 1.0)
         Citizen.InvokeNative(0xCAAF2BCCFEF37F77, prop, 20)
         Citizen.InvokeNative(0xCAAF2BCCFEF37F77, prop2, 82)
@@ -80,7 +87,7 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(animType)
         taskDuration = 5000
 
     elseif animType == "Coffee" then
-        prop = CreateObject(`P_MUGCOFFEE01X`, GetEntityCoords(ped), true, true, false, false, true)
+        prop = createProp(`P_MUGCOFFEE01X`, ped)
         Citizen.InvokeNative(0x669655FFB29EF1A9, prop, 0, "CTRL_cupFill", 1.0)
         Citizen.InvokeNative(0x5E8C96BA532298F2, ped, `CONSUMABLE_COFFEE`, prop, `P_MUGCOFFEE01X_PH_R_HAND`, `DRINK_COFFEE_HOLD`, 1, 0, -1)
         taskDuration = 5000
