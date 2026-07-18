@@ -22,6 +22,7 @@ client_scripts {
 
 server_scripts {
     'server/main.lua',
+    'server/status.lua',
 }
 
 ui_page 'ui/public/index.html?v=3'
