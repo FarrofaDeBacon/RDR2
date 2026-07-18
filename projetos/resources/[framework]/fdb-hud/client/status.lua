@@ -144,15 +144,18 @@ RegisterNetEvent('fdb-hud:client:DoPee', function()
     local offsetX, offsetY, offsetZ = 0.0, 0.15, -0.1
     local rotX, rotY, rotZ = -90.0, 0.0, 0.0
 
-    -- Jato mais grosso (escala aumentada para 2.5)
+    -- Jato mais grosso (escala aumentada para 5.0)
     local peeParticle = StartNetworkedParticleFxLoopedOnEntityBone(
         ptfxName, ped,
         offsetX, offsetY, offsetZ,
         rotX, rotY, rotZ,
         boneIndex,
-        2.5, -- <== ESCALA (Grossura do jato)
+        5.0, -- <== ESCALA (Grossura do jato)
         false, false, false
     )
+
+    -- Deixa o xixi bem amarelo (RGB floats)
+    SetParticleFxLoopedColour(peeParticle, 1.0, 1.0, 0.0, 0)
 
     -- Tempo de duração do jato de água
     Wait(6000)
