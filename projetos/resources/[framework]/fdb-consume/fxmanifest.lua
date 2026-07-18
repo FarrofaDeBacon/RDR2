@@ -7,6 +7,7 @@ description 'fdb-consume'
 version '1.0.0'
 
 shared_scripts {
+    '@ox_lib/init.lua',
     '@rsg-core/shared/locale.lua',
     'config.lua'
 }
