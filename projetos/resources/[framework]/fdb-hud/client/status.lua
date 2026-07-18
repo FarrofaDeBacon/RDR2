@@ -25,11 +25,13 @@ CreateThread(function()
         ped = PlayerPedId()
 
         -- Player Basics
-        local health  = GetNormalized(GetEntityHealth(ped) - 100, 200) -- RedM max health is roughly 300? 
-        local stamina = GetNormalized(
-            tonumber(string.format("%.2f", Citizen.InvokeNative(0x0FF421E467373FCF, PlayerId(), Citizen.ResultAsFloat()))),
-            100
-        )
+        local maxHealth = GetEntityMaxHealth(ped)
+        local health  = GetNormalized(GetEntityHealth(ped), maxHealth)
+        
+        local rawStamina = Citizen.InvokeNative(0x0FF421E467373FCF, PlayerId(), Citizen.ResultAsFloat())
+        -- print("DEBUG STAMINA NATIVE:", rawStamina) -- Descomente para testar no F8
+        
+        local stamina = GetNormalized(tonumber(string.format("%.2f", rawStamina)), 100)
         local dead    = IsEntityDead(ped)
 
         -- RSG Core Metadata
@@ -54,10 +56,11 @@ CreateThread(function()
         if mount and mount ~= 0 then
             isMounted = true
             horseHealth = GetNormalized(GetEntityHealth(mount), GetEntityMaxHealth(mount))
-            horseStamina = GetNormalized(
-                tonumber(string.format("%.2f", Citizen.InvokeNative(0x0FF421E467373FCF, mount, Citizen.ResultAsFloat()))),
-                100
-            )
+            
+            local rawHorseStamina = Citizen.InvokeNative(0x0FF421E467373FCF, mount, Citizen.ResultAsFloat())
+            -- print("DEBUG HORSE STAMINA NATIVE:", rawHorseStamina) -- Descomente para testar no F8
+            
+            horseStamina = GetNormalized(tonumber(string.format("%.2f", rawHorseStamina)), 100)
         end
 
         -- Check if anything changed
