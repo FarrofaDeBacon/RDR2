@@ -1,70 +1,97 @@
 <script>
-  import StatusHud    from './components/status/StatusHud.svelte'
-  import VehicleHud  from './components/vehicle/VehicleHud.svelte'
-  import MoneyHud    from './components/money/MoneyHud.svelte'
-  import MinimapMask from './components/minimap/MinimapMask.svelte'
-  import { hudStore } from './stores/hudStore.js'
+  import { onMount } from 'svelte';
+  import MinimapMask from './components/minimap/MinimapMask.svelte';
+  import StatusBars from './components/status/StatusBars.svelte';
+  import HorseStatus from './components/status/HorseStatus.svelte';
+  import PoisonAlert from './components/status/PoisonAlert.svelte';
 
-  let visible = false
+  // O MinimapMask ainda usa a hudStore internamente, então precisamos importar
+  import { hudStore } from './stores/hudStore.js';
 
-  // ── NUI message handler ─────────────────────────────────────────
-  window.addEventListener('message', (e) => {
-    const { action, data } = e.data ?? {}
-    switch (action) {
-      case 'init':
-        hudStore.init(data)
-        visible = true
-        break
-      case 'setVisible':
-        visible = data
-        break
-      case 'updateStatus':
-        hudStore.setStatus(data)
-        break
-      case 'updateVehicle':
-        hudStore.setVehicle(data)
-        break
-      case 'setVehicleVisible':
-        hudStore.setVehicleVisible(data)
-        break
+  // Objeto de estado reativo
+  let state = {
+    health: 100,
+    stamina: 100,
+    hunger: 100,
+    thirst: 100,
+    stress: 0,
+    bladder: 0,
+    isPoisoned: false,
+    isMounted: false,
+    horseHealth: 100,
+    horseStamina: 100,
+    showHud: false
+  };
 
-      case 'updateMinimap':
-        hudStore.setMinimap(data)
-        break
-      case 'setEditMode':
-        hudStore.setEditMode(data)
-        break
-      case 'openMenu':
-        // TODO: abrir painel de configuração
-        break
-    }
-  })
+  onMount(() => {
+    window.addEventListener('message', (e) => {
+      const { action, data } = e.data ?? {};
+      
+      if (action === 'showHud') {
+        state.showHud = data;
+      } 
+      else if (action === 'updateStatus') {
+        // Merge parcial para garantir que dados incompletos não quebrem o objeto
+        state = { ...state, ...data };
+      }
+      
+      // Compatibilidade com o MinimapMask antigo e edição
+      else if (action === 'updateMinimap') {
+        hudStore.setMinimap(data);
+      } 
+      else if (action === 'setEditMode') {
+        hudStore.setEditMode(data);
+      }
+    });
 
-  // Notifica o client que a UI está pronta
-  fetch('https://fdb-hud/hudReady', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
-  }).catch(() => {})
+    // Notifica o client que a UI está pronta
+    fetch('https://fdb-hud/hudReady', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }).catch(() => {});
+  });
 
-  // ── Key handler (ESC) ───────────────────────────────────────────
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Escape') {
       fetch('https://fdb-hud/closeEditMode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
-      }).catch(() => {})
+      }).catch(() => {});
     }
-  })
+  });
 </script>
 
-{#if visible}
+{#if state.showHud}
   <main class="hud-root">
+    
+    <!-- Minimapa (Legado/Embutido) -->
     <MinimapMask />
-    <StatusHud  />
-    <VehicleHud />
-    <MoneyHud   />
+    
+    <!-- Novos Status -->
+    <StatusBars 
+      health={state.health}
+      stamina={state.stamina}
+      hunger={state.hunger}
+      thirst={state.thirst}
+      stress={state.stress}
+      bladder={state.bladder}
+    />
+
+    <!-- Horse Status Condicional -->
+    {#if state.isMounted}
+      <HorseStatus 
+        horseHealth={state.horseHealth}
+        horseStamina={state.horseStamina}
+      />
+    {/if}
+
+    <!-- Poison Alert Condicional -->
+    {#if state.isPoisoned}
+      <PoisonAlert />
+    {/if}
+    
   </main>
 {/if}
 
