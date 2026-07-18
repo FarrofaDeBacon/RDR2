@@ -89,8 +89,8 @@
 
   .core-wrapper {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -123,7 +123,7 @@
   .core-icon {
     position: relative;
     z-index: 2;
-    font-size: 0.8rem;
+    font-size: 1.4rem;
     color: #fff;
     opacity: 0.8;
   }
