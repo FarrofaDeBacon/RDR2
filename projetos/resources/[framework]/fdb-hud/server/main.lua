@@ -266,5 +266,6 @@ RSGCore.Commands.Add('mijar', 'Aliviar a bexiga', {}, false, function(source, ar
     end
 
     Player.Functions.SetMetaData('bladder', 0)
+    TriggerClientEvent('fdb-hud:client:DoPee', src)
     TriggerClientEvent('RSGCore:Notify', src, 'Voce aliviou sua bexiga.', 'success')
 end)

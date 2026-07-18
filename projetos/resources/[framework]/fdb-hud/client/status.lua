@@ -114,6 +114,43 @@ RegisterNetEvent('hud:client:UpdateHunger', function(newHunger)
     end
 end)
 
+-- ============================================================
+-- Animação de Mijar e Efeito da Bexiga Cheia
+-- ============================================================
+local isHoldingPee = false
+
+RegisterNetEvent('fdb-hud:client:DoPee', function()
+    local ped = PlayerPedId()
+    ClearPedTasks(ped)
+    -- WORLD_HUMAN_PEE é o cenário padrão nativo do RedM
+    TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_PEE'), -1, true, false, false, false)
+    
+    Wait(5000)
+    ClearPedTasks(ped)
+end)
+
+CreateThread(function()
+    while true do
+        Wait(2000)
+        if LocalPlayer.state.isLoggedIn and PlayerData and PlayerData.metadata then
+            local ped = PlayerPedId()
+            local bladder = PlayerData.metadata["bladder"] or 0
+            
+            if bladder >= 80 and not isHoldingPee then
+                isHoldingPee = true
+                -- Usa o estilo war_veteran que o faz mancar/andar esquisito
+                Citizen.InvokeNative(0x923583741DC87BCE, ped, 'war_veteran')
+                lib.notify({title = 'Sua bexiga está muito cheia!', description = 'Você está apertado! Encontre um lugar para se aliviar (/mijar).', type = 'warning', duration = 5000})
+            elseif bladder < 80 and isHoldingPee then
+                isHoldingPee = false
+                -- Restaura o andar padrão
+                Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+            end
+        end
+    end
+end)
+
 RegisterNetEvent('hud:client:RelieveStress', function(amount)
     -- RelieveStress costuma mandar direto a quantidade a ser aliviada.
     if type(amount) == "number" and amount > 0 then
