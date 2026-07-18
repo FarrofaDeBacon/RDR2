@@ -28,7 +28,7 @@
       const { action, data } = e.data ?? {};
       
       if (action === 'showHud') {
-        state.showHud = data;
+        state = { ...state, showHud: data };
       } 
       else if (action === 'updateStatus') {
         // Merge parcial para garantir que dados incompletos não quebrem o objeto
@@ -44,22 +44,22 @@
       }
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape') {
+        fetch('https://fdb-hud/closeEditMode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        }).catch(() => {});
+      }
+    });
+
     // Notifica o client que a UI está pronta
     fetch('https://fdb-hud/hudReady', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     }).catch(() => {});
-  });
-
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Escape') {
-      fetch('https://fdb-hud/closeEditMode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      }).catch(() => {});
-    }
   });
 </script>
 
