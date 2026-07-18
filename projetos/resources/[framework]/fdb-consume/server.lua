@@ -22,11 +22,11 @@ CreateThread(function()
                 local currentStress = Player.PlayerData.metadata['stress'] or 0
                 local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
 
-                -- Matemática Segura
-                local newHunger = lib.math.clamp(currentHunger + (data.hunger or 0), 0, 100)
-                local newThirst = lib.math.clamp(currentThirst + (data.thirst or 0), 0, 100)
-                local newStress = lib.math.clamp(currentStress + (data.stress or 0), 0, 100)
-                local newAlcohol = lib.math.clamp(currentAlcohol + (data.alcohol or 0), 0, Config.Alcohol.MaxAlcoholLevel)
+                -- Matemática Segura (Sem precisar do ox_lib global para evitar erros de cache)
+                local newHunger = math.max(0, math.min(100, currentHunger + (data.hunger or 0)))
+                local newThirst = math.max(0, math.min(100, currentThirst + (data.thirst or 0)))
+                local newStress = math.max(0, math.min(100, currentStress + (data.stress or 0)))
+                local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol + (data.alcohol or 0)))
 
                 -- Aplicar Metadatas (O Servidor que manda!)
                 Player.Functions.SetMetaData('hunger', newHunger)
@@ -50,7 +50,7 @@ CreateThread(function()
             if Player then
                 local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
                 if currentAlcohol > 0 then
-                    local newAlcohol = lib.math.clamp(currentAlcohol - Config.Alcohol.DecreaseAmount, 0, Config.Alcohol.MaxAlcoholLevel)
+                    local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol - Config.Alcohol.DecreaseAmount))
                     Player.Functions.SetMetaData('alcohol', newAlcohol)
                     -- Trigger para verificar efeitos no cliente baseado no novo valor
                     TriggerClientEvent('fdb-consume:client:checkAlcohol', player, newAlcohol)
