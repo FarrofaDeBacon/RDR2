@@ -4,7 +4,7 @@
 -- ============================================================
 
 local RSGCore = exports['rsg-core']:GetCoreObject()
-local PlayerData = {}
+PlayerData = {}
 isLoggedIn = false
 local nuiReady   = false
 
@@ -51,6 +51,10 @@ end)
 
 AddEventHandler('RSGCore:Client:OnJobUpdate', function(job)
     PlayerData.job = job
+end)
+
+RegisterNetEvent('RSGCore:Player:SetPlayerData', function(val)
+    PlayerData = val
 end)
 
 -- -------------------------------------------------------
