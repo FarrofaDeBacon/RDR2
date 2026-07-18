@@ -122,12 +122,59 @@ local isHoldingPee = false
 RegisterNetEvent('fdb-hud:client:DoPee', function()
     local ped = PlayerPedId()
     ClearPedTasks(ped)
-    -- WORLD_HUMAN_PEE é o cenário padrão nativo do RedM
-    TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_PEE'), -1, true, false, false, false)
     
-    -- Aumentado para 12 segundos para dar tempo do cenário rodar a parte do "xixi"
-    Wait(12000)
+    -- 1. Animação
+    local animDict = "amb_misc@world_human_pee@male_a@idle_a"
+    local animName = "idle_a" -- idle_a é a animação contínua
+
+    RequestAnimDict(animDict)
+    while not HasAnimDictLoaded(animDict) do
+        Wait(10)
+    end
+
+    -- Toca a animação
+    TaskPlayAnim(ped, animDict, animName, 8.0, -8.0, -1, 1, 0, false, false, false)
+
+    -- Espera 3.5 segundos para a animação "abrir a calça e se preparar" terminar
+    Wait(3500)
+
+    -- 2. Configuração da Partícula (PTFX)
+    local assetName = "core" 
+    local ptfxName = "ent_anim_dog_peeing" 
+
+    RequestNamedPtfxAsset(assetName)
+    while not HasNamedPtfxAssetLoaded(assetName) do
+        Wait(10)
+    end
+
+    UseParticleFxAsset(assetName)
+
+    -- Pega o index do osso da pélvis para o fluxo sair do local correto
+    local boneIndex = GetEntityBoneIndexByName(ped, "SKEL_Pelvis")
+
+    -- Offsets e Rotação para o jato sair da frente
+    local offsetX, offsetY, offsetZ = 0.0, 0.15, -0.1
+    local rotX, rotY, rotZ = -90.0, 0.0, 0.0
+
+    -- Inicia a partícula em loop (Networked para outros jogadores verem)
+    local peeParticle = StartNetworkedParticleFxLoopedOnEntityBone(
+        ptfxName,
+        ped,
+        offsetX, offsetY, offsetZ,
+        rotX, rotY, rotZ,
+        boneIndex,
+        1.0, -- Escala da partícula
+        false, false, false
+    )
+
+    -- 3. Tempo de Duração
+    Wait(7000) -- mija por 7 segundos
+
+    -- 4. Limpeza
+    StopParticleFxLooped(peeParticle, false)
     ClearPedTasks(ped)
+    RemoveAnimDict(animDict)
+    RemoveNamedPtfxAsset(assetName)
 end)
 
 -- Thread para bloquear corrida/pulo quando estiver apertado
