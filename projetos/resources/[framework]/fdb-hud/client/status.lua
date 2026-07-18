@@ -80,6 +80,12 @@ CreateThread(function()
                 isMounted = isMounted, horseHealth = horseHealth, horseStamina = horseStamina
             }
             SendNUI('updateStatus', lastStatus)
+
+            -- Sincroniza com o StateBag para scripts antigos que dependem disso (ex: rsg-consume)
+            LocalPlayer.state:set("hunger", hunger, false)
+            LocalPlayer.state:set("thirst", thirst, false)
+            LocalPlayer.state:set("stress", stress, false)
+            LocalPlayer.state:set("bladder", bladder, false)
         end
 
         ::continue::
