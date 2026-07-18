@@ -125,8 +125,23 @@ RegisterNetEvent('fdb-hud:client:DoPee', function()
     -- WORLD_HUMAN_PEE é o cenário padrão nativo do RedM
     TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_PEE'), -1, true, false, false, false)
     
-    Wait(5000)
+    -- Aumentado para 12 segundos para dar tempo do cenário rodar a parte do "xixi"
+    Wait(12000)
     ClearPedTasks(ped)
+end)
+
+-- Thread para bloquear corrida/pulo quando estiver apertado
+CreateThread(function()
+    while true do
+        Wait(0)
+        if isHoldingPee then
+            DisableControlAction(0, joaat('INPUT_SPRINT'), true)
+            DisableControlAction(0, joaat('INPUT_JUMP'), true)
+            DisableControlAction(0, joaat('INPUT_HORSE_SPRINT'), true)
+        else
+            Wait(1000)
+        end
+    end
 end)
 
 CreateThread(function()
