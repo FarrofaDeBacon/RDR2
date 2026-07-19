@@ -45,195 +45,205 @@
     $: showPoison = poison > 0;
     $: showIllness = illness > 0;
     $: showDrunkenness = drunkenness > 0;
+
+    import DraggableModule from './DraggableModule.svelte';
 </script>
 
 <div class="status-cores-container">
-    <div class="cores-group">
-        <!-- Saúde -->
-        <HUDItem 
-            value={health} 
-            innerValue={health} 
-            icon="/assets/health.png" 
-            outerColor="#ffffff"
-            innerColor={getInnerColor(health, '#ffffff', '#ff0000')}
-            isFlashing={health <= 15}
-        />
-
-        <!-- Estamina -->
-        <HUDItem 
-            value={stamina} 
-            innerValue={stamina} 
-            icon="/assets/stamina.png" 
-            outerColor="#ffd700" 
-            innerColor={getInnerColor(stamina, '#ffffff', '#ff0000')}
-            isFlashing={stamina <= 10}
-        />
-
-        <!-- Fome -->
-        <HUDItem 
-            value={food} 
-            innerValue={food} 
-            icon="/assets/food.png" 
-            outerColor="#ffa500" 
-            innerColor={getInnerColor(food, '#ffffff', '#ff0000')}
-            isFlashing={food <= 10}
-        />
-
-        <!-- Sede -->
-        <HUDItem 
-            value={water} 
-            innerValue={water} 
-            icon="/assets/water.png" 
-            outerColor="#00bfff" 
-            innerColor={getInnerColor(water, '#ffffff', '#ff0000')}
-            isFlashing={water <= 10}
-        />
-
-        <!-- Estresse -->
-        <HUDItem 
-            value={stress} 
-            innerValue={stress} 
-            icon="/assets/stress.png" 
-            outerColor="#ff4500" 
-            innerColor="#ffffff"
-            isFlashing={stress >= 90}
-        />
-
-        <!-- Armadura (Condicional) -->
-        {#if showArmor}
+    <DraggableModule id="PlayerCores">
+        <div class="cores-group">
+            <!-- Saúde -->
             <HUDItem 
-                value={armor} 
-                innerValue={armor} 
-                icon="/assets/armor.png" 
-                outerColor="#c0c0c0" 
+                value={health} 
+                innerValue={health} 
+                icon="/assets/health.png" 
+                outerColor="#ffffff"
+                innerColor={getInnerColor(health, '#ffffff', '#ff0000')}
+                isFlashing={health <= 15}
+            />
+
+            <!-- Estamina -->
+            <HUDItem 
+                value={stamina} 
+                innerValue={stamina} 
+                icon="/assets/stamina.png" 
+                outerColor="#ffd700" 
+                innerColor={getInnerColor(stamina, '#ffffff', '#ff0000')}
+                isFlashing={stamina <= 10}
+            />
+
+            <!-- Fome -->
+            <HUDItem 
+                value={food} 
+                innerValue={food} 
+                icon="/assets/food.png" 
+                outerColor="#ffa500" 
+                innerColor={getInnerColor(food, '#ffffff', '#ff0000')}
+                isFlashing={food <= 10}
+            />
+
+            <!-- Sede -->
+            <HUDItem 
+                value={water} 
+                innerValue={water} 
+                icon="/assets/water.png" 
+                outerColor="#00bfff" 
+                innerColor={getInnerColor(water, '#ffffff', '#ff0000')}
+                isFlashing={water <= 10}
+            />
+
+            <!-- Estresse -->
+            <HUDItem 
+                value={stress} 
+                innerValue={stress} 
+                icon="/assets/stress.png" 
+                outerColor="#ff4500" 
                 innerColor="#ffffff"
+                isFlashing={stress >= 90}
             />
-        {/if}
 
-        <!-- Oxigênio (Condicional, só quando embaixo d'agua) -->
-        {#if showOxygen}
-            <HUDItem 
-                value={oxygen} 
-                innerValue={oxygen} 
-                icon="/assets/oxygen.png" 
-                outerColor="#87ceeb" 
-                innerColor={getInnerColor(oxygen, '#ffffff', '#ff0000')}
-                isFlashing={oxygen <= 20}
-            />
-        {/if}
-    </div>
+            <!-- Armadura (Condicional) -->
+            {#if showArmor}
+                <HUDItem 
+                    value={armor} 
+                    innerValue={armor} 
+                    icon="/assets/armor.png" 
+                    outerColor="#c0c0c0" 
+                    innerColor="#ffffff"
+                />
+            {/if}
+
+            <!-- Oxigênio (Condicional, só quando embaixo d'agua) -->
+            {#if showOxygen}
+                <HUDItem 
+                    value={oxygen} 
+                    innerValue={oxygen} 
+                    icon="/assets/oxygen.png" 
+                    outerColor="#87ceeb" 
+                    innerColor={getInnerColor(oxygen, '#ffffff', '#ff0000')}
+                    isFlashing={oxygen <= 20}
+                />
+            {/if}
+        </div>
+    </DraggableModule>
 
     <!-- Núcleos do Cavalo -->
     {#if showHorse}
-        <div class="horse-group">
-            <HUDItem 
-                value={horseHealth} 
-                innerValue={horseHealth} 
-                icon="/assets/horse_health.png" 
-                outerColor="#ffffff"
-                innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
-            />
-            <HUDItem 
-                value={horseStamina} 
-                innerValue={horseStamina} 
-                icon="/assets/horse_stamina.png" 
-                outerColor="#ffd700"
-                innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
-            />
-        </div>
+        <DraggableModule id="HorseCores">
+            <div class="horse-group">
+                <HUDItem 
+                    value={horseHealth} 
+                    innerValue={horseHealth} 
+                    icon="/assets/horse_health.png" 
+                    outerColor="#ffffff"
+                    innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
+                />
+                <HUDItem 
+                    value={horseStamina} 
+                    innerValue={horseStamina} 
+                    icon="/assets/horse_stamina.png" 
+                    outerColor="#ffd700"
+                    innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
+                />
+            </div>
+        </DraggableModule>
     {/if}
 
     <!-- Sobrevivência Hardcore -->
-    <div class="survival-group">
-        {#if showUrine}
-            <HUDItem 
-                value={urine} 
-                innerValue={urine} 
-                icon="/assets/urine.png" 
-                outerColor="#ffff00" 
-                innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
-                isFlashing={urine >= 90}
-            />
-        {/if}
+    <DraggableModule id="SurvivalCores">
+        <div class="survival-group">
+            {#if showUrine}
+                <HUDItem 
+                    value={urine} 
+                    innerValue={urine} 
+                    icon="/assets/urine.png" 
+                    outerColor="#ffff00" 
+                    innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
+                    isFlashing={urine >= 90}
+                />
+            {/if}
 
-        {#if showHygiene}
-            <HUDItem 
-                value={hygiene} 
-                innerValue={hygiene} 
-                icon="/assets/hygiene.png" 
-                outerColor="#8b4513" 
-                innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
-            />
-        {/if}
+            {#if showHygiene}
+                <HUDItem 
+                    value={hygiene} 
+                    innerValue={hygiene} 
+                    icon="/assets/hygiene.png" 
+                    outerColor="#8b4513" 
+                    innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
+                />
+            {/if}
 
-        {#if showTemp}
-            <HUDItem 
-                value={getTempValue(temp)} 
-                innerValue={100} 
-                icon="/assets/temp.png" 
-                outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
-                innerColor="#ffffff"
-                isFlashing={temp <= 0 || temp >= 45}
-            />
-        {/if}
+            {#if showTemp}
+                <HUDItem 
+                    value={getTempValue(temp)} 
+                    innerValue={100} 
+                    icon="/assets/temp.png" 
+                    outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
+                    innerColor="#ffffff"
+                    isFlashing={temp <= 0 || temp >= 45}
+                />
+            {/if}
 
-        {#if showPoison}
-            <HUDItem 
-                value={poison} 
-                innerValue={poison} 
-                icon="/assets/poison.png" 
-                outerColor="#32cd32" 
-                innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
-                isFlashing={poison >= 80}
-            />
-        {/if}
+            {#if showPoison}
+                <HUDItem 
+                    value={poison} 
+                    innerValue={poison} 
+                    icon="/assets/poison.png" 
+                    outerColor="#32cd32" 
+                    innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
+                    isFlashing={poison >= 80}
+                />
+            {/if}
 
-        {#if showIllness}
-            <HUDItem 
-                value={illness} 
-                innerValue={illness} 
-                icon="/assets/illness.png" 
-                outerColor="#808000" 
-                innerColor="#ffffff"
-                isFlashing={illness >= 80}
-            />
-        {/if}
+            {#if showIllness}
+                <HUDItem 
+                    value={illness} 
+                    innerValue={illness} 
+                    icon="/assets/illness.png" 
+                    outerColor="#808000" 
+                    innerColor="#ffffff"
+                    isFlashing={illness >= 80}
+                />
+            {/if}
 
-        {#if showDrunkenness}
-            <HUDItem 
-                value={drunkenness} 
-                innerValue={drunkenness} 
-                icon="/assets/alcohol.png" 
-                outerColor="#ff69b4" 
-                innerColor="#ffffff"
-            />
-        {/if}
-    </div>
+            {#if showDrunkenness}
+                <HUDItem 
+                    value={drunkenness} 
+                    innerValue={drunkenness} 
+                    icon="/assets/alcohol.png" 
+                    outerColor="#ff69b4" 
+                    innerColor="#ffffff"
+                />
+            {/if}
+        </div>
+    </DraggableModule>
 
     <!-- Buffs Ativos -->
-    <div class="buffs-group">
-        {#if coldResistance > 0}
-            <HUDItem 
-                value={coldResistance > 100 ? 100 : coldResistance} 
-                innerValue={100} 
-                icon="/assets/buff_cold.png" 
-                outerColor="#00ffff" 
-                innerColor="#ffffff"
-                isFlashing={coldResistance <= 10}
-            />
-        {/if}
+    <DraggableModule id="Buffs">
+        <div class="buffs-group">
+            {#if coldResistance > 0}
+                <HUDItem 
+                    value={coldResistance > 100 ? 100 : coldResistance} 
+                    innerValue={100} 
+                    icon="/assets/buff_cold.png" 
+                    outerColor="#00ffff" 
+                    innerColor="#ffffff"
+                    isFlashing={coldResistance <= 10}
+                />
+            {/if}
 
-        {#if heatResistance > 0}
-            <HUDItem 
-                value={heatResistance > 100 ? 100 : heatResistance} 
-                innerValue={100} 
-                icon="/assets/buff_heat.png" 
-                outerColor="#ff4500" 
-                innerColor="#ffffff"
-                isFlashing={heatResistance <= 10}
-            />
-        {/if}
-    </div>
+            {#if heatResistance > 0}
+                <HUDItem 
+                    value={heatResistance > 100 ? 100 : heatResistance} 
+                    innerValue={100} 
+                    icon="/assets/buff_heat.png" 
+                    outerColor="#ff4500" 
+                    innerColor="#ffffff"
+                    isFlashing={heatResistance <= 10}
+                />
+            {/if}
+        </div>
+    </DraggableModule>
 </div>
 
 <style>
