@@ -182,7 +182,7 @@
                 <HUDItem 
                     value={getTempValue(temp)} 
                     innerValue={100} 
-                    icon="/assets/temp.svg" 
+                    icon={temp > 35 ? "/assets/temp_hot.svg" : "/assets/temp_cold.svg"} 
                     outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
                     innerColor="#ffffff"
                     isFlashing={temp <= 0 || temp >= 45}
