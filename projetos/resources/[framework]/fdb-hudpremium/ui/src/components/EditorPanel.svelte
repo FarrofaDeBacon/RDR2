@@ -11,7 +11,7 @@
         colors = state.colors;
     });
 
-    const modules = ['PlayerCores', 'HorseCores', 'SurvivalCores', 'Buffs'];
+    const modules = ['PlayerCores', 'HorseCores', 'SurvivalCores', 'Buffs', 'Voice'];
 
     function updateScale(mod, e) {
         const val = parseFloat(e.target.value);
@@ -90,7 +90,7 @@
     <div class="content">
         {#each modules as mod}
             <div class="module-config">
-                <label>{mod}</label>
+                <div class="module-title">{mod}</div>
                 <div class="controls">
                     <span class="small-label">Escala</span>
                     <input 
@@ -151,7 +151,7 @@
         gap: 15px;
     }
 
-    .module-config label {
+    .module-config .module-title {
         display: block;
         font-size: 14px;
         font-weight: bold;

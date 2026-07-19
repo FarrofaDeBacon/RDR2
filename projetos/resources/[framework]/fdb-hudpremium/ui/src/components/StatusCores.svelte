@@ -1,5 +1,6 @@
+<script>
     import HUDItem from './HUDItem.svelte';
-    import { coreStatus, horseStatus, survivalEngines, activeBuffs } from '../store/hudStore';
+    import { coreStatus, horseStatus, survivalEngines, activeBuffs, comms } from '../store/hudStore';
 
     // Para facilitar, extraímos as reatividades do store
     $: health = $coreStatus.health;
@@ -24,6 +25,10 @@
     // Buffs Térmicos
     $: coldResistance = $activeBuffs.coldResistance;
     $: heatResistance = $activeBuffs.heatResistance;
+
+    // Voice (pma-voice)
+    $: voice = $comms.voice;
+    $: isTalking = $comms.isTalking;
 
     // A cor interna dos ícones baseados no status (ex: vermelho se a vida tiver baixa)
     $: getInnerColor = (val, defaultColor = '#ffffff', dangerColor = '#ff0000', threshold = 20) => val <= threshold ? dangerColor : defaultColor;
@@ -244,6 +249,19 @@
             {/if}
         </div>
     </DraggableModule>
+
+    <!-- Voz (pma-voice) -->
+    <DraggableModule id="Voice">
+        <div class="voice-group">
+            <HUDItem 
+                value={voice === 0 ? 33 : (voice === 1 ? 66 : 100)} 
+                innerValue={isTalking ? 100 : 0} 
+                icon="/assets/voice.png" 
+                outerColor="#aaaaaa" 
+                innerColor={isTalking ? "#ffff00" : "#ffffff"}
+            />
+        </div>
+    </DraggableModule>
 </div>
 
 <style>
@@ -258,7 +276,7 @@
         align-items: center;
     }
 
-    .cores-group, .horse-group, .survival-group, .buffs-group {
+    .cores-group, .horse-group, .survival-group, .buffs-group, .voice-group {
         display: flex;
         flex-direction: row;
         gap: 8px;
