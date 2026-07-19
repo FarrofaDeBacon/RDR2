@@ -1,8 +1,8 @@
 <script>
     import { editorState } from '../store/hudStore';
-    import { onMount, onDestroy } from 'svelte';
+    import { onDestroy } from 'svelte';
 
-    export let id; // ex: 'coresGroup', 'horseGroup'
+    export let id; // ex: 'PlayerCores', 'HorseCores'
     export let defaultX = 0;
     export let defaultY = 0;
 
