@@ -48,6 +48,7 @@ end)
 RegisterCommand("hud", function()
     SetNuiFocus(true, true)
     SendNUIMessage({
-        action = "openEditor"
+        action = "toggleEditor",
+        value = true
     })
 end, false)
