@@ -1,4 +1,46 @@
 <script>
+    import alcohol from '../../public/assets/alcohol.svg?raw';
+    import armor from '../../public/assets/armor.svg?raw';
+    import buff_cold from '../../public/assets/buff_cold.svg?raw';
+    import buff_heat from '../../public/assets/buff_heat.svg?raw';
+    import food from '../../public/assets/food.svg?raw';
+    import health from '../../public/assets/health.svg?raw';
+    import horse_health from '../../public/assets/horse_health.svg?raw';
+    import horse_stamina from '../../public/assets/horse_stamina.svg?raw';
+    import hygiene from '../../public/assets/hygiene.svg?raw';
+    import illness from '../../public/assets/illness.svg?raw';
+    import oxygen from '../../public/assets/oxygen.svg?raw';
+    import poison from '../../public/assets/poison.svg?raw';
+    import stamina from '../../public/assets/stamina.svg?raw';
+    import stress from '../../public/assets/stress.svg?raw';
+    import temp_cold from '../../public/assets/temp_cold.svg?raw';
+    import temp_hot from '../../public/assets/temp_hot.svg?raw';
+    import urine from '../../public/assets/urine.svg?raw';
+    import voice from '../../public/assets/voice.svg?raw';
+    import water from '../../public/assets/water.svg?raw';
+
+    const svgMap = {
+        './assets/alcohol.svg': alcohol,
+        './assets/armor.svg': armor,
+        './assets/buff_cold.svg': buff_cold,
+        './assets/buff_heat.svg': buff_heat,
+        './assets/food.svg': food,
+        './assets/health.svg': health,
+        './assets/horse_health.svg': horse_health,
+        './assets/horse_stamina.svg': horse_stamina,
+        './assets/hygiene.svg': hygiene,
+        './assets/illness.svg': illness,
+        './assets/oxygen.svg': oxygen,
+        './assets/poison.svg': poison,
+        './assets/stamina.svg': stamina,
+        './assets/stress.svg': stress,
+        './assets/temp_cold.svg': temp_cold,
+        './assets/temp_hot.svg': temp_hot,
+        './assets/urine.svg': urine,
+        './assets/voice.svg': voice,
+        './assets/water.svg': water,
+    };
+
     export let value = 100;      // Outer ring value (0-100)
     export let innerValue = 100; // Inner core fill value (0-100)
     export let icon = '';        // Image path for the core icon
@@ -10,10 +52,8 @@
     const circumference = 2 * Math.PI * radius;
     $: strokeDashoffset = circumference - (value / 100) * circumference;
 
-    // Convert hex/named color to CSS filter to colorize a white SVG
-    // We render the SVG white and use CSS filter + mix-blend-mode to tint it
-    // This is more compatible with embedded Chromium (RedM NUI)
     $: clipHeight = Math.max(0, Math.min(100, innerValue));
+    $: svgMarkup = svgMap[icon] || '';
 </script>
 
 <div class="hud-item" class:flashing={isFlashing}>
@@ -39,16 +79,19 @@
         />
     </svg>
 
-    <!-- Inner Core Icon — plain <img> + clip-path fill overlay -->
-    {#if icon}
+    <!-- Inner Core Icon — inline SVG + clip-path fill overlay -->
+    {#if svgMarkup}
     <div class="inner-core">
-        <!-- Icon layer: drawn in innerColor using CSS filter chain -->
         <div class="icon-wrapper" style="--fill-h: {clipHeight}%">
-            <!-- Dark ghost of icon -->
-            <img class="icon-ghost" src={icon} alt="" />
+            <!-- Ghost background icon (semi-transparent) -->
+            <div class="icon-ghost" style="color: {innerColor}">
+                {@html svgMarkup}
+            </div>
             <!-- Filled portion of icon, clipped from bottom -->
             <div class="icon-fill-clip" style="height: {clipHeight}%">
-                <img class="icon-filled" src={icon} alt="" style="color: {innerColor}" />
+                <div class="icon-filled" style="color: {innerColor}">
+                    {@html svgMarkup}
+                </div>
             </div>
         </div>
     </div>
@@ -111,15 +154,28 @@
         height: 100%;
     }
 
+    /* Force all SVGs inside wrapper to fit and respect currentColor */
+    .icon-wrapper :global(svg) {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    
+    .icon-wrapper :global(svg path),
+    .icon-wrapper :global(svg circle),
+    .icon-wrapper :global(svg rect),
+    .icon-wrapper :global(svg polygon),
+    .icon-wrapper :global(svg ellipse) {
+        fill: currentColor !important;
+    }
+
     /* Ghost (dark background icon) */
     .icon-ghost {
         position: absolute;
         top: 0; left: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
         opacity: 0.25;
-        filter: brightness(0) invert(1); /* renders pure white then fades */
     }
 
     /* Clip wrapper: grows from bottom based on fill % */
@@ -139,9 +195,6 @@
         left: 0;
         width: 100%;
         height: 30px; /* fixed height = same as .inner-core */
-        object-fit: contain;
-        object-position: bottom;
-        filter: brightness(0) invert(1); /* makes it white, then tint via mix-blend */
     }
 
     @keyframes flash {
