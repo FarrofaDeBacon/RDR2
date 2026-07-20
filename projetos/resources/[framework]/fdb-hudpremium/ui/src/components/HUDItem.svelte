@@ -20,25 +20,25 @@
     import water from '../../public/assets/water.svg?raw';
 
     const svgMap = {
-        './assets/alcohol.svg': alcohol,
-        './assets/armor.svg': armor,
-        './assets/buff_cold.svg': buff_cold,
-        './assets/buff_heat.svg': buff_heat,
-        './assets/food.svg': food,
-        './assets/health.svg': health,
-        './assets/horse_health.svg': horse_health,
-        './assets/horse_stamina.svg': horse_stamina,
-        './assets/hygiene.svg': hygiene,
-        './assets/illness.svg': illness,
-        './assets/oxygen.svg': oxygen,
-        './assets/poison.svg': poison,
-        './assets/stamina.svg': stamina,
-        './assets/stress.svg': stress,
-        './assets/temp_cold.svg': temp_cold,
-        './assets/temp_hot.svg': temp_hot,
-        './assets/urine.svg': urine,
-        './assets/voice.svg': voice,
-        './assets/water.svg': water,
+        'alcohol.svg': alcohol,
+        'armor.svg': armor,
+        'buff_cold.svg': buff_cold,
+        'buff_heat.svg': buff_heat,
+        'food.svg': food,
+        'health.svg': health,
+        'horse_health.svg': horse_health,
+        'horse_stamina.svg': horse_stamina,
+        'hygiene.svg': hygiene,
+        'illness.svg': illness,
+        'oxygen.svg': oxygen,
+        'poison.svg': poison,
+        'stamina.svg': stamina,
+        'stress.svg': stress,
+        'temp_cold.svg': temp_cold,
+        'temp_hot.svg': temp_hot,
+        'urine.svg': urine,
+        'voice.svg': voice,
+        'water.svg': water,
     };
 
     export let value = 100;      // Outer ring value (0-100)
@@ -53,7 +53,8 @@
     $: strokeDashoffset = circumference - (value / 100) * circumference;
 
     $: clipHeight = Math.max(0, Math.min(100, innerValue));
-    $: svgMarkup = svgMap[icon] || '';
+    $: iconName = icon ? icon.split('/').pop() : '';
+    $: svgMarkup = svgMap[iconName] || '';
 </script>
 
 <div class="hud-item" class:flashing={isFlashing}>
