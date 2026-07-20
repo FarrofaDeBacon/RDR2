@@ -1,16 +1,16 @@
-# Registro de Progresso e Planejamento — fdb-hudpremium
+# Especificação Técnica e Planejamento — fdb-hudpremium
 
-Este documento registra todo o histórico de desenvolvimento do HUD, os problemas superados, a especificação técnica atual e o planejamento das próximas fases. Ele serve como memória para futuras sessões da IA e auditorias.
+Este documento registra o histórico de desenvolvimento do HUD, a especificação técnica dos recursos a serem desenvolvidos e o planejamento de melhorias para a nossa interface do usuário (NUI).
 
 ---
 
-## 1. O que já foi feito e está 100% Funcional (Fase 1 e LUA-1)
+## 1. Status Atual do Desenvolvimento (Fase 1 e LUA-1 Concluídas)
 
-### Frontend (Svelte + Vite)
-- **Base Transparente:** O CSS padrão do Svelte (`app.css`) foi totalmente limpo e substituído por uma base transparente de tela cheia (`width: 100vw; height: 100vh; background: transparent !important`). O mouse e cliques não bloqueiam o jogo por padrão (`pointer-events: none`).
-- **Resolução de Caminhos (NUI Assets):** Configurado `base: './'` no `vite.config.js` e alterado todos os caminhos de imagens em `StatusCores.svelte` de absolutos (`/assets/`) para relativos (`./assets/`) para evitar erros 404 de carregamento dentro do protocolo CEF do RedM (`nui://`).
-- **Ícones SVG Otimizados (SVGO):** Todos os 18 ícones SVG originais foram minificados pelo SVGO, caindo de milhares de linhas para apenas uma linha por arquivo, reduzindo drasticamente o tamanho do bundle final.
-- **Renderização dos Ícones (Compatibilidade CEF):** Substituída a lógica de `mask-image` com variáveis CSS (que falhava no CEF do RedM) por uma estrutura nativa com tags `<img>`, usando filtros de cor CSS (`filter: brightness(0) invert(1)`) e uma div de corte (`clip-path` dinâmico via altura) que simula o preenchimento de baixo para cima.
+### Interface do Usuário (Svelte + Vite)
+- **Base Transparente e Otimizada:** Substituição do CSS padrão por uma folha de estilo limpa (`app.css`) focada em HUD (`background: transparent !important` no `#app` e `body`). A tela não bloqueia cliques in-game por padrão (`pointer-events: none`).
+- **Resolução de Caminhos:** Configurado o build do Vite com caminhos relativos (`base: './'`) e atualizadas as chamadas dos SVGs em `StatusCores.svelte` para garantir que o Chromium do RedM localize as imagens sob o protocolo `nui://`.
+- **Minificação de Vetores (SVGO):** Todos os 18 ícones de status foram minificados em lote usando SVGO, limpando metadados redundantes e reduzindo drasticamente o tamanho final do build.
+- **Mecanismo de Ícone (Compatibilidade CEF):** Como o CEF legado do RedM não resolve bem caminhos dentro de propriedades customizadas de CSS (`mask-image`), implementamos uma tag `<img>` nativa com filtros de cores (`filter: brightness(0) invert(1)`) e uma div de mascaramento controlada por altura (`clip-path` dinâmico).
 
 ### Backend (Lua Client)
 - **fxmanifest.lua:** Configurado o manifesto do zero apontando para a build do Vite (`ui/dist/index.html`), declarando os assets e o script de client.
@@ -21,29 +21,53 @@ Este documento registra todo o histórico de desenvolvimento do HUD, os problema
 
 ---
 
-## 2. Referência Analisada (BLN HUD v2)
+## 2. Especificação da Nova Interface Premium (Melhorias Planejadas)
 
-Fizemos uma auditoria completa do comportamento do BLN HUD v2 para estruturar o nosso norte de desenvolvimento:
-- **Studio Editor:** Sidebar contendo *Global Settings* (Grid Size, Show Dark Background, layouts de minimapa), *Player Cores*, *Horse Cores*, *Other Cores* e *Extras*.
-- **Editor por Elemento:** Opções de checkbox `Visible`, slider `Size`, inputs com pop-up Color Picker (Outer/Damage/Gold/Max/Inner Colors).
-- **Segments:** Sistema para fatiar o anel de progresso em pedaços (estilo nativo RDR2).
-- **Tip/Badge:** Textos ou valores numéricos dinâmicos flutuantes acima de cada círculo de status.
-- **Extras:** Job Display, Money Display, Gold Display, User ID e relógio in-game.
+Abaixo está o mapeamento dos novos recursos que iremos implementar para expandir as capacidades da nossa interface do usuário:
+
+### 2.1. Painel de Customização Avançada (Editor lateral)
+Planejamos criar uma interface de controle completa à direita da tela, dividida nas seguintes categorias:
+- **Global Settings:**
+  - *Grid Size:* Ajuste de grade magnética (snap grid) para alinhamento fino dos núcleos.
+  - *Show Dark Background:* Opção para alternar fundo escuro translúcido ou totalmente invisível durante a edição.
+  - *Minimap Layouts:* Ajuste de posicionamento rápido para diferentes modos de radar (Off / Regular / Expanded / Compass).
+- **Player Cores / Horse Cores / Other Cores:** Ajustes detalhados de cada indicador individualmente.
+- **Extras:** Habilitar/desabilitar displays de topo (Logo, Dinheiro, Ouro, Cargo, ID, Hora).
+
+### 2.2. Opções de Customização por Elemento
+Cada indicador na tela poderá ser customizado através do painel com os seguintes controles:
+- **Visibilidade:** Checkbox para ocultar ou exibir o elemento.
+- **Tamanho:** Slider de ajuste em pixels para redimensionar o elemento individualmente.
+- **Cores Customizadas (Seletor RGB/Hex):**
+  - *Outer Color:* Cor do anel de progresso ativo.
+  - *Outer Damage Color:* Cor do anel em situações críticas ou de dano.
+  - *Gold Color:* Cor especial para estados bonificados (golden cores).
+  - *Max Outer Color:* Cor de fundo da trilha do anel (capacidade máxima).
+  - *Inner Color:* Cor padrão de preenchimento do ícone.
+- **Anel Segmentado:** Opção para exibir o anel de progresso dividido em blocos individuais (segmentos configuráveis de 1 a 12), assim como no design nativo do RDR2.
+- **Rótulos / Badges Individuais:**
+  - Exibir valor numérico (porcentagem ou texto) flutuante acima/abaixo do círculo.
+  - Ajuste fino da posição vertical e tamanho da fonte do rótulo.
+
+### 2.3. Elementos Adicionais na Tela
+- **Logo do Servidor:** Exibição de logo customizado com link direto (URL de imagem), escala e opacidade configuráveis via editor.
+- **Contadores de Munição:** Exibição de contagem de balas principal e secundária separadas com cores de texto e ícones independentes.
+- **Display de Status (Canto Superior):** Bloco para exibição do Cargo/Job atual, Dinheiro, Ouro e ID do jogador.
 
 ---
 
-## 3. Planejamento das Próximas Fases
+## 3. Cronograma de Desenvolvimento Proposto
 
-### Fase Lua-2 — Dados e Ticks em Tempo Real (Próximo Passo)
-- **Native HUD Hide:** Adicionar no `client/main.lua` o código para esconder os círculos de status nativos do RDR2.
-- **Loop de Atualização:** Coletar a saúde e o fôlego reais do jogador e do cavalo (se montado) a cada 200~500ms e enviar para a UI.
-- **Sistemas de Sobrevivência (Metabolismo):** Drenar fome e sede passivamente conforme o tempo passa, aplicando efeitos de vida caso fiquem zerados, e salvar esses dados no KVP.
+### Fase 1: Lua-2 (Dados em Tempo Real)
+- Desativar a exibição dos núcleos nativos do RDR2.
+- Desenvolver o loop de ticks que captura Vida, Stamina e os estados do Cavalo, transmitindo em tempo real para a NUI.
+- Integrar as lógicas básicas de degradação passiva de fome, sede, e urina.
 
-### Fase UI-Editor — O Novo Painel
-- Criar a aba lateral estilo Studio com abas e sliders para todas as cores (Outer, Inner, Damage, etc.).
-- Implementar o Color Picker RGB no Svelte.
-- Criar a visualização centralizada ampliada (100px) do componente que está sendo editado.
+### Fase 2: Upgrade do Editor (UI Studio)
+- Substituir o nosso painel básico pelo menu lateral completo com navegação por categorias.
+- Desenvolver os seletores de cores em tempo real (Color Pickers) e sliders de tamanho específicos.
+- Criar a mecânica de foco centralizado (Preview ampliado do elemento selecionado).
 
-### Fase Extras — Munição e Status
-- Adicionar o indicador flutuante de munição (Primary/Secondary).
-- Adicionar displays no canto superior esquerdo para dinheiro, ouro, cargo e ID.
+### Fase 3: Renderização Avançada (Segmentos e Badges)
+- Atualizar o componente de anel para suportar renderização em segmentos recortados via SVG.
+- Adicionar os rótulos de texto flutuantes posicionáveis para cada núcleo de status.
