@@ -61,7 +61,7 @@
             <HUDItem 
                 value={health} 
                 innerValue={health} 
-                icon="/assets/health.svg" 
+                icon="./assets/health.svg" 
                 outerColor="#ffffff"
                 innerColor={getInnerColor(health, '#ffffff', '#ff0000')}
                 isFlashing={health <= 15}
@@ -71,7 +71,7 @@
             <HUDItem 
                 value={stamina} 
                 innerValue={stamina} 
-                icon="/assets/stamina.svg" 
+                icon="./assets/stamina.svg" 
                 outerColor="#ffd700" 
                 innerColor={getInnerColor(stamina, '#ffffff', '#ff0000')}
                 isFlashing={stamina <= 10}
@@ -81,7 +81,7 @@
             <HUDItem 
                 value={food} 
                 innerValue={food} 
-                icon="/assets/food.svg" 
+                icon="./assets/food.svg" 
                 outerColor="#ffa500" 
                 innerColor={getInnerColor(food, '#ffffff', '#ff0000')}
                 isFlashing={food <= 10}
@@ -91,7 +91,7 @@
             <HUDItem 
                 value={water} 
                 innerValue={water} 
-                icon="/assets/water.svg" 
+                icon="./assets/water.svg" 
                 outerColor="#00bfff" 
                 innerColor={getInnerColor(water, '#ffffff', '#ff0000')}
                 isFlashing={water <= 10}
@@ -101,7 +101,7 @@
             <HUDItem 
                 value={stress} 
                 innerValue={stress} 
-                icon="/assets/stress.svg" 
+                icon="./assets/stress.svg" 
                 outerColor="#ff4500" 
                 innerColor="#ffffff"
                 isFlashing={stress >= 90}
@@ -112,7 +112,7 @@
                 <HUDItem 
                     value={armor} 
                     innerValue={armor} 
-                    icon="/assets/armor.svg" 
+                    icon="./assets/armor.svg" 
                     outerColor="#c0c0c0" 
                     innerColor="#ffffff"
                 />
@@ -123,7 +123,7 @@
                 <HUDItem 
                     value={oxygen} 
                     innerValue={oxygen} 
-                    icon="/assets/oxygen.svg" 
+                    icon="./assets/oxygen.svg" 
                     outerColor="#87ceeb" 
                     innerColor={getInnerColor(oxygen, '#ffffff', '#ff0000')}
                     isFlashing={oxygen <= 20}
@@ -139,14 +139,14 @@
                 <HUDItem 
                     value={horseHealth} 
                     innerValue={horseHealth} 
-                    icon="/assets/horse_health.svg" 
+                    icon="./assets/horse_health.svg" 
                     outerColor="#ffffff"
                     innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
                 />
                 <HUDItem 
                     value={horseStamina} 
                     innerValue={horseStamina} 
-                    icon="/assets/horse_stamina.svg" 
+                    icon="./assets/horse_stamina.svg" 
                     outerColor="#ffd700"
                     innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
                 />
@@ -161,7 +161,7 @@
                 <HUDItem 
                     value={urine} 
                     innerValue={urine} 
-                    icon="/assets/urine.svg" 
+                    icon="./assets/urine.svg" 
                     outerColor="#ffff00" 
                     innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
                     isFlashing={urine >= 90}
@@ -172,7 +172,7 @@
                 <HUDItem 
                     value={hygiene} 
                     innerValue={hygiene} 
-                    icon="/assets/hygiene.svg" 
+                    icon="./assets/hygiene.svg" 
                     outerColor="#8b4513" 
                     innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
                 />
@@ -182,7 +182,7 @@
                 <HUDItem 
                     value={getTempValue(temp)} 
                     innerValue={100} 
-                    icon={temp > 35 ? "/assets/temp_hot.svg" : "/assets/temp_cold.svg"} 
+                    icon={temp > 35 ? "./assets/temp_hot.svg" : "./assets/temp_cold.svg"} 
                     outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
                     innerColor="#ffffff"
                     isFlashing={temp <= 0 || temp >= 45}
@@ -193,7 +193,7 @@
                 <HUDItem 
                     value={poison} 
                     innerValue={poison} 
-                    icon="/assets/poison.svg" 
+                    icon="./assets/poison.svg" 
                     outerColor="#32cd32" 
                     innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
                     isFlashing={poison >= 80}
@@ -204,7 +204,7 @@
                 <HUDItem 
                     value={illness} 
                     innerValue={illness} 
-                    icon="/assets/illness.svg" 
+                    icon="./assets/illness.svg" 
                     outerColor="#808000" 
                     innerColor="#ffffff"
                     isFlashing={illness >= 80}
@@ -215,7 +215,7 @@
                 <HUDItem 
                     value={drunkenness} 
                     innerValue={drunkenness} 
-                    icon="/assets/alcohol.svg" 
+                    icon="./assets/alcohol.svg" 
                     outerColor="#ff69b4" 
                     innerColor="#ffffff"
                 />
@@ -230,7 +230,7 @@
                 <HUDItem 
                     value={coldResistance > 100 ? 100 : coldResistance} 
                     innerValue={100} 
-                    icon="/assets/buff_cold.svg" 
+                    icon="./assets/buff_cold.svg" 
                     outerColor="#00ffff" 
                     innerColor="#ffffff"
                     isFlashing={coldResistance <= 10}
@@ -241,7 +241,7 @@
                 <HUDItem 
                     value={heatResistance > 100 ? 100 : heatResistance} 
                     innerValue={100} 
-                    icon="/assets/buff_heat.svg" 
+                    icon="./assets/buff_heat.svg" 
                     outerColor="#ff4500" 
                     innerColor="#ffffff"
                     isFlashing={heatResistance <= 10}
@@ -256,7 +256,7 @@
             <HUDItem 
                 value={voice === 0 ? 33 : (voice === 1 ? 66 : 100)} 
                 innerValue={isTalking ? 100 : 0} 
-                icon="/assets/voice.svg" 
+                icon="./assets/voice.svg" 
                 outerColor="#aaaaaa" 
                 innerColor={isTalking ? "#ffff00" : "#ffffff"}
             />
