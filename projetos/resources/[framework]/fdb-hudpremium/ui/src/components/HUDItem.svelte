@@ -60,7 +60,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        background-image: url('/assets/border_single-CaVJ0brv.png');
+        background-image: url('./assets/border_single-CaVJ0brv.png');
         background-size: cover;
         background-position: center;
         z-index: 1;
