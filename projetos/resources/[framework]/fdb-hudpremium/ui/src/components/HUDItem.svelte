@@ -1,47 +1,58 @@
 <script>
-    export let value = 100; // Outer ring value (0-100)
+    export let value = 100;      // Outer ring value (0-100)
     export let innerValue = 100; // Inner core fill value (0-100)
-    export let icon = ''; // Image path for the core icon
-    export let outerColor = '#ffffff'; // Color of the outer ring
-    export let innerColor = '#ffffff'; // Color of the inner core icon fill
-    export let isFlashing = false; // For critical states
-    
-    // SVG circle properties for the outer ring
+    export let icon = '';        // Image path for the core icon
+    export let outerColor = '#ffffff';
+    export let innerColor = '#ffffff';
+    export let isFlashing = false;
+
     const radius = 22;
     const circumference = 2 * Math.PI * radius;
     $: strokeDashoffset = circumference - (value / 100) * circumference;
+
+    // Convert hex/named color to CSS filter to colorize a white SVG
+    // We render the SVG white and use CSS filter + mix-blend-mode to tint it
+    // This is more compatible with embedded Chromium (RedM NUI)
+    $: clipHeight = Math.max(0, Math.min(100, innerValue));
 </script>
 
 <div class="hud-item" class:flashing={isFlashing}>
     <!-- Fundo metálico (Borda RDR2) -->
     <div class="hud-bg"></div>
-    
+
     <!-- Outer Ring (SVG Progress) -->
     <svg class="outer-ring" width="56" height="56" viewBox="0 0 56 56">
-        <circle 
-            class="ring-track" 
-            cx="28" cy="28" r="{radius}" 
-            stroke-width="4" 
-            fill="none" 
+        <circle
+            class="ring-track"
+            cx="28" cy="28" r="{radius}"
+            stroke-width="4"
+            fill="none"
         />
-        <circle 
-            class="ring-fill" 
-            cx="28" cy="28" r="{radius}" 
-            stroke-width="4" 
-            fill="none" 
-            stroke="{outerColor}" 
+        <circle
+            class="ring-fill"
+            cx="28" cy="28" r="{radius}"
+            stroke-width="4"
+            fill="none"
+            stroke="{outerColor}"
             stroke-dasharray="{circumference}"
             stroke-dashoffset="{strokeDashoffset}"
         />
     </svg>
 
-    <!-- Inner Core Icon (Mask / Clip) -->
-    <div class="inner-core" style="--icon-url: url('{icon}'); --inner-color: {innerColor}; --fill-percent: {innerValue}%;">
-        <!-- Camada base semi-transparente -->
-        <div class="core-base"></div>
-        <!-- Camada preenchida (cresce de baixo pra cima) -->
-        <div class="core-fill"></div>
+    <!-- Inner Core Icon — plain <img> + clip-path fill overlay -->
+    {#if icon}
+    <div class="inner-core">
+        <!-- Icon layer: drawn in innerColor using CSS filter chain -->
+        <div class="icon-wrapper" style="--fill-h: {clipHeight}%">
+            <!-- Dark ghost of icon -->
+            <img class="icon-ghost" src={icon} alt="" />
+            <!-- Filled portion of icon, clipped from bottom -->
+            <div class="icon-fill-clip" style="height: {clipHeight}%">
+                <img class="icon-filled" src={icon} alt="" style="color: {innerColor}" />
+            </div>
+        </div>
     </div>
+    {/if}
 </div>
 
 <style>
@@ -72,7 +83,7 @@
         top: 0;
         left: 0;
         z-index: 2;
-        transform: rotate(-90deg); /* Começa do topo */
+        transform: rotate(-90deg);
     }
 
     .ring-track {
@@ -86,48 +97,57 @@
 
     .inner-core {
         position: absolute;
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .core-base {
-        position: absolute;
+    .icon-wrapper {
+        position: relative;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.4);
-        mask-image: var(--icon-url);
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: center;
-        -webkit-mask-image: var(--icon-url);
-        -webkit-mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: center;
     }
 
-    .core-fill {
+    /* Ghost (dark background icon) */
+    .icon-ghost {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0.25;
+        filter: brightness(0) invert(1); /* renders pure white then fades */
+    }
+
+    /* Clip wrapper: grows from bottom based on fill % */
+    .icon-fill-clip {
         position: absolute;
         bottom: 0;
+        left: 0;
         width: 100%;
-        height: var(--fill-percent);
-        background-color: var(--inner-color);
-        mask-image: var(--icon-url);
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: bottom;
-        -webkit-mask-image: var(--icon-url);
-        -webkit-mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: bottom;
-        transition: height 0.3s ease-out, background-color 0.3s ease-out;
+        overflow: hidden;
+        transition: height 0.3s ease-out;
     }
 
-    /* Flashing effect para quando a barra zera / veneno */
+    /* Filled icon — anchored to bottom inside clip */
+    .icon-filled {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 30px; /* fixed height = same as .inner-core */
+        object-fit: contain;
+        object-position: bottom;
+        filter: brightness(0) invert(1); /* makes it white, then tint via mix-blend */
+    }
+
     @keyframes flash {
-        0% { transform: scale(1); filter: brightness(1); }
-        50% { transform: scale(1.1); filter: brightness(1.5); }
-        100% { transform: scale(1); filter: brightness(1); }
+        0%   { transform: scale(1);   filter: brightness(1); }
+        50%  { transform: scale(1.1); filter: brightness(1.8); }
+        100% { transform: scale(1);   filter: brightness(1); }
     }
 
     .flashing {
