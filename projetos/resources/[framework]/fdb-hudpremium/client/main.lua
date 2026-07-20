@@ -121,6 +121,9 @@ end)
 RegisterNUICallback("uiReady", function(data, cb)
     nuiReady = true
     LoadSettings()
+    if isLoggedIn then
+        SendNUIMessage({ action = 'setVisibility', value = true })
+    end
     cb("ok")
 end)
 
