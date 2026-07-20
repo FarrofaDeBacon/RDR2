@@ -1,7 +1,19 @@
 <script>
+  import { onMount } from 'svelte';
   import StatusCores from './components/StatusCores.svelte';
   import ScreenEffects from './components/ScreenEffects.svelte';
   import EditorPanel from './components/EditorPanel.svelte';
+
+  onMount(() => {
+    const resourceName = window.GetParentResourceName ? window.GetParentResourceName() : 'fdb-hudpremium';
+    fetch(`https://${resourceName}/uiReady`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8'
+      },
+      body: JSON.stringify({})
+    }).catch(() => {});
+  });
 </script>
 
 <main>
