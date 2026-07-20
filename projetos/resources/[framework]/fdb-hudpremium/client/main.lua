@@ -11,7 +11,7 @@ local KVP_KEY = "fdb-hudpremium:settings"
 
 -- Cache de status para otimização e redução de spam de tráfego NUI
 local lastStatus = {
-    health = -1, stamina = -1, dead = false,
+    health = -1, stamina = -1,
     food = -1, water = -1, stress = -1, urine = -1, drunkenness = -1,
     isMounted = false, horseHealth = -1, horseStamina = -1
 }
@@ -124,8 +124,6 @@ CreateThread(function()
             -- Fôlego (Stamina) do jogador
             local rawStamina = GetPlayerStamina(PlayerId())
             local stamina = math.max(0, math.min(100, math.floor(rawStamina)))
-            
-            local dead = IsEntityDead(ped) or false
             
             -- Dados de Metabolismo (Metadados do RSGCore)
             local food = 100
