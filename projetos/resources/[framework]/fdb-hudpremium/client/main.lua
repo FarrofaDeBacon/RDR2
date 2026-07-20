@@ -571,14 +571,31 @@ end, false)
 -- -------------------------------------------------------
 -- Recurso reiniciado com jogador já na sessão (Restart)
 -- -------------------------------------------------------
-AddEventHandler("onResourceStart", function(resourceName)
-    if GetCurrentResourceName() == resourceName then
-        if LocalPlayer.state.isLoggedIn then
-            PlayerData = RSGCore.Functions.GetPlayerData()
+CreateThread(function()
+    Wait(1000)
+    if not isLoggedIn then
+        local data = RSGCore.Functions.GetPlayerData()
+        if data and data.citizenid then
+            PlayerData = data
             isLoggedIn = true
             SyncLocalMetadata()
             LoadSettings()
             SendNUIMessage({ action = 'setVisibility', value = true })
+            print("[fdb-hudpremium] Inicializado com sucesso via login ativo (Startup Fallback).")
+        end
+    end
+end)
+
+AddEventHandler("onResourceStart", function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        local data = RSGCore.Functions.GetPlayerData()
+        if data and data.citizenid then
+            PlayerData = data
+            isLoggedIn = true
+            SyncLocalMetadata()
+            LoadSettings()
+            SendNUIMessage({ action = 'setVisibility', value = true })
+            print("[fdb-hudpremium] Inicializado com sucesso via onResourceStart.")
         end
     end
 end)
