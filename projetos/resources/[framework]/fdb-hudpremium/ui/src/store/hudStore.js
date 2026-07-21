@@ -61,7 +61,7 @@ const defaultElements = [
     'health', 'stamina', 'food', 'water', 'urine', 'stress', 'temperature', 'voice',
     'horseHealth', 'horseStamina', 'population', 'telegram', 'primaryAmmo', 'secondaryAmmo',
     'logo', 'money', 'gold', 'job', 'id', 'time', 'pvp',
-    'hygiene', 'poison', 'illness', 'drunkenness'
+    'hygiene', 'poison', 'illness', 'drunkenness', 'armor', 'oxygen', 'coldResistance', 'heatResistance'
 ];
 
 export const createDefaultConfigs = () => {
@@ -81,6 +81,10 @@ export const createDefaultConfigs = () => {
         else if (id === 'voice') outerColor = '#aaaaaa';
         else if (id === 'primaryAmmo') outerColor = '#ff4500';
         else if (id === 'secondaryAmmo') outerColor = '#ffa500';
+        else if (id === 'armor') outerColor = '#c0c0c0';
+        else if (id === 'oxygen') outerColor = '#87ceeb';
+        else if (id === 'coldResistance') outerColor = '#00ffff';
+        else if (id === 'heatResistance') outerColor = '#ff4500';
 
         cfgs[id] = {
             visible: true,
@@ -235,8 +239,10 @@ window.addEventListener('message', (event) => {
                 
                 // 1. Mapear as escalas legadas de grupos para os elementos individuais correspondentes
                 const legacyGroupMapping = {
-                    PlayerCores: ['health', 'stamina', 'food', 'water', 'stress', 'hygiene', 'poison', 'illness', 'drunkenness'],
+                    PlayerCores: ['health', 'stamina', 'food', 'water', 'stress'],
+                    SurvivalCores: ['urine', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature'],
                     HorseCores: ['horseHealth', 'horseStamina'],
+                    Buffs: ['coldResistance', 'heatResistance'],
                     Voice: ['voice'],
                 };
 
