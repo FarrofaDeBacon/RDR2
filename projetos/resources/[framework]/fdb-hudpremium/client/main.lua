@@ -274,7 +274,9 @@ CreateThread(function()
             local isPoisoned = Citizen.InvokeNative(0x137772C61AEC7E11, ped)
             if isPoisoned then
                 survival.poison = 100
-                SetEntityHealth(ped, GetEntityHealth(ped) - 2) -- Dano de veneno
+                if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
+                    SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - 2)) -- Dano de veneno com piso 0
+                end
             else
                 survival.poison = 0
             end
@@ -292,7 +294,9 @@ CreateThread(function()
             end
             
             if (temp < -2.0 or temp > 37.0) and not hasThermalProtection then
-                SetEntityHealth(ped, GetEntityHealth(ped) - 3) -- Dano climático
+                if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
+                    SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - 3)) -- Dano climático com piso 0
+                end
                 -- Chance de contrair Doença (Illness) no frio extremo
                 if temp < -2.0 and math.random(1, 100) <= 8 then
                     survival.illness = math.min(100, survival.illness + 10)
