@@ -56,12 +56,59 @@ export const extras = writable({
     showTemp: false, // Temporary visibility toggle (showExtrasTemp)
 });
 
-// Editor de UI, totalmente isolado
+// Editor de UI, totalmente isolado com suporte a configurações ricas e retrocompatibilidade
+const defaultElements = [
+    'health', 'stamina', 'food', 'water', 'urine', 'stress', 'temperature', 'voice',
+    'horseHealth', 'horseStamina', 'population', 'telegram', 'primaryAmmo', 'secondaryAmmo',
+    'logo', 'money', 'gold', 'job', 'id', 'time', 'pvp',
+    'hygiene', 'poison', 'illness', 'drunkenness'
+];
+
+export const createDefaultConfigs = () => {
+    const cfgs = {};
+    defaultElements.forEach(id => {
+        let outerColor = '#ffffff';
+        if (id === 'stamina' || id === 'horseStamina') outerColor = '#ffd700';
+        else if (id === 'food') outerColor = '#ffa500';
+        else if (id === 'water') outerColor = '#00bfff';
+        else if (id === 'stress') outerColor = '#ff4500';
+        else if (id === 'urine') outerColor = '#ffff00';
+        else if (id === 'hygiene') outerColor = '#8b4513';
+        else if (id === 'poison') outerColor = '#32cd32';
+        else if (id === 'illness') outerColor = '#808000';
+        else if (id === 'drunkenness') outerColor = '#ff69b4';
+        else if (id === 'temperature') outerColor = '#00ffff';
+        else if (id === 'voice') outerColor = '#aaaaaa';
+        else if (id === 'primaryAmmo') outerColor = '#ff4500';
+        else if (id === 'secondaryAmmo') outerColor = '#ffa500';
+
+        cfgs[id] = {
+            visible: true,
+            scale: 1.0,
+            outerColor: outerColor,
+            outerDamageColor: '#ff0000',
+            goldColor: '#ffd700',
+            maxOuterColor: '#ffffff',
+            innerColor: '#ffffff',
+            showSegments: false,
+            segmentsCount: 10,
+            badge: {
+                showValue: false,
+                showBackground: true,
+                textColor: '#ffffff',
+                fontSize: 12,
+                badgeScale: 1.0,
+                position: 'bottom'
+            }
+        };
+    });
+    return cfgs;
+};
+
 export const editorState = writable({
     isEditing: false,
     positions: {},
-    colors: {},
-    scales: {},
+    configs: createDefaultConfigs(),
 });
 
 // ============================================================================
@@ -180,14 +227,46 @@ window.addEventListener('message', (event) => {
         case 'toggleEditor':
             editorState.update(s => ({ ...s, isEditing: data.value }));
             break;
-        case 'loadSettings':
+        case 'loadSettings': {
+            let configs = data.configs;
+            if (!configs) {
+                // Formato legado detectado! Fazer migração
+                configs = createDefaultConfigs();
+                
+                // 1. Mapear as escalas legadas de grupos para os elementos individuais correspondentes
+                const legacyGroupMapping = {
+                    PlayerCores: ['health', 'stamina', 'food', 'water', 'stress', 'hygiene', 'poison', 'illness', 'drunkenness'],
+                    HorseCores: ['horseHealth', 'horseStamina'],
+                    Voice: ['voice'],
+                };
+
+                const oldScales = data.scales || {};
+                for (const [group, elements] of Object.entries(legacyGroupMapping)) {
+                    if (oldScales[group] !== undefined) {
+                        elements.forEach(id => {
+                            if (configs[id]) {
+                                configs[id].scale = oldScales[group];
+                            }
+                        });
+                    }
+                }
+
+                // 2. Se existirem cores legadas individuais salvas
+                const oldColors = data.colors || {};
+                for (const [id, color] of Object.entries(oldColors)) {
+                    if (configs[id]) {
+                        configs[id].outerColor = color;
+                    }
+                }
+            }
+
             editorState.update(s => ({
                 ...s,
                 positions: data.positions || s.positions,
-                colors: data.colors || s.colors,
-                scales: data.scales || s.scales,
+                configs: configs
             }));
             break;
+        }
 
         // --- MISC ---
         case 'itemConsumed':
