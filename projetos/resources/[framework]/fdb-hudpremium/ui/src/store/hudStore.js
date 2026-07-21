@@ -112,6 +112,7 @@ export const createDefaultConfigs = () => {
 export const editorState = writable({
     isEditing: false,
     positions: {},
+    scales: {},
     configs: createDefaultConfigs(),
     global: {
         gridSize: 10,
@@ -274,6 +275,7 @@ window.addEventListener('message', (event) => {
             editorState.update(s => ({
                 ...s,
                 positions: data.positions || s.positions,
+                scales: data.scales || s.scales,
                 configs: configs,
                 global: data.global || s.global
             }));
