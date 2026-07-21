@@ -113,6 +113,11 @@ export const editorState = writable({
     isEditing: false,
     positions: {},
     configs: createDefaultConfigs(),
+    global: {
+        gridSize: 10,
+        showDarkBg: false,
+        minimap: 'Regular'
+    }
 });
 
 // ============================================================================
@@ -269,7 +274,8 @@ window.addEventListener('message', (event) => {
             editorState.update(s => ({
                 ...s,
                 positions: data.positions || s.positions,
-                configs: configs
+                configs: configs,
+                global: data.global || s.global
             }));
             break;
         }

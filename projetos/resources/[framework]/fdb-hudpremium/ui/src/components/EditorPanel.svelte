@@ -2,30 +2,73 @@
     import { editorState } from '../store/hudStore';
 
     let isEditing = false;
-    let scales = {};
-    let colors = {};
+    let positions = {};
+    let configs = {};
+    let global = {};
 
     const unsubscribe = editorState.subscribe(state => {
         isEditing = state.isEditing;
-        scales = state.scales;
-        colors = state.colors;
+        positions = state.positions;
+        configs = state.configs;
+        global = state.global || {};
     });
 
-    const modules = ['PlayerCores', 'HorseCores', 'SurvivalCores', 'Buffs', 'Voice'];
+    // Categories mapping
+    const categories = [
+        { id: 'GlobalSettings', name: 'Global Settings', type: 'global' },
+        { id: 'PlayerCores', name: 'Player Cores', type: 'elements', items: ['health', 'stamina', 'food', 'water', 'stress', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature', 'armor', 'oxygen'] },
+        { id: 'HorseCores', name: 'Horse Cores', type: 'elements', items: ['horseHealth', 'horseStamina'] },
+        { id: 'OtherCores', name: 'Other Cores', type: 'elements', items: ['population', 'telegram', 'voice', 'primaryAmmo', 'secondaryAmmo'] },
+        { id: 'Buffs', name: 'Buffs', type: 'elements', items: ['coldResistance', 'heatResistance'] },
+        { id: 'Extras', name: 'Extras', type: 'elements', items: ['logo', 'money', 'gold', 'job', 'id', 'time', 'pvp'] },
+    ];
 
-    function updateScale(mod, e) {
-        const val = parseFloat(e.target.value);
+    let activeCategory = categories[0];
+    let selectedElementId = null;
+
+    function selectCategory(cat) {
+        activeCategory = cat;
+        selectedElementId = null; // reset selected element
+    }
+
+    function selectElement(id) {
+        selectedElementId = id;
+    }
+
+    // State updaters
+    function updateGlobal(key, val) {
         editorState.update(s => ({
             ...s,
-            scales: { ...s.scales, [mod]: val }
+            global: { ...(s.global || {}), [key]: val }
+        }));
+    }
+
+    function updateConfig(id, key, val) {
+        editorState.update(s => ({
+            ...s,
+            configs: { 
+                ...s.configs, 
+                [id]: { ...s.configs[id], [key]: val }
+            }
+        }));
+    }
+
+    function updateBadgeConfig(id, key, val) {
+        editorState.update(s => ({
+            ...s,
+            configs: { 
+                ...s.configs, 
+                [id]: { 
+                    ...s.configs[id], 
+                    badge: { ...s.configs[id].badge, [key]: val } 
+                }
+            }
         }));
     }
 
     function saveSettings() {
-        // Envia callback pro Lua usando GetParentResourceName()
         const resourceName = window.GetParentResourceName ? window.GetParentResourceName() : 'fdb-hudpremium';
         
-        // Retira a flag isEditing temporariamente para o JSON limpo
         let current;
         editorState.subscribe(s => current = s)();
 
@@ -34,182 +77,609 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 positions: current.positions,
-                scales: current.scales,
-                colors: current.colors
+                configs: current.configs,
+                global: current.global
             })
         }).catch(err => console.error('[fdb-hudpremium] NUI save erro:', err));
 
-        // Fecha o editor (simulado via UI, geralmente o Lua fecharia o NUI focus)
         editorState.update(s => ({ ...s, isEditing: false }));
         fetch(`https://${resourceName}/closeEditor`, { method: 'POST', body: '{}' }).catch(()=>{});
     }
 
     function resetSettings() {
-        editorState.update(s => ({ ...s, positions: {}, scales: {}, colors: {} }));
-    }
-
-    // Drag lógico do painel
-    let panelX = 50;
-    let panelY = 50;
-    let draggingPanel = false;
-    let startX, startY, initX, initY;
-
-    function startDrag(e) {
-        if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'button') return;
-        draggingPanel = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        initX = panelX;
-        initY = panelY;
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', stopDrag);
-    }
-
-    function onDrag(e) {
-        if (!draggingPanel) return;
-        panelX = initX + (e.clientX - startX);
-        panelY = initY + (e.clientY - startY);
-    }
-
-    function stopDrag() {
-        draggingPanel = false;
-        window.removeEventListener('mousemove', onDrag);
-        window.removeEventListener('mouseup', stopDrag);
+        // Skipping hard reset of KVP data in UI for now
     }
 </script>
 
 {#if isEditing}
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div 
-    class="editor-panel"
-    style="left: {panelX}px; top: {panelY}px;"
-    on:mousedown={startDrag}
->
-    <div class="header">Modo Editor (Arraste para mover)</div>
-    
-    <div class="content">
-        {#each modules as mod}
-            <div class="module-config">
-                <div class="module-title">{mod}</div>
-                <div class="controls">
-                    <span class="small-label">Escala</span>
-                    <input 
-                        type="range" 
-                        min="0.5" 
-                        max="2.0" 
-                        step="0.1" 
-                        value={scales[mod] ?? 1.0} 
-                        on:input={(e) => updateScale(mod, e)} 
-                    />
-                    <span class="val">{scales[mod] ?? 1.0}</span>
-                </div>
-            </div>
-        {/each}
+<div class="editor-sidebar">
+    <div class="header">
+        <h2>HUD Editor</h2>
+        <button class="btn-close" on:click={() => editorState.update(s => ({ ...s, isEditing: false }))}>✕</button>
     </div>
+    
+    <div class="sidebar-layout">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            {#each categories as cat}
+                <button 
+                    class="tab-btn {activeCategory.id === cat.id ? 'active' : ''}"
+                    on:click={() => selectCategory(cat)}
+                >
+                    {cat.name}
+                </button>
+            {/each}
+            
+            <div class="nav-spacer"></div>
+            <button class="btn-save" on:click={saveSettings}>Salvar & Fechar</button>
+        </div>
 
-    <div class="footer">
-        <button class="btn-reset" on:click={resetSettings}>Resetar</button>
-        <button class="btn-save" on:click={saveSettings}>Salvar & Fechar</button>
+        <!-- Content Area -->
+        <div class="content-area">
+            
+            {#if activeCategory.type === 'global'}
+                <div class="panel global-settings">
+                    <h3>Global Settings</h3>
+                    
+                    <div class="control-group">
+                        <label>
+                            Grid Size (px)
+                            <span class="val">{global.gridSize ?? 10}</span>
+                        </label>
+                        <input type="range" min="5" max="50" step="1" 
+                            value={global.gridSize ?? 10} 
+                            on:input={(e) => updateGlobal('gridSize', parseInt(e.target.value))} 
+                        />
+                    </div>
+                    
+                    <div class="control-group row-checkbox">
+                        <label for="chk-darkbg">Show Dark Background (Editor)</label>
+                        <input id="chk-darkbg" type="checkbox" 
+                            checked={global.showDarkBg ?? false}
+                            on:change={(e) => updateGlobal('showDarkBg', e.target.checked)}
+                        />
+                    </div>
+
+                    <div class="control-group">
+                        <label>Minimap Layout</label>
+                        <select 
+                            value={global.minimap ?? 'Regular'}
+                            on:change={(e) => updateGlobal('minimap', e.target.value)}
+                        >
+                            <option value="Off">Off</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Expanded">Expanded</option>
+                            <option value="Compass">Compass</option>
+                        </select>
+                    </div>
+                </div>
+
+            {:else if activeCategory.type === 'elements'}
+                
+                {#if !selectedElementId}
+                    <!-- Master View: List of elements -->
+                    <div class="panel master-view">
+                        <h3>{activeCategory.name}</h3>
+                        <p class="subtitle">Select an element to customize.</p>
+                        <div class="element-grid">
+                            {#each activeCategory.items as itemId}
+                                {#if configs[itemId]}
+                                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                                    <div class="element-card" on:click={() => selectElement(itemId)}>
+                                        <div class="element-name">{itemId}</div>
+                                        <div class="status {configs[itemId].visible ? 'on' : 'off'}">
+                                            {configs[itemId].visible ? 'Visible' : 'Hidden'}
+                                        </div>
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                    </div>
+                {:else}
+                    <!-- Detail View -->
+                    <div class="panel detail-view">
+                        <div class="detail-header">
+                            <button class="btn-back" on:click={() => { selectedElementId = null; }}>← Back</button>
+                            <h3>{selectedElementId}</h3>
+                        </div>
+
+                        {#if configs[selectedElementId]}
+                            {@const cfg = configs[selectedElementId]}
+                            
+                            <!-- Visibility -->
+                            <div class="control-group row-checkbox">
+                                <label for="chk-vis">Visible</label>
+                                <input id="chk-vis" type="checkbox" 
+                                    checked={cfg.visible}
+                                    on:change={(e) => updateConfig(selectedElementId, 'visible', e.target.checked)}
+                                />
+                            </div>
+
+                            <!-- Scale -->
+                            <div class="control-group">
+                                <label>
+                                    Individual Scale 
+                                    <span class="val">{cfg.scale.toFixed(2)}x</span>
+                                </label>
+                                <input type="range" min="0.5" max="2.0" step="0.05" 
+                                    value={cfg.scale} 
+                                    on:input={(e) => updateConfig(selectedElementId, 'scale', parseFloat(e.target.value))} 
+                                />
+                            </div>
+
+                            <hr>
+
+                            <!-- Colors -->
+                            <h4>Colors</h4>
+                            <div class="color-grid">
+                                <div class="color-picker">
+                                    <label>Outer Color</label>
+                                    <input type="color" value={cfg.outerColor} on:input={(e) => updateConfig(selectedElementId, 'outerColor', e.target.value)} />
+                                </div>
+                                <div class="color-picker">
+                                    <label>Outer Damage</label>
+                                    <input type="color" value={cfg.outerDamageColor} on:input={(e) => updateConfig(selectedElementId, 'outerDamageColor', e.target.value)} />
+                                </div>
+                                <div class="color-picker">
+                                    <label>Gold Color</label>
+                                    <input type="color" value={cfg.goldColor} on:input={(e) => updateConfig(selectedElementId, 'goldColor', e.target.value)} />
+                                </div>
+                                <div class="color-picker">
+                                    <label>Max Outer</label>
+                                    <input type="color" value={cfg.maxOuterColor} on:input={(e) => updateConfig(selectedElementId, 'maxOuterColor', e.target.value)} />
+                                </div>
+                                <div class="color-picker">
+                                    <label>Inner Color</label>
+                                    <input type="color" value={cfg.innerColor} on:input={(e) => updateConfig(selectedElementId, 'innerColor', e.target.value)} />
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Segments -->
+                            <h4>Segments</h4>
+                            <div class="control-group row-checkbox">
+                                <label for="chk-seg">Show Segments</label>
+                                <input id="chk-seg" type="checkbox" 
+                                    checked={cfg.showSegments}
+                                    on:change={(e) => updateConfig(selectedElementId, 'showSegments', e.target.checked)}
+                                />
+                            </div>
+                            {#if cfg.showSegments}
+                                <div class="control-group">
+                                    <label>
+                                        Segments Count 
+                                        <span class="val">{cfg.segmentsCount}</span>
+                                    </label>
+                                    <input type="range" min="2" max="20" step="1" 
+                                        value={cfg.segmentsCount} 
+                                        on:input={(e) => updateConfig(selectedElementId, 'segmentsCount', parseInt(e.target.value))} 
+                                    />
+                                </div>
+                            {/if}
+
+                            <hr>
+
+                            <!-- Badges -->
+                            <h4>Badge / Tip Settings</h4>
+                            <div class="control-group row-checkbox">
+                                <label for="chk-bval">Show Value Text</label>
+                                <input id="chk-bval" type="checkbox" 
+                                    checked={cfg.badge.showValue}
+                                    on:change={(e) => updateBadgeConfig(selectedElementId, 'showValue', e.target.checked)}
+                                />
+                            </div>
+                            <div class="control-group row-checkbox">
+                                <label for="chk-bbg">Show Background</label>
+                                <input id="chk-bbg" type="checkbox" 
+                                    checked={cfg.badge.showBackground}
+                                    on:change={(e) => updateBadgeConfig(selectedElementId, 'showBackground', e.target.checked)}
+                                />
+                            </div>
+                            <div class="color-picker">
+                                <label>Text Color</label>
+                                <input type="color" value={cfg.badge.textColor} on:input={(e) => updateBadgeConfig(selectedElementId, 'textColor', e.target.value)} />
+                            </div>
+                            <div class="control-group">
+                                <label>
+                                    Font Size (px)
+                                    <span class="val">{cfg.badge.fontSize}</span>
+                                </label>
+                                <input type="range" min="8" max="24" step="1" 
+                                    value={cfg.badge.fontSize} 
+                                    on:input={(e) => updateBadgeConfig(selectedElementId, 'fontSize', parseInt(e.target.value))} 
+                                />
+                            </div>
+                            <div class="control-group">
+                                <label>
+                                    Badge Scale
+                                    <span class="val">{cfg.badge.badgeScale.toFixed(2)}x</span>
+                                </label>
+                                <input type="range" min="0.5" max="2.0" step="0.1" 
+                                    value={cfg.badge.badgeScale} 
+                                    on:input={(e) => updateBadgeConfig(selectedElementId, 'badgeScale', parseFloat(e.target.value))} 
+                                />
+                            </div>
+                            <div class="control-group">
+                                <label>Position</label>
+                                <select 
+                                    value={cfg.badge.position}
+                                    on:change={(e) => updateBadgeConfig(selectedElementId, 'position', e.target.value)}
+                                >
+                                    <option value="top">Top</option>
+                                    <option value="bottom">Bottom</option>
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+
+                        {/if}
+                    </div>
+                {/if}
+            {/if}
+
+        </div>
     </div>
 </div>
+
+<!-- Global Editor Dark Background Preview -->
+{#if global.showDarkBg}
+    <div class="editor-dark-bg"></div>
+{/if}
 {/if}
 
 <style>
-    .editor-panel {
+    .editor-sidebar {
         position: absolute;
-        width: 300px;
-        background: rgba(15, 15, 15, 0.95);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: #ddd;
-        font-family: sans-serif;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        top: 0;
+        left: 0;
+        width: 600px;
+        height: 100vh;
+        background: rgba(15, 15, 18, 0.95);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255,255,255,0.1);
+        color: #eee;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
         z-index: 10000;
-        pointer-events: auto; /* Permite interação mesmo que o pai seja none */
+        pointer-events: auto;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    }
+
+    .editor-dark-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.6);
+        z-index: 9999;
+        pointer-events: none;
     }
 
     .header {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 10px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 14px;
-        cursor: grab;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-        user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .header:active {
-        cursor: grabbing;
+    .header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .content {
-        padding: 15px;
+    .btn-close {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 20px;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .btn-close:hover {
+        color: #ff4500;
+    }
+
+    .sidebar-layout {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .nav-tabs {
+        width: 200px;
+        background: rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        border-right: 1px solid rgba(255,255,255,0.05);
+        padding: 10px 0;
     }
 
-    .module-config .module-title {
-        display: block;
+    .tab-btn {
+        background: transparent;
+        border: none;
+        color: #aaa;
+        text-align: left;
+        padding: 15px 20px;
         font-size: 14px;
-        font-weight: bold;
-        color: #fff;
-        margin-bottom: 5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
     }
 
-    .controls {
-        display: flex;
-        align-items: center;
+    .tab-btn:hover {
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+    }
+
+    .tab-btn.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-left-color: #2e8b57;
+    }
+
+    .nav-spacer {
+        flex: 1;
+    }
+
+    .btn-save {
+        margin: 15px;
+        padding: 12px;
+        background: #2e8b57;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-save:hover {
+        background: #3cb371;
+    }
+
+    .content-area {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .panel {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        font-size: 18px;
+        color: #fff;
+    }
+
+    .subtitle {
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    h4 {
+        margin-top: 20px;
+        margin-bottom: 15px;
+        color: #bbb;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin: 25px 0;
+    }
+
+    /* Master View Grid */
+    .element-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
 
-    .small-label {
-        font-size: 11px;
-        color: #aaa;
-    }
-
-    input[type=range] {
-        flex: 1;
-        cursor: pointer;
-    }
-
-    .val {
-        font-size: 12px;
-        width: 25px;
-        text-align: right;
-    }
-
-    .footer {
-        display: flex;
-        justify-content: space-between;
+    .element-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 6px;
         padding: 15px;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-    button {
-        padding: 8px 12px;
+    .element-card:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+    }
+
+    .element-name {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 8px;
+        text-transform: capitalize;
+    }
+
+    .status {
+        font-size: 11px;
+        font-weight: bold;
+        padding: 3px 6px;
+        border-radius: 4px;
+        align-self: flex-start;
+    }
+
+    .status.on {
+        background: rgba(46, 139, 87, 0.2);
+        color: #3cb371;
+    }
+    .status.off {
+        background: rgba(255, 69, 0, 0.2);
+        color: #ff4500;
+    }
+
+    /* Detail View */
+    .detail-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .btn-back {
+        background: rgba(255,255,255,0.1);
         border: none;
+        color: #fff;
+        padding: 6px 12px;
         border-radius: 4px;
         cursor: pointer;
+        font-size: 12px;
         font-weight: bold;
         transition: background 0.2s;
     }
 
-    .btn-reset {
-        background: #444;
-        color: white;
-    }
-    .btn-reset:hover {
-        background: #555;
+    .btn-back:hover {
+        background: rgba(255,255,255,0.2);
     }
 
-    .btn-save {
-        background: #2e8b57;
-        color: white;
+    /* Form Controls */
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
     }
-    .btn-save:hover {
-        background: #3cb371;
+
+    .control-group.row-checkbox {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .control-group label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #ccc;
+        margin-bottom: 8px;
+    }
+
+    .control-group .val {
+        color: #4da6ff;
+        font-weight: bold;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #2e8b57;
+        cursor: pointer;
+    }
+
+    select {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        padding: 8px;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    select:focus {
+        border-color: #2e8b57;
+    }
+
+    /* Color Grid */
+    .color-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .color-picker {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(0,0,0,0.2);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .color-picker label {
+        font-size: 12px;
+        color: #ccc;
+    }
+
+    input[type="color"] {
+        -webkit-appearance: none;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        padding: 0;
+        background: none;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+    }
+
+    /* Custom Checkbox */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 40px;
+        height: 20px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.3s;
+        outline: none;
+    }
+    input[type="checkbox"]::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #888;
+        border-radius: 50%;
+        transition: transform 0.3s, background 0.3s;
+    }
+    input[type="checkbox"]:checked {
+        background: rgba(46, 139, 87, 0.5);
+    }
+    input[type="checkbox"]:checked::after {
+        transform: translateX(20px);
+        background: #2e8b57;
     }
 </style>
