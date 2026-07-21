@@ -19,6 +19,8 @@
     import voice from '../../public/assets/voice.svg?raw';
     import water from '../../public/assets/water.svg?raw';
 
+    import { editorState } from '../store/hudStore';
+
     const svgMap = {
         'alcohol.svg': alcohol,
         'armor.svg': armor,
@@ -41,65 +43,136 @@
         'water.svg': water,
     };
 
-    export let value = 100;      // Outer ring value (0-100)
+    export let itemId = 'unknown'; // injected by StatusCores
+    export let value = 100;      // Outer ring value
     export let innerValue = 100; // Inner core fill value (0-100)
-    export let icon = '';        // Image path for the core icon
-    export let outerColor = '#ffffff';
-    export let innerColor = '#ffffff';
+    export let icon = '';        
+    export let outerColor = '#ffffff'; // Fallback
+    export let innerColor = '#ffffff'; // Controlled by StatusCores
     export let isFlashing = false;
 
+    // Retrieve configs
+    $: cfg = $editorState.configs[itemId] || null;
+
+    // Core Properties
+    $: visible = cfg ? cfg.visible : true;
+    $: scale = cfg ? cfg.scale : 1.0;
+    
+    // Outer Color Logic: Gold (>100) -> Max (==100) -> Damage (isFlashing) -> OuterColor
+    $: actualOuterColor = cfg ? (
+        value > 100 ? cfg.goldColor :
+        value === 100 ? cfg.maxOuterColor :
+        isFlashing ? cfg.outerDamageColor :
+        cfg.outerColor
+    ) : outerColor;
+
+    // SVG Math
     const radius = 22;
     const circumference = 2 * Math.PI * radius;
-    $: strokeDashoffset = circumference - (value / 100) * circumference;
+    $: fillPercent = Math.min(100, Math.max(0, value)) / 100;
+    $: strokeDashoffset = circumference - (fillPercent * circumference);
+
+    // Segments Math (via Mask)
+    $: showSegments = cfg ? cfg.showSegments : false;
+    $: segmentsCount = cfg ? cfg.segmentsCount : 10;
+    const gapPx = 3;
+    $: segmentLength = showSegments ? (circumference / segmentsCount) - gapPx : circumference;
+    $: gapLength = showSegments ? gapPx : 0;
+    $: maskDashArray = `${segmentLength} ${gapLength}`;
+    
+    // Unique ID for SVG Mask to avoid conflicts between instances
+    const maskId = `mask-${itemId}-${Math.random().toString(36).substr(2, 9)}`;
 
     $: clipHeight = Math.max(0, Math.min(100, innerValue));
     $: iconName = icon ? icon.split('/').pop() : '';
     $: svgMarkup = svgMap[iconName] || '';
 </script>
 
-<div class="hud-item" class:flashing={isFlashing}>
-    <!-- Fundo metálico (Borda RDR2) -->
-    <div class="hud-bg"></div>
+{#if visible}
+<div class="hud-item-wrapper" style="transform: scale({scale});">
+    <div class="hud-item" class:flashing={isFlashing}>
+        
+        <!-- Fundo metálico (Borda RDR2) -->
+        <div class="hud-bg"></div>
 
-    <!-- Outer Ring (SVG Progress) -->
-    <svg class="outer-ring" width="56" height="56" viewBox="0 0 56 56">
-        <circle
-            class="ring-track"
-            cx="28" cy="28" r="{radius}"
-            stroke-width="4"
-            fill="none"
-        />
-        <circle
-            class="ring-fill"
-            cx="28" cy="28" r="{radius}"
-            stroke-width="4"
-            fill="none"
-            stroke="{outerColor}"
-            stroke-dasharray="{circumference}"
-            stroke-dashoffset="{strokeDashoffset}"
-        />
-    </svg>
+        <!-- Outer Ring (SVG Progress) -->
+        <svg class="outer-ring" width="56" height="56" viewBox="0 0 56 56">
+            <defs>
+                <!-- Mask for segments -->
+                <mask id="{maskId}">
+                    <circle
+                        cx="28" cy="28" r="{radius}"
+                        stroke-width="4"
+                        fill="none"
+                        stroke="white"
+                        stroke-dasharray="{maskDashArray}"
+                    />
+                </mask>
+            </defs>
 
-    <!-- Inner Core Icon — inline SVG + clip-path fill overlay -->
-    {#if svgMarkup}
-    <div class="inner-core">
-        <div class="icon-wrapper" style="--fill-h: {clipHeight}%">
-            <!-- Ghost background icon (semi-transparent) -->
-            <div class="icon-ghost" style="color: {innerColor}">
-                {@html svgMarkup}
-            </div>
-            <!-- Filled portion of icon, clipped from bottom -->
-            <div class="icon-fill-clip" style="height: {clipHeight}%">
-                <div class="icon-filled" style="color: {innerColor}">
+            <!-- G layer applies the mask to both track and fill -->
+            <g mask="url(#{maskId})">
+                <circle
+                    class="ring-track"
+                    cx="28" cy="28" r="{radius}"
+                    stroke-width="4"
+                    fill="none"
+                />
+                <circle
+                    class="ring-fill"
+                    cx="28" cy="28" r="{radius}"
+                    stroke-width="4"
+                    fill="none"
+                    stroke="{actualOuterColor}"
+                    stroke-dasharray="{circumference}"
+                    stroke-dashoffset="{strokeDashoffset}"
+                />
+            </g>
+        </svg>
+
+        <!-- Inner Core Icon -->
+        {#if svgMarkup}
+        <div class="inner-core">
+            <div class="icon-wrapper" style="--fill-h: {clipHeight}%">
+                <div class="icon-ghost" style="color: {innerColor}">
                     {@html svgMarkup}
+                </div>
+                <div class="icon-fill-clip" style="height: {clipHeight}%">
+                    <div class="icon-filled" style="color: {innerColor}">
+                        {@html svgMarkup}
+                    </div>
                 </div>
             </div>
         </div>
+        {/if}
+
+        <!-- Badge / Tip Numérica -->
+        {#if cfg && cfg.badge && cfg.badge.showValue}
+            <div 
+                class="badge-tip pos-{cfg.badge.position}" 
+                class:has-bg={cfg.badge.showBackground}
+                style="
+                    color: {cfg.badge.textColor};
+                    font-size: {cfg.badge.fontSize}px;
+                    transform: scale({cfg.badge.badgeScale});
+                "
+            >
+                {Math.round(value)}
+            </div>
+        {/if}
     </div>
-    {/if}
 </div>
+{/if}
 
 <style>
+    .hud-item-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* A transição permite visualizar a escala de forma suave no painel */
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1); 
+    }
+
     .hud-item {
         position: relative;
         width: 56px;
@@ -115,7 +188,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        background-image: url('./assets/border_single-CaVJ0brv.png');
+        background-image: url('../../public/assets/border_single.png');
         background-size: cover;
         background-position: center;
         z-index: 1;
@@ -127,7 +200,7 @@
         top: 0;
         left: 0;
         z-index: 2;
-        transform: rotate(-90deg);
+        transform: rotate(-90deg); /* Inicia progresso a partir do topo */
     }
 
     .ring-track {
@@ -155,7 +228,6 @@
         height: 100%;
     }
 
-    /* Force all SVGs inside wrapper to fit and respect currentColor */
     .icon-wrapper :global(svg) {
         width: 100%;
         height: 100%;
@@ -170,7 +242,6 @@
         fill: currentColor !important;
     }
 
-    /* Ghost (dark background icon) */
     .icon-ghost {
         position: absolute;
         top: 0; left: 0;
@@ -179,7 +250,6 @@
         opacity: 0.25;
     }
 
-    /* Clip wrapper: grows from bottom based on fill % */
     .icon-fill-clip {
         position: absolute;
         bottom: 0;
@@ -189,13 +259,12 @@
         transition: height 0.3s ease-out;
     }
 
-    /* Filled icon — anchored to bottom inside clip */
     .icon-filled {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 30px; /* fixed height = same as .inner-core */
+        height: 30px;
     }
 
     @keyframes flash {
@@ -206,5 +275,40 @@
 
     .flashing {
         animation: flash 1s infinite ease-in-out;
+    }
+
+    /* === BADGES === */
+    .badge-tip {
+        position: absolute;
+        z-index: 10;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 900;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,1);
+        white-space: nowrap;
+        pointer-events: none;
+        transition: all 0.2s ease;
+    }
+
+    .badge-tip.has-bg {
+        background: rgba(0,0,0,0.7);
+        padding: 2px 6px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        text-shadow: none; /* if bg, we don't need heavy text shadow */
+    }
+
+    /* posições */
+    .pos-top {
+        bottom: calc(100% + 5px); /* ancorado no topo (bottom away from hud-item center) */
+    }
+    .pos-bottom {
+        top: calc(100% + 5px);
+    }
+    .pos-left {
+        right: calc(100% + 5px);
+    }
+    .pos-right {
+        left: calc(100% + 5px);
     }
 </style>

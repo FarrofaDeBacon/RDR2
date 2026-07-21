@@ -59,6 +59,7 @@
         <div class="cores-group">
             <!-- Saúde -->
             <HUDItem 
+                itemId="health"
                 value={health} 
                 innerValue={health} 
                 icon="./assets/health.svg" 
@@ -69,6 +70,7 @@
 
             <!-- Estamina -->
             <HUDItem 
+                itemId="stamina"
                 value={stamina} 
                 innerValue={stamina} 
                 icon="./assets/stamina.svg" 
@@ -79,6 +81,7 @@
 
             <!-- Fome -->
             <HUDItem 
+                itemId="food"
                 value={food} 
                 innerValue={food} 
                 icon="./assets/food.svg" 
@@ -89,6 +92,7 @@
 
             <!-- Sede -->
             <HUDItem 
+                itemId="water"
                 value={water} 
                 innerValue={water} 
                 icon="./assets/water.svg" 
@@ -99,6 +103,7 @@
 
             <!-- Estresse -->
             <HUDItem 
+                itemId="stress"
                 value={stress} 
                 innerValue={stress} 
                 icon="./assets/stress.svg" 
@@ -110,6 +115,7 @@
             <!-- Armadura (Condicional) -->
             {#if showArmor}
                 <HUDItem 
+                    itemId="armor"
                     value={armor} 
                     innerValue={armor} 
                     icon="./assets/armor.svg" 
@@ -121,6 +127,7 @@
             <!-- Oxigênio (Condicional, só quando embaixo d'agua) -->
             {#if showOxygen}
                 <HUDItem 
+                    itemId="oxygen"
                     value={oxygen} 
                     innerValue={oxygen} 
                     icon="./assets/oxygen.svg" 
@@ -137,6 +144,7 @@
         <DraggableModule id="HorseCores">
             <div class="horse-group">
                 <HUDItem 
+                    itemId="horseHealth"
                     value={horseHealth} 
                     innerValue={horseHealth} 
                     icon="./assets/horse_health.svg" 
@@ -144,6 +152,7 @@
                     innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
                 />
                 <HUDItem 
+                    itemId="horseStamina"
                     value={horseStamina} 
                     innerValue={horseStamina} 
                     icon="./assets/horse_stamina.svg" 
@@ -159,6 +168,7 @@
         <div class="survival-group">
             {#if showUrine}
                 <HUDItem 
+                    itemId="urine"
                     value={urine} 
                     innerValue={urine} 
                     icon="./assets/urine.svg" 
@@ -170,6 +180,7 @@
 
             {#if showHygiene}
                 <HUDItem 
+                    itemId="hygiene"
                     value={hygiene} 
                     innerValue={hygiene} 
                     icon="./assets/hygiene.svg" 
@@ -180,6 +191,7 @@
 
             {#if showTemp}
                 <HUDItem 
+                    itemId="temperature"
                     value={getTempValue(temp)} 
                     innerValue={100} 
                     icon={temp > 35 ? "./assets/temp_hot.svg" : "./assets/temp_cold.svg"} 
@@ -191,6 +203,7 @@
 
             {#if showPoison}
                 <HUDItem 
+                    itemId="poison"
                     value={poison} 
                     innerValue={poison} 
                     icon="./assets/poison.svg" 
@@ -202,6 +215,7 @@
 
             {#if showIllness}
                 <HUDItem 
+                    itemId="illness"
                     value={illness} 
                     innerValue={illness} 
                     icon="./assets/illness.svg" 
@@ -213,6 +227,7 @@
 
             {#if showDrunkenness}
                 <HUDItem 
+                    itemId="drunkenness"
                     value={drunkenness} 
                     innerValue={drunkenness} 
                     icon="./assets/alcohol.svg" 
@@ -228,6 +243,7 @@
         <div class="buffs-group">
             {#if coldResistance > 0}
                 <HUDItem 
+                    itemId="coldResistance"
                     value={coldResistance > 100 ? 100 : coldResistance} 
                     innerValue={100} 
                     icon="./assets/buff_cold.svg" 
@@ -239,6 +255,7 @@
 
             {#if heatResistance > 0}
                 <HUDItem 
+                    itemId="heatResistance"
                     value={heatResistance > 100 ? 100 : heatResistance} 
                     innerValue={100} 
                     icon="./assets/buff_heat.svg" 
@@ -254,6 +271,7 @@
     <DraggableModule id="Voice">
         <div class="voice-group">
             <HUDItem 
+                itemId="voice"
                 value={voice === 0 ? 33 : (voice === 1 ? 66 : 100)} 
                 innerValue={isTalking ? 100 : 0} 
                 icon="./assets/voice.svg" 
