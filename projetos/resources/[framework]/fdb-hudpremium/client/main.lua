@@ -576,26 +576,7 @@ end, false)
 -- -------------------------------------------------------
 CreateThread(function()
     Wait(1000)
-    print("[fdb-hudpremium] STARTUP: Verificando status de login...")
-    local data = RSGCore.Functions.GetPlayerData()
-    print("[fdb-hudpremium] STARTUP: PlayerData retornado: ", json.encode(data))
     if not isLoggedIn then
-        if data and data.citizenid then
-            PlayerData = data
-            isLoggedIn = true
-            SyncLocalMetadata()
-            LoadSettings()
-            SendNUIMessage({ action = 'setVisibility', value = true })
-            print("[fdb-hudpremium] Inicializado com sucesso via login ativo (Startup Fallback).")
-        else
-            print("[fdb-hudpremium] STARTUP: citizenid ausente ou nulo.")
-        end
-    end
-end)
-
-AddEventHandler("onResourceStart", function(resourceName)
-    if GetCurrentResourceName() == resourceName then
-        print("[fdb-hudpremium] onResourceStart disparado.")
         local data = RSGCore.Functions.GetPlayerData()
         if data and data.citizenid then
             PlayerData = data
@@ -603,9 +584,19 @@ AddEventHandler("onResourceStart", function(resourceName)
             SyncLocalMetadata()
             LoadSettings()
             SendNUIMessage({ action = 'setVisibility', value = true })
-            print("[fdb-hudpremium] Inicializado com sucesso via onResourceStart.")
-        else
-            print("[fdb-hudpremium] onResourceStart: jogador não está logado ainda.")
+        end
+    end
+end)
+
+AddEventHandler("onResourceStart", function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        local data = RSGCore.Functions.GetPlayerData()
+        if data and data.citizenid then
+            PlayerData = data
+            isLoggedIn = true
+            SyncLocalMetadata()
+            LoadSettings()
+            SendNUIMessage({ action = 'setVisibility', value = true })
         end
     end
 end)
