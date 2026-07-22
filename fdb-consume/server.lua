@@ -1,4 +1,5 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
+local pendingReturnItems = {}
 
 -- Registrar Itens Consumíveis
 CreateThread(function()
@@ -40,11 +41,24 @@ CreateThread(function()
                 local newStress = math.max(0, math.min(100, currentStress + (data.stress or 0)))
                 local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol + (data.alcohol or 0)))
 
+                -- Autorização para item de retorno
+                local returnItem = data.give and data.give.item
+                if returnItem then
+                    if not pendingReturnItems[src] then pendingReturnItems[src] = {} end
+                    pendingReturnItems[src][itemName] = (pendingReturnItems[src][itemName] or 0) + 1
+                end
+
                 -- Aplicar Metadatas
                 Player.Functions.SetMetaData('hunger', newHunger)
                 Player.Functions.SetMetaData('thirst', newThirst)
                 Player.Functions.SetMetaData('stress', newStress)
                 Player.Functions.SetMetaData('alcohol', newAlcohol)
+                
+                -- Avisar passivamente o HUD da mudança de dados do consume
+                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'food', value = math.floor(newHunger) })
+                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
+                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
+                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
 
                 -- Dar o item de retorno foi movido para o final da animação no cliente
                 TriggerClientEvent('fdb-consume:client:playAnim', src, itemName)
@@ -57,6 +71,13 @@ RegisterNetEvent('fdb-consume:server:giveReturnItem', function(itemName)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
+
+    if not pendingReturnItems[src] or not pendingReturnItems[src][itemName] or pendingReturnItems[src][itemName] <= 0 then
+        print(("[fdb-consume] HACK DETECTADO: Jogador %s tentou forjar item de retorno '%s' sem uso prévio."):format(src, itemName))
+        return
+    end
+
+    pendingReturnItems[src][itemName] = pendingReturnItems[src][itemName] - 1
 
     local data = Config.Items[itemName]
     if data and data.give and data.give.item then
@@ -79,10 +100,53 @@ CreateThread(function()
                 if currentAlcohol > 0 then
                     local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol - Config.Alcohol.DecreaseAmount))
                     Player.Functions.SetMetaData('alcohol', newAlcohol)
+                    -- Sincronizar HUD passivo
+                    TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'drunkenness', value = math.floor(newAlcohol) })
                     -- Trigger para verificar efeitos no cliente baseado no novo valor
                     TriggerClientEvent('fdb-consume:client:checkAlcohol', player, newAlcohol)
                 end
             end
         end
+    end
+end)
+
+-- Loop Passivo de Fome e Sede (Server-Side)
+CreateThread(function()
+    while true do
+        Wait(Config.Metabolism.DrainInterval)
+        for _, player in ipairs(RSGCore.Functions.GetPlayers()) do
+            local Player = RSGCore.Functions.GetPlayer(player)
+            if Player then
+                local currentHunger = Player.PlayerData.metadata['hunger'] or 100
+                local currentThirst = Player.PlayerData.metadata['thirst'] or 100
+                
+                if currentHunger > 0 or currentThirst > 0 then
+                    local newHunger = math.max(0, currentHunger - Config.Metabolism.HungerDrain)
+                    local newThirst = math.max(0, currentThirst - Config.Metabolism.ThirstDrain)
+                    
+                    Player.Functions.SetMetaData('hunger', newHunger)
+                    Player.Functions.SetMetaData('thirst', newThirst)
+                    
+                    local floorHunger = math.floor(newHunger)
+                    local floorThirst = math.floor(newThirst)
+                    local oldFloorHunger = math.floor(currentHunger)
+                    local oldFloorThirst = math.floor(currentThirst)
+                    
+                    if floorHunger ~= oldFloorHunger then
+                        TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'food', value = floorHunger })
+                    end
+                    if floorThirst ~= oldFloorThirst then
+                        TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'water', value = floorThirst })
+                    end
+                end
+            end
+        end
+    end
+end)
+
+AddEventHandler('playerDropped', function(reason)
+    local src = source
+    if pendingReturnItems[src] then
+        pendingReturnItems[src] = nil
     end
 end)

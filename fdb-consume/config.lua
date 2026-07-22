@@ -13,6 +13,12 @@ Config.Alcohol = {
     SleepDuration = 20000,
 }
 
+Config.Metabolism = {
+    DrainInterval = 4000, -- Intervalo base em ms
+    HungerDrain = 0.08,   -- Dreno por intervalo (mesma taxa que o HUD costumava ter)
+    ThirstDrain = 0.12,   -- Dreno por intervalo
+}
+
 Config.Drop = "Jogar Fora"
 Config.Smoke = "Fumar / Dar Trago"
 Config.Change = "Mudar Pose"

@@ -53,14 +53,8 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     local animDict = itemData.dict or baseAnim.dict
     local animName = itemData.name or baseAnim.name
 
-    local stressChange = itemData.stress or 0
-    local hungerChange = itemData.hunger or 0
-    local thirstChange = itemData.thirst or 0
-    
-    TriggerServerEvent('fdb-consume:server:UpdateStatus', stressChange, hungerChange, thirstChange)
-    if Config.RemoveItemOnConsume then
-        TriggerServerEvent('fdb-consume:server:RemoveItem', itemName)
-    end
+    -- Remoção dos Triggers Fantasmas (Fase 2)
+    -- O fdb-consume/server.lua já removeu o item e atualizou o banco ANTES de chamar essa animação.
 
     -- Roteador de Animações
     if animType == "Drink" or animType == "Coffee" then
