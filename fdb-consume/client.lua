@@ -64,7 +64,7 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     elseif animType == "Medical" or animType == "Drug" then
         TriggerEvent('fdb-consume:client:ConsumeMedical', propModel, animType, maxUses, animDict, animName, itemName)
     elseif animType == "Smoke" then
-        TriggerEvent('fdb-consume:prop:cigaret', propModel, maxUses, animDict, animName)
+        TriggerEvent('fdb-consume:prop:cigaret', propModel, maxUses, animDict, animName, itemName)
     elseif animType == "Cigar" then
         TriggerEvent('fdb-consume:prop:cigar', maxUses, animDict, animName)
     else

@@ -102,7 +102,7 @@ end
 
 --Cigarette
 RegisterNetEvent('fdb-consume:prop:cigaret')
-AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
+AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, name, itemName)
     FPrompt(Config.Drop, Config.Prompts.DropKey, false)
     LMPrompt(Config.Smoke, Config.Prompts.SmokeKey, false)
     EPrompt(Config.Change, Config.Prompts.ChangeKey, false)
@@ -115,8 +115,27 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
     local hash = GetHashKey(propModel or 'P_CIGARETTE01X')
     local cigaret = CreateObject(hash, x, y, z + 0.2, true, true, true)
     
-    local righthand = GetEntityBoneIndexByName(ped, "SKEL_R_Finger13")
+    -- Configuração de Offsets (Com defaults do cigarro original)
+    local offsets = {
+        bone = "SKEL_R_Finger13",
+        mouth_start = { x = 0.0, y = 0.0, z = 0.0, rx = 0.0, ry = 0.0, rz = 0.0 },
+        hand_enter = { x = 0.03, y = -0.01, z = 0.0, rx = 0.0, ry = 90.0, rz = 0.0 },
+        mouth_puff = { x = -0.017, y = 0.1, z = -0.01, rx = 0.0, ry = 90.0, rz = -90.0 },
+        hand_idle = { x = 0.017, y = -0.01, z = -0.01, rx = 0.0, ry = 120.0, rz = 10.0 },
+        female_hand_idle = { x = 0.01, y = 0.0, z = 0.01, rx = 0.0, ry = -160.0, rz = -130.0 }
+    }
     
+    if itemName and Config.Items[itemName] and Config.Items[itemName].offsets then
+        local customOffsets = Config.Items[itemName].offsets
+        if customOffsets.bone then offsets.bone = customOffsets.bone end
+        if customOffsets.mouth_start then offsets.mouth_start = customOffsets.mouth_start end
+        if customOffsets.hand_enter then offsets.hand_enter = customOffsets.hand_enter end
+        if customOffsets.mouth_puff then offsets.mouth_puff = customOffsets.mouth_puff end
+        if customOffsets.hand_idle then offsets.hand_idle = customOffsets.hand_idle end
+        if customOffsets.female_hand_idle then offsets.female_hand_idle = customOffsets.female_hand_idle end
+    end
+    
+    local righthand = GetEntityBoneIndexByName(ped, offsets.bone)
     local mouth = GetEntityBoneIndexByName(ped, "skel_head")
     
     local puffsTaken = 0
@@ -124,26 +143,26 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
     --Citizen.InvokeNative( 0xF6A7C08DF2E28B28, PlayerPedId(), 0, 500.0, false )
     --PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
     if male then
-        AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_start.x, offsets.mouth_start.y, offsets.mouth_start.z, offsets.mouth_start.rx, offsets.mouth_start.ry, offsets.mouth_start.rz, true, true, false, true, 1, true)
         Anim(ped, "amb_rest@world_human_smoking@male_c@stand_enter", "enter_back_rf", 5400, 0)
         Wait(1000)
         
-        AttachEntityToEntity(cigaret, ped, righthand, 0.03, -0.01, 0.0, 0.0, 90.0, 0.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, righthand, offsets.hand_enter.x, offsets.hand_enter.y, offsets.hand_enter.z, offsets.hand_enter.rx, offsets.hand_enter.ry, offsets.hand_enter.rz, true, true, false, true, 1, true)
         Wait(1000)
-        AttachEntityToEntity(cigaret, ped, mouth, -0.017, 0.1, -0.01, 0.0, 90.0, -90.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_puff.x, offsets.mouth_puff.y, offsets.mouth_puff.z, offsets.mouth_puff.rx, offsets.mouth_puff.ry, offsets.mouth_puff.rz, true, true, false, true, 1, true)
         Wait(3000)
-        AttachEntityToEntity(cigaret, ped, righthand, 0.017, -0.01, -0.01, 0.0, 120.0, 10.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, righthand, offsets.hand_idle.x, offsets.hand_idle.y, offsets.hand_idle.z, offsets.hand_idle.rx, offsets.hand_idle.ry, offsets.hand_idle.rz, true, true, false, true, 1, true)
         
         Wait(1000)
         Anim(ped, "amb_rest@world_human_smoking@male_c@base", "base", -1, 30)
         RemoveAnimDict("amb_rest@world_human_smoking@male_c@stand_enter")
         Wait(1000)
     else --if female
-        AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_start.x, offsets.mouth_start.y, offsets.mouth_start.z, offsets.mouth_start.rx, offsets.mouth_start.ry, offsets.mouth_start.rz, true, true, false, true, 1, true)
         Anim(ped, "amb_rest@world_human_smoking@female_c@base", "base", -1, 30)
         Wait(1000)
         
-        AttachEntityToEntity(cigaret, ped, righthand, 0.01, 0.0, 0.01, 0.0, -160.0, -130.0, true, true, false, true, 1, true)
+        AttachEntityToEntity(cigaret, ped, righthand, offsets.female_hand_idle.x, offsets.female_hand_idle.y, offsets.female_hand_idle.z, offsets.female_hand_idle.rx, offsets.female_hand_idle.ry, offsets.female_hand_idle.rz, true, true, false, true, 1, true)
         Wait(2500)
     end
 
