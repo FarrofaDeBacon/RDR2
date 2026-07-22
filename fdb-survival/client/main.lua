@@ -204,6 +204,60 @@ CreateThread(function()
 end)
 
 -- =======================================================
+-- DEBUFF DE SUJEIRA EXTREMA E MOSCAS
+-- =======================================================
+local isSmelly = false
+local flyParticle = nil
+
+CreateThread(function()
+    while true do
+        Wait(1000)
+        if isLoggedIn then
+            local ped = PlayerPedId()
+            if survival.cleanliness < 20 and not isSmelly then
+                isSmelly = true
+                exports['ox_lib']:notify({
+                    title = 'Você está fedendo!',
+                    description = 'As moscas começaram a te rodear. Vá se lavar (/lavar).',
+                    type = 'warning',
+                    duration = 5000
+                })
+
+                -- Efeito de moscas rodeando
+                local assetName = "core"
+                local ptfxName = "ent_anim_fly_swarm"
+                
+                RequestNamedPtfxAsset(assetName)
+                local timeout = 0
+                while not HasNamedPtfxAssetLoaded(assetName) and timeout < 50 do
+                    Wait(10)
+                    timeout = timeout + 1
+                end
+                
+                if HasNamedPtfxAssetLoaded(assetName) then
+                    UseParticleFxAsset(assetName)
+                    flyParticle = StartNetworkedParticleFxLoopedOnEntity(
+                        ptfxName, ped,
+                        0.0, 0.0, 0.0, -- Offset
+                        0.0, 0.0, 0.0, -- Rotação
+                        1.0, -- Escala
+                        false, false, false
+                    )
+                end
+
+            elseif survival.cleanliness >= 20 and isSmelly then
+                isSmelly = false
+                if flyParticle then
+                    StopParticleFxLooped(flyParticle, false)
+                    flyParticle = nil
+                end
+                RemoveNamedPtfxAsset("core")
+            end
+        end
+    end
+end)
+
+-- =======================================================
 -- EVENTOS CLIENTES (Curas e Buffs)
 -- =======================================================
 RegisterNetEvent('fdb-survival:client:EatThermalItem', function(buffType, duration)
