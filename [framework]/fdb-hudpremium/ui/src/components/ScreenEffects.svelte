@@ -23,8 +23,6 @@
             style="
                 --blur-amt: {blurAmount}px;
                 --sepia-amt: {safeDrunk/100};
-                backdrop-filter: blur(var(--blur-amt)) sepia(var(--sepia-amt)); 
-                -webkit-backdrop-filter: blur(var(--blur-amt)) sepia(var(--sepia-amt));
             "
         ></div>
     {/if}
@@ -106,7 +104,6 @@
         position: absolute;
         inset: 0;
         background: radial-gradient(circle, transparent 40%, rgba(200, 100, 0, 0.4) 100%);
-        mix-blend-mode: overlay;
     }
 
     .stress-overlay {
