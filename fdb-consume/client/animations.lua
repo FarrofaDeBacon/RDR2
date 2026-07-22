@@ -136,8 +136,8 @@ function playConsumeAnimation(spec)
 			TriggerEvent('fdb-consume:prop:cigaret')
 			return
 		elseif t == 'cigar' or t == 'smoke' then
-            print("DEBUG: Disparando evento fdb-consume:prop:cigar")
-			TriggerEvent('fdb-consume:prop:cigar')
+            print("DEBUG: Disparando evento fdb-consume:prop:cigaret com P_CIGAR01X")
+			TriggerEvent('fdb-consume:prop:cigaret', 'P_CIGAR01X')
 			return
 		elseif t == 'pipe' or t == 'pipe_smoker' then
 			TriggerEvent('fdb-consume:prop:pipe_smoker')
