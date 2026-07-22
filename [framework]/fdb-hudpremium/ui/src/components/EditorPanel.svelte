@@ -6,6 +6,43 @@
     let configs = {};
     let global = {};
 
+    let modalX = 50;
+    let modalY = 50;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialModalX = 0;
+    let initialModalY = 0;
+
+    function onDragStart(e) {
+        if (e.button !== 0) return; // apenas botão esquerdo
+        // Evita iniciar o arrasto se clicar no botão de fechar
+        if (e.target.closest('.btn-close')) return;
+        
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        initialModalX = modalX;
+        initialModalY = modalY;
+        
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+    }
+
+    function onDragMove(e) {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        modalX = initialModalX + dx;
+        modalY = initialModalY + dy;
+    }
+
+    function onDragEnd() {
+        isDragging = false;
+        window.removeEventListener('mousemove', onDragMove);
+        window.removeEventListener('mouseup', onDragEnd);
+    }
+
     const unsubscribe = editorState.subscribe(state => {
         isEditing = state.isEditing;
         positions = state.positions;
@@ -93,8 +130,8 @@
 
 {#if isEditing}
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="editor-sidebar">
-    <div class="header">
+<div class="editor-modal" style="left: {modalX}px; top: {modalY}px;">
+    <div class="header" on:mousedown={onDragStart}>
         <h2>HUD Editor</h2>
         <button class="btn-close" on:click={() => editorState.update(s => ({ ...s, isEditing: false }))}>✕</button>
     </div>
@@ -330,22 +367,22 @@
 {/if}
 
 <style>
-    .editor-sidebar {
+    .editor-modal {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 600px;
-        height: 100vh;
+        width: 550px;
+        height: 550px;
         background: rgba(15, 15, 18, 0.95);
         backdrop-filter: blur(10px);
-        border-right: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
         color: #eee;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
         flex-direction: column;
         z-index: 10000;
         pointer-events: auto;
-        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        box-shadow: 10px 10px 30px rgba(0,0,0,0.5);
+        overflow: hidden;
     }
 
     .editor-dark-bg {
@@ -363,9 +400,14 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px;
+        padding: 15px 20px;
         background: rgba(255, 255, 255, 0.05);
         border-bottom: 1px solid rgba(255,255,255,0.1);
+        cursor: grab;
+    }
+
+    .header:active {
+        cursor: grabbing;
     }
 
     .header h2 {
