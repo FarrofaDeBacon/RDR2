@@ -17,18 +17,8 @@ local stages = {
 
 local function UpdateUI()
     lib.showTextUI(string.format(
-        "**Modo Edicao: %s**\n\n"..
-        "Estagio [%d/4]: **%s**\n\n"..
-        "[TAB] Muda o estagio\n"..
-        "[Setas] Move X e Y\n"..
-        "[PgUp/PgDn] Move Z\n"..
-        "[SHIFT + Teclas] Muda a Rotacao\n"..
-        "[ENTER] Salvar no Console (F8)\n"..
-        "[BACKSPACE] Sair\n\n"..
-        "x: %.3f | y: %.3f | z: %.3f\n"..
-        "rx: %.1f | ry: %.1f | rz: %.1f",
-        itemName, currentStage, stages[currentStage].name,
-        e_x, e_y, e_z, e_rx, e_ry, e_rz
+        "[%s] Fase: %s | [TAB] Trocar | [Setas] Mover | [SHIFT+Setas] Girar | [ENTER] Copiar | X:%.3f Y:%.3f Z:%.3f | RX:%.1f RY:%.1f RZ:%.1f",
+        itemName, stages[currentStage].name, e_x, e_y, e_z, e_rx, e_ry, e_rz
     ), {
         position = "top-center",
         icon = "wrench",
