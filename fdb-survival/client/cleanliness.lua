@@ -68,7 +68,10 @@ RegisterCommand("lavar", function()
         canCancel = false,
     })
     ClearPedTasks(ped)
-    Citizen.InvokeNative(0xE314AC4AD713061A, ped)
+    -- Limpeza visual completa (Lama/Ambiente, Sangue e Danos Visuais)
+    Citizen.InvokeNative(0xE314AC4AD713061A, ped) -- ClearPedEnvDirt
+    Citizen.InvokeNative(0x8FE22675A5A45817, ped) -- ClearPedBloodDamage
+    Citizen.InvokeNative(0x523C79AEEFCC4A2A, ped, 10, "ALL") -- ClearPedDamageDecalByZone
     
     FDB.Survival.cleanliness = 100
     FDB.BroadcastState('cleanliness', 100)
