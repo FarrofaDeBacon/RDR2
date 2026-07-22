@@ -188,7 +188,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        background-image: url('../../public/assets/border_single-CaVJ0brv.png');
+        background-image: url('../../public/assets/border_single.png');
         background-size: cover;
         background-position: center;
         z-index: 1;
