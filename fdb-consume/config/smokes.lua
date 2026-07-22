@@ -11,7 +11,7 @@ local items = {
         offsets = {
             bone = "SKEL_R_Finger12",
             mouth_start = { x = -0.020, y = 0.115, z = 0.000, rx = 0.0, ry = 0.0, rz = 0.0 },
-            hand_enter = { x = 0.015, y = -0.055, z = 0.015, rx = -118.0, ry = 206.0, rz = -40.0 },
+            hand_enter = { x = 0.005, y = -0.050, z = 0.015, rx = -150.0, ry = 142.0, rz = -40.0 },
             mouth_puff = { x = -0.020, y = 0.115, z = 0.000, rx = 0.0, ry = 0.0, rz = 0.0 },
             hand_idle = { x = -0.010, y = -0.060, z = 0.015, rx = -106.0, ry = -168.0, rz = -40.0 },
             female_hand_idle = { x = 0.01, y = 0.0, z = 0.01, rx = 0.0, ry = -160.0, rz = -130.0 }
