@@ -15,22 +15,15 @@ local stages = {
     { name = "hand_idle", animDict = "amb_rest@world_human_smoking@male_c@base", animName = "base", bone = "SKEL_R_Finger13" }
 }
 
-local function UpdateUI()
-    lib.showTextUI(string.format(
-        "[%s] Fase: %s | [TAB] Trocar | [Setas] Mover | [SHIFT+Setas] Girar | [ENTER] Copiar | X:%.3f Y:%.3f Z:%.3f | RX:%.1f RY:%.1f RZ:%.1f",
-        itemName, stages[currentStage].name, e_x, e_y, e_z, e_rx, e_ry, e_rz
-    ), {
-        position = "top-center",
-        icon = "wrench",
-        style = {
-            borderRadius = 0,
-            backgroundColor = '#1e1e1e',
-            color = 'white'
-        }
-    })
+local function DrawTxt(text, x, y)
+    SetTextScale(0.25, 0.25)
+    SetTextColor(255, 255, 255, 255)
+    SetTextDropshadow(2, 0, 0, 0, 255)
+    SetTextFontForCurrentCommand(0)
+    DisplayText(CreateVarString(10, "LITERAL_STRING", text), x, y)
 end
 
-local function ApplyAnimAndAttach()
+local function PlayStageAnim()
     local stageData = stages[currentStage]
     local dict = stageData.animDict
     local name = stageData.animName
@@ -42,11 +35,12 @@ local function ApplyAnimAndAttach()
     
     ClearPedTasks(ped)
     TaskPlayAnim(ped, dict, name, 1.0, 1.0, -1, 1, 0.0, false, 0, false, "", false)
-    
+end
+
+local function UpdatePropAttach()
+    local stageData = stages[currentStage]
     local boneIndex = GetEntityBoneIndexByName(ped, stageData.bone)
     AttachEntityToEntity(propObj, ped, boneIndex, e_x, e_y, e_z, e_rx, e_ry, e_rz, true, true, false, true, 1, true)
-    
-    UpdateUI()
 end
 
 local function LoadOffsetsFromConfig()
@@ -91,49 +85,64 @@ RegisterCommand('propedit', function(source, args)
     propObj = CreateObject(hash, coords.x, coords.y, coords.z, true, true, false)
     
     LoadOffsetsFromConfig()
-    ApplyAnimAndAttach()
+    PlayStageAnim()
+    UpdatePropAttach()
     
     Citizen.CreateThread(function()
         while isEditing do
             Wait(0)
+            
+            -- Render HUD Vertical
+            DrawTxt("MODO DE EDICAO: " .. string.upper(itemName), 0.02, 0.30)
+            DrawTxt("ESTAGIO: " .. stages[currentStage].name .. " (" .. currentStage .. "/4)", 0.02, 0.33)
+            DrawTxt("[TAB] - Trocar Estagio", 0.02, 0.36)
+            DrawTxt("[W][S][A][D] - Mover Horizontal", 0.02, 0.39)
+            DrawTxt("[PgUp][PgDn] - Mover Vertical", 0.02, 0.42)
+            DrawTxt("Segurar [SHIFT] - Girar Prop (Rotacao)", 0.02, 0.45)
+            DrawTxt("[ENTER] - Salvar no console F8", 0.02, 0.48)
+            DrawTxt("[BACKSPACE] - Sair do Editor", 0.02, 0.51)
+            
+            DrawTxt(string.format("X: %.3f | Y: %.3f | Z: %.3f", e_x, e_y, e_z), 0.02, 0.56)
+            DrawTxt(string.format("RX: %.1f | RY: %.1f | RZ: %.1f", e_rx, e_ry, e_rz), 0.02, 0.59)
+            
             local speed = 0.005
             local rspeed = 2.0
             local changed = false
             
-            -- Bloqueia controles de movimento pra não zoar a animação
             DisableControlAction(0, 0x8FD015D8, true) -- W
             DisableControlAction(0, 0xD27782E3, true) -- S
             DisableControlAction(0, 0x7065027D, true) -- A
             DisableControlAction(0, 0xB4E465B4, true) -- D
             
-            local shift = IsDisabledControlPressed(0, 0x8FFC75D6) -- Shift Esquerdo
+            local shift = IsDisabledControlPressed(0, 0x8FFC75D6) -- Shift
             
             if shift then
                 if IsDisabledControlPressed(0, 0x8FD015D8) then e_rx = e_rx + rspeed; changed = true; end -- W
                 if IsDisabledControlPressed(0, 0xD27782E3) then e_rx = e_rx - rspeed; changed = true; end -- S
                 if IsDisabledControlPressed(0, 0x7065027D) then e_ry = e_ry + rspeed; changed = true; end -- A
                 if IsDisabledControlPressed(0, 0xB4E465B4) then e_ry = e_ry - rspeed; changed = true; end -- D
-                if IsDisabledControlPressed(0, 0x4403F97F) then e_rz = e_rz + rspeed; changed = true; end -- Page Up
-                if IsDisabledControlPressed(0, 0x3C3DD371) then e_rz = e_rz - rspeed; changed = true; end -- Page Down
+                if IsDisabledControlPressed(0, 0x4403F97F) then e_rz = e_rz + rspeed; changed = true; end -- PgUp
+                if IsDisabledControlPressed(0, 0x3C3DD371) then e_rz = e_rz - rspeed; changed = true; end -- PgDn
             else
                 if IsDisabledControlPressed(0, 0x8FD015D8) then e_y = e_y + speed; changed = true; end -- W
                 if IsDisabledControlPressed(0, 0xD27782E3) then e_y = e_y - speed; changed = true; end -- S
                 if IsDisabledControlPressed(0, 0x7065027D) then e_x = e_x - speed; changed = true; end -- A
                 if IsDisabledControlPressed(0, 0xB4E465B4) then e_x = e_x + speed; changed = true; end -- D
-                if IsDisabledControlPressed(0, 0x4403F97F) then e_z = e_z + speed; changed = true; end -- Page Up
-                if IsDisabledControlPressed(0, 0x3C3DD371) then e_z = e_z - speed; changed = true; end -- Page Down
+                if IsDisabledControlPressed(0, 0x4403F97F) then e_z = e_z + speed; changed = true; end -- PgUp
+                if IsDisabledControlPressed(0, 0x3C3DD371) then e_z = e_z - speed; changed = true; end -- PgDn
             end
             
             if changed then
-                ApplyAnimAndAttach()
-                Wait(50) -- debouncing leve
+                UpdatePropAttach()
+                Wait(50) 
             end
             
             if IsDisabledControlJustPressed(0, 0x3C0A40F2) then -- TAB
                 currentStage = currentStage + 1
                 if currentStage > 4 then currentStage = 1 end
                 LoadOffsetsFromConfig()
-                ApplyAnimAndAttach()
+                PlayStageAnim()
+                UpdatePropAttach()
             end
             
             if IsDisabledControlJustPressed(0, 0xC7B5340A) then -- ENTER
@@ -143,7 +152,6 @@ RegisterCommand('propedit', function(source, args)
             
             if IsDisabledControlJustPressed(0, 0x156F7119) then -- BACKSPACE
                 isEditing = false
-                lib.hideTextUI()
                 ClearPedTasks(ped)
                 DeleteObject(propObj)
                 print("Editor fechado.")
