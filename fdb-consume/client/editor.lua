@@ -17,15 +17,15 @@ local stages = {
 
 local function UpdateUI()
     lib.showTextUI(string.format(
-        "<b>Modo Edicao: %s</b><br>"..
-        "Estagio [%d/4]: <b>%s</b><br><br>"..
-        "[TAB] Muda o estagio<br>"..
-        "[Setas] Move X e Y<br>"..
-        "[PgUp/PgDn] Move Z<br>"..
-        "[SHIFT + Teclas] Muda a Rotacao<br>"..
-        "[ENTER] Salvar no Console (F8)<br>"..
-        "[BACKSPACE] Sair<br><br>"..
-        "x: %.3f | y: %.3f | z: %.3f<br>"..
+        "**Modo Edicao: %s**\n\n"..
+        "Estagio [%d/4]: **%s**\n\n"..
+        "[TAB] Muda o estagio\n"..
+        "[Setas] Move X e Y\n"..
+        "[PgUp/PgDn] Move Z\n"..
+        "[SHIFT + Teclas] Muda a Rotacao\n"..
+        "[ENTER] Salvar no Console (F8)\n"..
+        "[BACKSPACE] Sair\n\n"..
+        "x: %.3f | y: %.3f | z: %.3f\n"..
         "rx: %.1f | ry: %.1f | rz: %.1f",
         itemName, currentStage, stages[currentStage].name,
         e_x, e_y, e_z, e_rx, e_ry, e_rz
