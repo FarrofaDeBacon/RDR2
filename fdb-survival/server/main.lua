@@ -113,6 +113,11 @@ RegisterNetEvent('fdb-survival:server:SaveMeta', function(meta, value)
     Player.Functions.SetMetaData(meta, safeValue)
 end)
 
+AddEventHandler('playerDropped', function(reason)
+    local src = source
+    lastSaveTime[src] = nil
+end)
+
 -- -------------------------------------------------------
 -- EXPORTS DE MANIPULAÇÃO DIRETA
 -- -------------------------------------------------------
