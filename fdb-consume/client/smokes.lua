@@ -143,10 +143,11 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, n
     --Citizen.InvokeNative( 0xF6A7C08DF2E28B28, PlayerPedId(), 0, 500.0, false )
     --PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
     if male then
-        AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_start.x, offsets.mouth_start.y, offsets.mouth_start.z, offsets.mouth_start.rx, offsets.mouth_start.ry, offsets.mouth_start.rz, true, true, false, true, 1, true)
+        SetEntityVisible(cigaret, false)
         Anim(ped, "amb_rest@world_human_smoking@male_c@stand_enter", "enter_back_rf", 5400, 0)
         Wait(1000)
         
+        SetEntityVisible(cigaret, true)
         AttachEntityToEntity(cigaret, ped, righthand, offsets.hand_enter.x, offsets.hand_enter.y, offsets.hand_enter.z, offsets.hand_enter.rx, offsets.hand_enter.ry, offsets.hand_enter.rz, true, true, false, true, 1, true)
         Wait(1000)
         AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_puff.x, offsets.mouth_puff.y, offsets.mouth_puff.z, offsets.mouth_puff.rx, offsets.mouth_puff.ry, offsets.mouth_puff.rz, true, true, false, true, 1, true)
