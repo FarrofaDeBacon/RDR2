@@ -64,12 +64,7 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     elseif animType == "Medical" or animType == "Drug" then
         TriggerEvent('fdb-consume:client:ConsumeMedical', propModel, animType, maxUses, animDict, animName, itemName)
     elseif animType == "Smoke" then
-        if itemName == "cigar" then
-            ClearPedTasks(ped)
-            TaskStartScenarioInPlace(ped, GetHashKey('WORLD_HUMAN_SMOKE_CIGAR'), -1, true, false, false, false)
-        else
-            TriggerEvent('fdb-consume:prop:cigaret', propModel, maxUses, animDict, animName)
-        end
+        TriggerEvent('fdb-consume:prop:cigaret', propModel, maxUses, animDict, animName)
     elseif animType == "Cigar" then
         TriggerEvent('fdb-consume:prop:cigar', maxUses, animDict, animName)
     else

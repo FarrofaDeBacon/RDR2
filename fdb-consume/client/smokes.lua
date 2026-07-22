@@ -108,6 +108,7 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
     EPrompt(Config.Change, Config.Prompts.ChangeKey, false)
     ExecuteCommand('close')
     local ped = PlayerPedId()
+    ClearPedTasks(ped)
     local male = IsPedMale(ped)
     local x, y, z = table.unpack(GetEntityCoords(ped, true))
     
@@ -126,7 +127,11 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
     --Citizen.InvokeNative( 0xF6A7C08DF2E28B28, PlayerPedId(), 0, 500.0, false )
     --PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
     if male then
-        AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        if string.lower(propModel or "") == "p_cigar01x" then
+            AttachEntityToEntity(cigaret, ped, mouth, -0.017, 0.1, -0.01, 0.0, 90.0, -90.0, true, true, false, true, 1, true)
+        else
+            AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        end
         Anim(ped, "amb_rest@world_human_smoking@male_c@stand_enter", "enter_back_rf", 5400, 0)
         Wait(1000)
         
@@ -149,7 +154,11 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses)
         RemoveAnimDict("amb_rest@world_human_smoking@male_c@stand_enter")
         Wait(1000)
     else --if female
-        AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        if string.lower(propModel or "") == "p_cigar01x" then
+            AttachEntityToEntity(cigaret, ped, mouth, -0.017, 0.1, -0.01, 0.0, 90.0, -90.0, true, true, false, true, 1, true)
+        else
+            AttachEntityToEntity(cigaret, ped, mouth, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+        end
         Anim(ped, "amb_rest@world_human_smoking@female_c@base", "base", -1, 30)
         Wait(1000)
         
