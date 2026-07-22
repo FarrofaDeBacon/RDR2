@@ -224,45 +224,8 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     SendNUIMessage({ action = nuiAction, value = data.value })
 end)
 
-RegisterNetEvent('fdb-hudpremium:client:DrinkAlcohol', function(amount)
-    survival.drunkenness = math.min(100, survival.drunkenness + amount)
-    SendNUIMessage({ action = 'drunkenness', value = survival.drunkenness })
-end)
-
--- Interceptadores de consumíveis legados para compatibilidade
-RegisterNetEvent('hud:client:UpdateThirst', function(newThirst)
-    local currentThirst = survival.water
-    local diff = newThirst - currentThirst
-    if diff > 0 then
-        TriggerServerEvent('fdb-hudpremium:server:UpdateThirstBladder', diff)
-        survival.water = newThirst
-    end
-end)
-
-RegisterNetEvent('hud:client:UpdateHunger', function(newHunger)
-    local currentHunger = survival.food
-    local diff = newHunger - currentHunger
-    if diff > 0 then
-        TriggerServerEvent('fdb-hudpremium:server:UpdateHunger', diff)
-        survival.food = newHunger
-    end
-end)
-
-RegisterNetEvent('hud:client:UpdateAlcohol', function(newAlcohol)
-    local currentAlcohol = survival.drunkenness
-    local diff = newAlcohol - currentAlcohol
-    if diff ~= 0 then
-        TriggerServerEvent('fdb-hudpremium:server:UpdateAlcohol', diff)
-        survival.drunkenness = newAlcohol
-    end
-end)
-
-RegisterNetEvent('hud:client:RelieveStress', function(amount)
-    if type(amount) == "number" and amount > 0 then
-        TriggerServerEvent('fdb-hudpremium:server:RelieveStress', amount)
-        survival.stress = math.max(0, survival.stress - amount)
-    end
-end)
+-- Todos os interceptadores legados (hud:client:*) foram removidos.
+-- O HUD agora escuta exclusivamente 'fdb-survival:client:stateChanged' para atualizações.
 
 -- -------------------------------------------------------
 -- Comandos movidos para fdb-survival
