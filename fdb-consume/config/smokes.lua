@@ -36,7 +36,7 @@ local items = {
         }
     },
     ['chewing_tobacco'] = {
-        type = "Eat", -- Alterado para usar a animação correta
+        type = "Smoke", -- Usa a mesma lógica base
         hunger = 0,
         thirst = -5,
         stress = -15,
