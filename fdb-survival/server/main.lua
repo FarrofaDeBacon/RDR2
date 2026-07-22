@@ -59,16 +59,58 @@ RSGCore.Functions.CreateUseableItem('medicine', function(source, item)
 end)
 
 -- -------------------------------------------------------
--- Sincronização de Metadados via Tick
+-- Sincronização de Metadados via Tick (com validação server-side)
 -- -------------------------------------------------------
+local allowedMetas = {
+    cleanliness = true,
+    bladder = true,
+    poison = true,
+    illness = true
+}
+
+local lastSaveTime = {} -- [src][meta] = timestamp
+
 RegisterNetEvent('fdb-survival:server:SaveMeta', function(meta, value)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-    
-    if meta == 'cleanliness' or meta == 'bladder' or meta == 'poison' or meta == 'illness' then
-        Player.Functions.SetMetaData(meta, value)
+
+    if not allowedMetas[meta] then
+        print(("[fdb-survival] SaveMeta rejeitado: meta inválido '%s' de src %s"):format(tostring(meta), src))
+        return
     end
+
+    if type(value) ~= 'number' then
+        print(("[fdb-survival] SaveMeta rejeitado: value não-numérico de src %s"):format(src))
+        return
+    end
+
+    -- Rate limit per meta (cliente envia os 4 ao mesmo tempo a cada 16s)
+    local now = os.time()
+    if not lastSaveTime[src] then lastSaveTime[src] = {} end
+    
+    if lastSaveTime[src][meta] and (now - lastSaveTime[src][meta]) < 10 then
+        print(("[fdb-survival] SaveMeta rejeitado: rate limit de src %s para meta %s"):format(src, meta))
+        return
+    end
+
+    local safeValue = math.floor(math.max(0, math.min(100, value)))
+
+    local maxDeltaPerSync = {
+        cleanliness = 5,
+        bladder = 5
+    }
+    if maxDeltaPerSync[meta] then
+        local current = Player.PlayerData.metadata[meta] or 0
+        local delta = math.abs(safeValue - current)
+        if delta > maxDeltaPerSync[meta] then
+            print(("[fdb-survival] SaveMeta suspeito: delta de %d em '%s' de src %s (citizenid: %s)"):format(delta, meta, src, Player.PlayerData.citizenid))
+            return
+        end
+    end
+
+    lastSaveTime[src][meta] = now
+    Player.Functions.SetMetaData(meta, safeValue)
 end)
 
 -- -------------------------------------------------------
