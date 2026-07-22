@@ -1,4 +1,4 @@
--- client/foods.lua
+﻿-- client/foods.lua
 -- Lógica interativa para comidas e Ensopado (Stew)
 
 local activeProp = nil
@@ -85,7 +85,6 @@ RegisterNetEvent('fdb-consume:client:ConsumeFood', function(propModel, animType,
     end
 
     if not HasModelLoaded(modelHash) then
-        print("DEBUG: Falha ao carregar o modelo de comida: " .. tostring(propModel))
         isHoldingFood = false
         return
     end

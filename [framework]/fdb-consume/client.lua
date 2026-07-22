@@ -1,4 +1,4 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
+﻿local RSGCore = exports['rsg-core']:GetCoreObject()
 local IsDrunk = false
 local IsPassedOut = false
 
@@ -11,7 +11,6 @@ local function PlayAnimation(ped, dict, name, flag, duration)
         timeout = timeout + 1
     end
     if timeout >= 50 then 
-        print("DEBUG fdb-consume: Falha ao carregar AnimDict: " .. tostring(dict))
         return 
     end
     TaskPlayAnim(ped, dict, name, 8.0, -8.0, duration, flag, 0, false, false, false)
@@ -71,7 +70,6 @@ end)
 
 -- Evento de Consumir (Vem Seguro do Servidor)
 RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
-    print("DEBUG: Iniciando playAnim para o item: " .. tostring(itemName))
     
     if isBusy then 
         lib.notify({ title = 'Aviso', description = 'Você já está fazendo algo!', type = 'error' })
@@ -80,14 +78,12 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     
     local itemData = Config.Items[itemName]
     if not itemData then 
-        print("DEBUG: itemData não encontrado no Config.Items!")
         return 
     end
 
     local animType = itemData.type
     local baseAnim = Config.Animations[animType]
 
-    print("DEBUG: animType: " .. tostring(animType))
 
     isBusy = true
     LocalPlayer.state:set("inv_busy", true, true)
@@ -97,7 +93,6 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
 
     local propModel = itemData.prop or baseAnim.prop
     local maxUses = itemData.uses or baseAnim.uses or 3
-    print("DEBUG: propModel resolvido para: " .. tostring(propModel) .. " | maxUses: " .. tostring(maxUses))
 
     local stressChange = itemData.stress or 0
     local hungerChange = itemData.hunger or 0
@@ -111,22 +106,16 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
 
     -- Roteador de Animações
     if animType == "Smoke" then
-        print("DEBUG: Roteando para Smoke (Cigarro)")
         TriggerEvent('fdb-consume:prop:cigaret', propModel, maxUses)
     elseif animType == "Cigar" then
-        print("DEBUG: Roteando para Cigar (Charuto)")
         TriggerEvent('fdb-consume:prop:cigar', maxUses)
     elseif animType == "Stew" or animType == "Eat" or animType == "Canned" then
-        print("DEBUG: Roteando para Foods")
         TriggerEvent('fdb-consume:client:ConsumeFood', propModel, animType, maxUses)
     elseif animType == "Drink" or animType == "Coffee" then
-        print("DEBUG: Roteando para Drinks")
         TriggerEvent('fdb-consume:client:ConsumeDrink', propModel, animType, maxUses)
     elseif animType == "Medical" or animType == "Drug" then
-        print("DEBUG: Roteando para Medical")
         TriggerEvent('fdb-consume:client:ConsumeMedical', propModel)
     else
-        print("DEBUG: Tipo de animação desconhecido! " .. tostring(animType))
     end
     
     LocalPlayer.state:set("inv_busy", false, true)
@@ -136,23 +125,20 @@ end)
 -- Efeitos do Álcool (Controlados pelo Servidor)
 RegisterNetEvent('fdb-consume:client:checkAlcohol', function(alcoholLevel)
     local ped = PlayerPedId()
-    print("DEBUG ALCOHOL: Nível recebido do servidor = " .. tostring(alcoholLevel))
 
     if alcoholLevel > Config.Alcohol.PassOutThreshold and not IsPassedOut then
         IsPassedOut = true
-        print("DEBUG ALCOHOL: Personagem atingiu o limite de Desmaio!")
         lib.notify({title = '💥 Desmaio', description = 'Você bebeu demais e apagou!', type = 'error'})
         
         -- Desmaio
         PlayAnimation(ped, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, Config.Alcohol.SleepDuration)
-        -- DoScreenFadeOut(5000) -- DESATIVADO TEMPORARIAMENTE PARA TESTES
+        DoScreenFadeOut(5000)
         Wait(Config.Alcohol.SleepDuration)
 
         -- Acordar
         ClearPedTasks(ped)
-        -- DoScreenFadeIn(5000)
+        DoScreenFadeIn(5000)
         IsPassedOut = false
-        print("DEBUG ALCOHOL: Personagem acordou do Desmaio.")
 
     elseif alcoholLevel > Config.Alcohol.DrunkThreshold and not IsPassedOut then
         -- BÊBADO

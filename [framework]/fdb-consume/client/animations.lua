@@ -1,4 +1,4 @@
-local consumeAnimations = {
+﻿local consumeAnimations = {
 	eat = {
 		dict = 'mech_inventory@eating@multi_bite@sphere_d8-2_sandwich',
 		clip = 'quick_right_hand',
@@ -87,10 +87,8 @@ function playConsumeAnimation(spec)
 		propName = spec
 	end
 
-    print("DEBUG: playConsumeAnimation animType: " .. tostring(animType) .. " propName: " .. tostring(propName))
 
 	if animType == 'stew' then
-        print("DEBUG: Entrando no eatstew")
         eatstew()
         return
     end
@@ -104,7 +102,6 @@ function playConsumeAnimation(spec)
 	local modelName = propName or animDef.defaultProp or 'P_BREAD05X'
 	local modelHash = GetHashKey(modelName)
 
-    print("DEBUG: dict: " .. tostring(dict) .. " clip: " .. tostring(clip) .. " model: " .. tostring(modelName))
 
 	RequestAnimDict(dict)
 	local attempts = 0
@@ -113,7 +110,6 @@ function playConsumeAnimation(spec)
 		Wait(50)
 	end
 	if not HasAnimDictLoaded(dict) then
-        print("DEBUG: Falhou ao carregar o dict: " .. tostring(dict))
 		return
 	end
 
@@ -124,19 +120,16 @@ function playConsumeAnimation(spec)
 		Wait(50)
 	end
 	if not HasModelLoaded(modelHash) then
-        print("DEBUG: Falhou ao carregar o model: " .. tostring(modelName))
 		RemoveAnimDict(dict)
 		return
 	end
 
-    print("DEBUG: Tudo carregado. Verificando fumo...")
 	do
 		local t = animType
 		if t == 'cigarette' or t == 'cigaret' then
 			TriggerEvent('fdb-consume:prop:cigaret')
 			return
 		elseif t == 'cigar' or t == 'smoke' then
-            print("DEBUG: Disparando evento fdb-consume:prop:cigar")
 			TriggerEvent('fdb-consume:prop:cigar')
 			return
 		elseif t == 'pipe' or t == 'pipe_smoker' then
@@ -148,7 +141,6 @@ function playConsumeAnimation(spec)
 		end
 	end
 
-    print("DEBUG: Tocando animacao generica e segurando prop")
 	cleanupConsumeProp()
 
     -- Dispara o evento que vai segurar o prop e criar os Prompts Interativos (Dar Gole/Dar Mordida)
@@ -156,7 +148,6 @@ function playConsumeAnimation(spec)
 
 	RemoveAnimDict(dict)
 	SetModelAsNoLongerNeeded(modelHash)
-    print("DEBUG: playConsumeAnimation finalizado")
 end
 
 RegisterNetEvent('fdb-consume:playConsumeAnim', function(propName)

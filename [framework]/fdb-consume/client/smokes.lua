@@ -1,4 +1,4 @@
--- client/smokes.lua
+﻿-- client/smokes.lua
 -- credits: HerosTicWorld (https://github.com/HerosTicWorld/heros_tobacco)
 -- adapted for fdb-consume
 
@@ -86,7 +86,6 @@ function Anim(actor, dict, body, duration, flags, introtiming, exittiming)
         while (not HasAnimDictLoaded(dict) and timeout > 0) do
             timeout = timeout - 1
             if timeout == 0 then
-                print("Animation Failed to Load")
             end
             Citizen.Wait(300)
         end
@@ -446,7 +445,6 @@ AddEventHandler('fdb-consume:prop:cigar', function(maxUses)
             waiting = waiting + 100
             Citizen.Wait(100)
             if waiting > 5000 then
-                print('RedM Fucked up this animation')
                 break
             end
         end
