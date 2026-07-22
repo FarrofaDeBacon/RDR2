@@ -1,6 +1,6 @@
 -- ============================================================
 -- fdb-hudpremium | client/main.lua
--- Inicialização, loop principal, dreno de sobrevivência (Lua-3)
+-- Inicialização, loop principal (Lua-3)
 -- ============================================================
 
 local RSGCore = exports['rsg-core']:GetCoreObject()
@@ -9,26 +9,9 @@ local isLoggedIn = false
 local nuiReady = false
 local KVP_KEY = "fdb-hudpremium:settings"
 
--- Variáveis Locais de Sobrevivência (Sincronizadas com Metadados)
-local survival = {
-    food = 100,
-    water = 100,
-    stress = 0,
-    urine = 0,
-    hygiene = 100,
-    poison = 0,
-    illness = 0,
-    drunkenness = 0,
-    coldResistance = 0, -- Em segundos
-    heatResistance = 0  -- Em segundos
-}
-
 -- Cache de status para otimização e redução de spam de tráfego NUI
 local lastStatus = {
     health = -1, stamina = -1,
-    food = -1, water = -1, stress = -1, urine = -1, hygiene = -1,
-    poison = -1, illness = -1, drunkenness = -1, temp = -999,
-    coldResistance = -1, heatResistance = -1,
     isMounted = false, horseHealth = -1, horseStamina = -1
 }
 
@@ -76,27 +59,12 @@ local function LoadSettings()
     end
 end
 
--- Sincronizar metadados locais ao carregar o jogador
-local function SyncLocalMetadata()
-    if PlayerData and PlayerData.metadata then
-        survival.food = PlayerData.metadata["hunger"] or 100
-        survival.water = PlayerData.metadata["thirst"] or 100
-        survival.stress = PlayerData.metadata["stress"] or 0
-        survival.urine = PlayerData.metadata["bladder"] or 0
-        survival.hygiene = PlayerData.metadata["hygiene"] or 100
-        survival.poison = PlayerData.metadata["poison"] or 0
-        survival.illness = PlayerData.metadata["illness"] or 0
-        survival.drunkenness = PlayerData.metadata["alcohol"] or 0
-    end
-end
-
 -- -------------------------------------------------------
 -- Eventos do Framework (RSGCore)
 -- -------------------------------------------------------
 AddEventHandler('RSGCore:Client:OnPlayerLoaded', function()
     PlayerData = RSGCore.Functions.GetPlayerData()
     isLoggedIn = true
-    SyncLocalMetadata()
     LoadSettings()
     SendNUIMessage({ action = 'setVisibility', value = true })
 end)
@@ -105,16 +73,6 @@ AddEventHandler('RSGCore:Client:OnPlayerLogout', function()
     PlayerData = {}
     isLoggedIn = false
     SendNUIMessage({ action = 'setVisibility', value = false })
-end)
-
-RegisterNetEvent('RSGCore:Client:OnPlayerInfoUpdate', function(data)
-    PlayerData = data
-    SyncLocalMetadata()
-end)
-
-RegisterNetEvent('RSGCore:Player:SetPlayerData', function(val)
-    PlayerData = val
-    SyncLocalMetadata()
 end)
 
 -- -------------------------------------------------------
@@ -144,7 +102,7 @@ RegisterNUICallback("closeEditor", function(data, cb)
 end)
 
 -- -------------------------------------------------------
--- Loop de Coleta de Ticks Básicos (500ms)
+-- Loop de Coleta de Ticks Básicos (500ms) - Vida e Fôlego
 -- -------------------------------------------------------
 CreateThread(function()
     while true do
@@ -205,10 +163,7 @@ CreateThread(function()
 end)
 
 -- -------------------------------------------------------
--- Efeitos de Câmera de Bebidas Alcoólicas
--- -------------------------------------------------------
--- -------------------------------------------------------
--- Loop de Consumo removido (Domínio do fdb-consume e fdb-survival)
+-- Receptor de Alterações de Estado (Consume / Survival)
 -- -------------------------------------------------------
 RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     if not nuiReady then return end
@@ -224,12 +179,6 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     SendNUIMessage({ action = nuiAction, value = data.value })
 end)
 
--- Todos os interceptadores legados (hud:client:*) foram removidos.
--- O HUD agora escuta exclusivamente 'fdb-survival:client:stateChanged' para atualizações.
-
--- -------------------------------------------------------
--- Comandos movidos para fdb-survival
-
 -- -------------------------------------------------------
 -- Recurso reiniciado com jogador já na sessão (Restart)
 -- -------------------------------------------------------
@@ -240,7 +189,6 @@ CreateThread(function()
         if data and data.citizenid then
             PlayerData = data
             isLoggedIn = true
-            SyncLocalMetadata()
             LoadSettings()
             SendNUIMessage({ action = 'setVisibility', value = true })
         end
@@ -253,7 +201,6 @@ AddEventHandler("onResourceStart", function(resourceName)
         if data and data.citizenid then
             PlayerData = data
             isLoggedIn = true
-            SyncLocalMetadata()
             LoadSettings()
             SendNUIMessage({ action = 'setVisibility', value = true })
         end
