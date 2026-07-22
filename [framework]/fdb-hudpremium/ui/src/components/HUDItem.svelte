@@ -92,9 +92,6 @@
 <div class="hud-item-wrapper" style="transform: scale({scale});">
     <div class="hud-item" class:flashing={isFlashing}>
         
-        <!-- Fundo metálico (Borda RDR2) -->
-        <div class="hud-bg"></div>
-
         <!-- Outer Ring (SVG Progress) -->
         <svg class="outer-ring" width="56" height="56" viewBox="0 0 56 56">
             <defs>
@@ -182,17 +179,6 @@
         align-items: center;
         margin: 4px;
         transition: transform 0.2s ease-out;
-    }
-
-    .hud-bg {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-image: url('../../public/assets/border_single.png');
-        background-size: cover;
-        background-position: center;
-        z-index: 1;
-        opacity: 0.9;
     }
 
     .outer-ring {

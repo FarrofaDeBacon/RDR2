@@ -55,231 +55,119 @@
 </script>
 
 <div class="status-cores-container">
-    <DraggableModule id="PlayerCores">
-        <div class="cores-group">
+    <div class="cores-group">
             <!-- Saúde -->
-            <HUDItem 
-                itemId="health"
-                value={health} 
-                innerValue={health} 
-                icon="./assets/health.svg" 
-                outerColor="#ffffff"
-                innerColor={getInnerColor(health, '#ffffff', '#ff0000')}
-                isFlashing={health <= 15}
-            />
+            <DraggableModule id="health">
+            
+        </DraggableModule>
 
             <!-- Estamina -->
-            <HUDItem 
-                itemId="stamina"
-                value={stamina} 
-                innerValue={stamina} 
-                icon="./assets/stamina.svg" 
-                outerColor="#ffd700" 
-                innerColor={getInnerColor(stamina, '#ffffff', '#ff0000')}
-                isFlashing={stamina <= 10}
-            />
+            <DraggableModule id="stamina">
+            
+        </DraggableModule>
 
             <!-- Fome -->
-            <HUDItem 
-                itemId="food"
-                value={food} 
-                innerValue={food} 
-                icon="./assets/food.svg" 
-                outerColor="#ffa500" 
-                innerColor={getInnerColor(food, '#ffffff', '#ff0000')}
-                isFlashing={food <= 10}
-            />
+            <DraggableModule id="food">
+            
+        </DraggableModule>
 
             <!-- Sede -->
-            <HUDItem 
-                itemId="water"
-                value={water} 
-                innerValue={water} 
-                icon="./assets/water.svg" 
-                outerColor="#00bfff" 
-                innerColor={getInnerColor(water, '#ffffff', '#ff0000')}
-                isFlashing={water <= 10}
-            />
+            <DraggableModule id="water">
+            
+        </DraggableModule>
 
             <!-- Estresse -->
-            <HUDItem 
-                itemId="stress"
-                value={stress} 
-                innerValue={stress} 
-                icon="./assets/stress.svg" 
-                outerColor="#ff4500" 
-                innerColor="#ffffff"
-                isFlashing={stress >= 90}
-            />
+            <DraggableModule id="stress">
+            
+        </DraggableModule>
 
             <!-- Armadura (Condicional) -->
             {#if showArmor}
-                <HUDItem 
-                    itemId="armor"
-                    value={armor} 
-                    innerValue={armor} 
-                    icon="./assets/armor.svg" 
-                    outerColor="#c0c0c0" 
-                    innerColor="#ffffff"
-                />
+                <DraggableModule id="armor">
+            
+        </DraggableModule>
             {/if}
 
             <!-- Oxigênio (Condicional, só quando embaixo d'agua) -->
             {#if showOxygen}
-                <HUDItem 
-                    itemId="oxygen"
-                    value={oxygen} 
-                    innerValue={oxygen} 
-                    icon="./assets/oxygen.svg" 
-                    outerColor="#87ceeb" 
-                    innerColor={getInnerColor(oxygen, '#ffffff', '#ff0000')}
-                    isFlashing={oxygen <= 20}
-                />
+                <DraggableModule id="oxygen">
+            
+        </DraggableModule>
             {/if}
         </div>
-    </DraggableModule>
 
     <!-- Núcleos do Cavalo -->
     {#if showHorse}
-        <DraggableModule id="HorseCores">
-            <div class="horse-group">
-                <HUDItem 
-                    itemId="horseHealth"
-                    value={horseHealth} 
-                    innerValue={horseHealth} 
-                    icon="./assets/horse_health.svg" 
-                    outerColor="#ffffff"
-                    innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
-                />
-                <HUDItem 
-                    itemId="horseStamina"
-                    value={horseStamina} 
-                    innerValue={horseStamina} 
-                    icon="./assets/horse_stamina.svg" 
-                    outerColor="#ffd700"
-                    innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
-                />
-            </div>
+        <div class="horse-group">
+                <DraggableModule id="horseHealth">
+            
         </DraggableModule>
+                <DraggableModule id="horseStamina">
+            
+        </DraggableModule>
+            </div>
     {/if}
 
     <!-- Sobrevivência Hardcore -->
-    <DraggableModule id="SurvivalCores">
-        <div class="survival-group">
+    <div class="survival-group">
             {#if showUrine}
-                <HUDItem 
-                    itemId="urine"
-                    value={urine} 
-                    innerValue={urine} 
-                    icon="./assets/urine.svg" 
-                    outerColor="#ffff00" 
-                    innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
-                    isFlashing={urine >= 90}
-                />
+                <DraggableModule id="urine">
+            
+        </DraggableModule>
             {/if}
 
             {#if showHygiene}
-                <HUDItem 
-                    itemId="hygiene"
-                    value={hygiene} 
-                    innerValue={hygiene} 
-                    icon="./assets/hygiene.svg" 
-                    outerColor="#8b4513" 
-                    innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
-                />
+                <DraggableModule id="hygiene">
+            
+        </DraggableModule>
             {/if}
 
             {#if showTemp}
-                <HUDItem 
-                    itemId="temperature"
-                    value={getTempValue(temp)} 
-                    innerValue={100} 
-                    icon={temp > 35 ? "./assets/temp_hot.svg" : "./assets/temp_cold.svg"} 
-                    outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
-                    innerColor="#ffffff"
-                    isFlashing={temp <= 0 || temp >= 45}
-                />
+                <DraggableModule id="temperature">
+            
+        </DraggableModule>
             {/if}
 
             {#if showPoison}
-                <HUDItem 
-                    itemId="poison"
-                    value={poison} 
-                    innerValue={poison} 
-                    icon="./assets/poison.svg" 
-                    outerColor="#32cd32" 
-                    innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
-                    isFlashing={poison >= 80}
-                />
+                <DraggableModule id="poison">
+            
+        </DraggableModule>
             {/if}
 
             {#if showIllness}
-                <HUDItem 
-                    itemId="illness"
-                    value={illness} 
-                    innerValue={illness} 
-                    icon="./assets/illness.svg" 
-                    outerColor="#808000" 
-                    innerColor="#ffffff"
-                    isFlashing={illness >= 80}
-                />
+                <DraggableModule id="illness">
+            
+        </DraggableModule>
             {/if}
 
             {#if showDrunkenness}
-                <HUDItem 
-                    itemId="drunkenness"
-                    value={drunkenness} 
-                    innerValue={drunkenness} 
-                    icon="./assets/alcohol.svg" 
-                    outerColor="#ff69b4" 
-                    innerColor="#ffffff"
-                />
+                <DraggableModule id="drunkenness">
+            
+        </DraggableModule>
             {/if}
         </div>
-    </DraggableModule>
 
     <!-- Buffs Ativos -->
-    <DraggableModule id="Buffs">
-        <div class="buffs-group">
+    <div class="buffs-group">
             {#if coldResistance > 0}
-                <HUDItem 
-                    itemId="coldResistance"
-                    value={coldResistance > 100 ? 100 : coldResistance} 
-                    innerValue={100} 
-                    icon="./assets/buff_cold.svg" 
-                    outerColor="#00ffff" 
-                    innerColor="#ffffff"
-                    isFlashing={coldResistance <= 10}
-                />
+                <DraggableModule id="coldResistance">
+            
+        </DraggableModule>
             {/if}
 
             {#if heatResistance > 0}
-                <HUDItem 
-                    itemId="heatResistance"
-                    value={heatResistance > 100 ? 100 : heatResistance} 
-                    innerValue={100} 
-                    icon="./assets/buff_heat.svg" 
-                    outerColor="#ff4500" 
-                    innerColor="#ffffff"
-                    isFlashing={heatResistance <= 10}
-                />
+                <DraggableModule id="heatResistance">
+            
+        </DraggableModule>
             {/if}
         </div>
-    </DraggableModule>
 
     <!-- Voz (pma-voice) -->
-    <DraggableModule id="Voice">
-        <div class="voice-group">
-            <HUDItem 
-                itemId="voice"
-                value={voice === 0 ? 33 : (voice === 1 ? 66 : 100)} 
-                innerValue={isTalking ? 100 : 0} 
-                icon="./assets/voice.svg" 
-                outerColor="#aaaaaa" 
-                innerColor={isTalking ? "#ffff00" : "#ffffff"}
-            />
+    <div class="voice-group">
+            <DraggableModule id="voice">
+            
+        </DraggableModule>
         </div>
-    </DraggableModule>
 </div>
 
 <style>

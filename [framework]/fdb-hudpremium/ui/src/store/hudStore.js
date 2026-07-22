@@ -239,43 +239,59 @@ window.addEventListener('message', (event) => {
             break;
         case 'loadSettings': {
             let configs = data.configs;
+            let positions = data.positions;
+            let scales = data.scales;
+            
+            const legacyGroupMapping = {
+                PlayerCores: ['health', 'stamina', 'food', 'water', 'stress'],
+                SurvivalCores: ['urine', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature'],
+                HorseCores: ['horseHealth', 'horseStamina'],
+                Buffs: ['coldResistance', 'heatResistance'],
+                Voice: ['voice'],
+            };
+
             if (!configs) {
-                // Formato legado detectado! Fazer migração
+                // Formato legado detectado! Fazer migração das configs
                 configs = createDefaultConfigs();
                 
-                // 1. Mapear as escalas legadas de grupos para os elementos individuais correspondentes
-                const legacyGroupMapping = {
-                    PlayerCores: ['health', 'stamina', 'food', 'water', 'stress'],
-                    SurvivalCores: ['urine', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature'],
-                    HorseCores: ['horseHealth', 'horseStamina'],
-                    Buffs: ['coldResistance', 'heatResistance'],
-                    Voice: ['voice'],
-                };
-
-                const oldScales = data.scales || {};
+                // 1. Mapear as escalas legadas
+                const oldScales = scales || {};
                 for (const [group, elements] of Object.entries(legacyGroupMapping)) {
                     if (oldScales[group] !== undefined) {
                         elements.forEach(id => {
-                            if (configs[id]) {
-                                configs[id].scale = oldScales[group];
-                            }
+                            if (configs[id]) configs[id].scale = oldScales[group];
                         });
                     }
                 }
 
-                // 2. Se existirem cores legadas individuais salvas
+                // 2. Cores legadas
                 const oldColors = data.colors || {};
                 for (const [id, color] of Object.entries(oldColors)) {
-                    if (configs[id]) {
-                        configs[id].outerColor = color;
+                    if (configs[id]) configs[id].outerColor = color;
+                }
+            }
+
+            // 3. Migrar posições legadas (sejam novas ou antigas)
+            // Se existirem chaves de grupo, desmembramos para as chaves individuais e aplicamos como offset inicial.
+            if (positions) {
+                const newPositions = { ...positions };
+                for (const [group, elements] of Object.entries(legacyGroupMapping)) {
+                    if (newPositions[group]) {
+                        elements.forEach(id => {
+                            if (!newPositions[id]) {
+                                newPositions[id] = { ...newPositions[group] };
+                            }
+                        });
+                        delete newPositions[group];
                     }
                 }
+                positions = newPositions;
             }
 
             editorState.update(s => ({
                 ...s,
-                positions: data.positions || s.positions,
-                scales: data.scales || s.scales,
+                positions: positions || s.positions,
+                scales: scales || s.scales,
                 configs: configs,
                 global: data.global || s.global
             }));
