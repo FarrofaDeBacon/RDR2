@@ -66,8 +66,10 @@ local function LoadSettings()
             SendNUIMessage({
                 action = "loadSettings",
                 positions = decoded.positions,
-                colors = decoded.colors,
-                scales = decoded.scales
+                configs = decoded.configs,
+                global = decoded.global,
+                colors = decoded.colors, -- Fallback legado
+                scales = decoded.scales   -- Fallback legado
             })
             print("[fdb-hudpremium] Configurações de layout carregadas.")
         end
