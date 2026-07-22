@@ -144,3 +144,48 @@ RegisterNetEvent('fdb-consume:client:StopFood', function()
         ClearPedTasks(PlayerPedId())
     end
 end)
+
+RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animName, itemName)
+    local ped = PlayerPedId()
+    
+    local hash = GetHashKey(propModel)
+    if IsModelValid(hash) then
+        RequestModel(hash)
+        while not HasModelLoaded(hash) do Wait(10) end
+        
+        local coords = GetEntityCoords(ped)
+        local prop = CreateObject(hash, coords.x, coords.y, coords.z, true, true, false)
+        local boneName = 'SKEL_L_HAND'
+        local x, y, z = 0.0, 0.0, 0.0
+        local rx, ry, rz = 0.0, 0.0, 0.0
+        
+        if itemName and Config.Items[itemName] and Config.Items[itemName].offsets then
+            local off = Config.Items[itemName].offsets
+            if off.bone then boneName = off.bone end
+            if off.hand_idle then
+                x, y, z = off.hand_idle.x or x, off.hand_idle.y or y, off.hand_idle.z or z
+                rx, ry, rz = off.hand_idle.rx or rx, off.hand_idle.ry or ry, off.hand_idle.rz or rz
+            end
+        end
+        
+        local boneIndex = GetEntityBoneIndexByName(ped, boneName)
+        AttachEntityToEntity(prop, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
+        
+        local dict = animDict or "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
+        local name = animName or "quick_left_hand"
+        RequestAnimDict(dict)
+        while not HasAnimDictLoaded(dict) do Wait(10) end
+        
+        TaskPlayAnim(ped, dict, name, 1.0, 1.0, 2000, 31, 0.0, false, false, false)
+        Wait(2000)
+        DeleteObject(prop)
+    end
+    
+    local chewDict = "amb_misc@world_human_chew_tobacco@male_a@idle_a"
+    local chewName = "idle_a"
+    RequestAnimDict(chewDict)
+    while not HasAnimDictLoaded(chewDict) do Wait(10) end
+    
+    -- Flag 49 = Looping (1) + UpperBody (16) + AllowPlayerControl (32)
+    TaskPlayAnim(ped, chewDict, chewName, 1.0, -1.0, 60000, 49, 0.0, false, false, false)
+end)

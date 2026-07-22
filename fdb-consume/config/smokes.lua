@@ -36,7 +36,7 @@ local items = {
         }
     },
     ['chewing_tobacco'] = {
-        type = "Smoke", -- Usa a mesma lógica base
+        type = "Chew", -- Usa o novo método assíncrono de mastigar
         hunger = 0,
         thirst = -5,
         stress = -15,

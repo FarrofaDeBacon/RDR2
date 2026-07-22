@@ -103,10 +103,6 @@ end
 --Cigarette
 RegisterNetEvent('fdb-consume:prop:cigaret')
 AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, name, itemName)
-    if dict and name then
-        TriggerEvent('fdb-consume:prop:custom', propModel, maxUses, dict, name, itemName)
-        return
-    end
     FPrompt(Config.Drop, Config.Prompts.DropKey, false)
     LMPrompt(Config.Smoke, Config.Prompts.SmokeKey, false)
     EPrompt(Config.Change, Config.Prompts.ChangeKey, false)
@@ -747,87 +743,5 @@ AddEventHandler('fdb-consume:prop:chewingtobacco', function()
     RemoveAnimDict("amb_misc@world_human_chew_tobacco@male_b@idle_b")
     RemoveAnimDict("amb_misc@world_human_chew_tobacco@male_b@idle_c")
     RemoveAnimDict("amb_misc@world_human_chew_tobacco@male_b@idle_d")
-    Wait(100)
-    ClearPedTasks(ped)
-end)
-
-RegisterNetEvent('fdb-consume:prop:custom')
-AddEventHandler('fdb-consume:prop:custom', function(propModel, maxUses, dict, name, itemName)
-    FPrompt(Config.Drop, Config.Prompts.DropKey, false)
-    LMPrompt(Config.Smoke, Config.Prompts.SmokeKey, false)
-    ExecuteCommand('close')
-    local ped = PlayerPedId()
-    ClearPedTasks(ped)
-    local x, y, z = table.unpack(GetEntityCoords(ped, true))
-    
-    local hash = GetHashKey(propModel)
-    if IsModelValid(hash) then
-        if not HasModelLoaded(hash) then
-            RequestModel(hash)
-            local timeout = 0
-            while not HasModelLoaded(hash) and timeout < 50 do 
-                Wait(10)
-                timeout = timeout + 1
-            end
-        end
-    end
-    
-    local customProp = CreateObject(hash, x, y, z + 0.2, true, true, true)
-    local boneIndex = GetEntityBoneIndexByName(ped, 'SKEL_R_HAND')
-    
-    local ox, oy, oz = 0.0, 0.0, 0.0
-    local rx, ry, rz = 0.0, 0.0, 0.0
-
-    if itemName and Config.Items[itemName] and Config.Items[itemName].offsets then
-        local customOffsets = Config.Items[itemName].offsets
-        if customOffsets.bone then boneIndex = GetEntityBoneIndexByName(ped, customOffsets.bone) end
-        if customOffsets.hand_idle then 
-            ox, oy, oz = customOffsets.hand_idle.x or ox, customOffsets.hand_idle.y or oy, customOffsets.hand_idle.z or oz
-            rx, ry, rz = customOffsets.hand_idle.rx or rx, customOffsets.hand_idle.ry or ry, customOffsets.hand_idle.rz or rz
-        end
-    end
-    
-    AttachEntityToEntity(customProp, ped, boneIndex, ox, oy, oz, rx, ry, rz, true, true, false, true, 1, true)
-    
-    proppromptdisplayed = true
-    PromptSetEnabled(PropPrompt, true)
-    PromptSetVisible(PropPrompt, true)
-    PromptSetEnabled(UsePrompt, true)
-    PromptSetVisible(UsePrompt, true)
-    
-    local puffsTaken = 0
-    maxUses = maxUses or 5
-    
-    while proppromptdisplayed do
-        Wait(5)
-        if IsControlJustReleased(0, Config.Prompts.DropKey) then
-            proppromptdisplayed = false
-            break
-        end
-        
-        if IsDisabledControlJustReleased(0, Config.Prompts.SmokeKey) then
-            puffsTaken = puffsTaken + 1
-            
-            RequestAnimDict(dict)
-            while not HasAnimDictLoaded(dict) do Wait(10) end
-            
-            TaskPlayAnim(ped, dict, name, 1.0, 1.0, 3000, 31, 0.0, false, false, false)
-            Wait(3000)
-            ClearPedTasks(ped)
-            
-            if puffsTaken >= maxUses then
-                proppromptdisplayed = false
-                break
-            end
-        end
-    end
-    
-    PromptSetEnabled(PropPrompt, false)
-    PromptSetVisible(PropPrompt, false)
-    PromptSetEnabled(UsePrompt, false)
-    PromptSetVisible(UsePrompt, false)
-    
-    DetachEntity(customProp, true, true)
-    DeleteObject(customProp)
     ClearPedTasks(ped)
 end)
