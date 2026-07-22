@@ -57,3 +57,55 @@ RSGCore.Functions.CreateUseableItem('medicine', function(source, item)
         Player.Functions.SetMetaData("illness", 0)
     end
 end)
+
+-- -------------------------------------------------------
+-- Sincronização de Metadados via Tick
+-- -------------------------------------------------------
+RegisterNetEvent('fdb-survival:server:SaveMeta', function(meta, value)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    if meta == 'cleanliness' or meta == 'bladder' or meta == 'poison' or meta == 'illness' then
+        Player.Functions.SetMetaData(meta, value)
+    end
+end)
+
+-- -------------------------------------------------------
+-- EXPORTS DE MANIPULAÇÃO DIRETA
+-- -------------------------------------------------------
+exports('AddBladder', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["bladder"] or 0
+    Player.Functions.SetMetaData("bladder", math.max(0, math.min(100, current + amount)))
+end)
+
+exports('AddCleanliness', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["cleanliness"] or 100
+    Player.Functions.SetMetaData("cleanliness", math.max(0, math.min(100, current + amount)))
+end)
+
+exports('CurePoison', function(src)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("poison", 0)
+    TriggerClientEvent('fdb-survival:client:CurePoison', src)
+end)
+
+exports('CureIllness', function(src)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("illness", 0)
+    TriggerClientEvent('fdb-survival:client:CureIllness', src)
+end)
+
+exports('AddColdResistance', function(src, seconds)
+    TriggerClientEvent('fdb-survival:client:EatThermalItem', src, 'cold', seconds)
+end)
+
+exports('AddHeatResistance', function(src, seconds)
+    TriggerClientEvent('fdb-survival:client:EatThermalItem', src, 'heat', seconds)
+end)
