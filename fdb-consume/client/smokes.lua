@@ -115,9 +115,12 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, n
     local hash = GetHashKey(propModel or 'P_CIGARETTE01X')
     if not HasModelLoaded(hash) then
         RequestModel(hash)
-        while not HasModelLoaded(hash) do Wait(10) end
+        local timeout = 0
+        while not HasModelLoaded(hash) and timeout < 50 do 
+            Wait(10)
+            timeout = timeout + 1
+        end
     end
-    local cigaret = CreateObject(hash, x, y, z + 0.2, true, true, true)
     
     -- Configuração de Offsets (Com defaults do cigarro original)
     local offsets = {
@@ -139,19 +142,19 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, n
         if customOffsets.female_hand_idle then offsets.female_hand_idle = customOffsets.female_hand_idle end
     end
     
-    local righthand = GetEntityBoneIndexByName(ped, offsets.bone)
     local mouth = GetEntityBoneIndexByName(ped, "skel_head")
+    local righthand = GetEntityBoneIndexByName(ped, offsets.bone)
     
     local puffsTaken = 0
     maxUses = maxUses or 10 -- Fallback para charutos
-    --Citizen.InvokeNative( 0xF6A7C08DF2E28B28, PlayerPedId(), 0, 500.0, false )
-    --PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
+    
+    local cigaret = 0
+    
     if male then
-        SetEntityVisible(cigaret, false)
         Anim(ped, "amb_rest@world_human_smoking@male_c@stand_enter", "enter_back_rf", 5400, 0)
         Wait(1000)
         
-        SetEntityVisible(cigaret, true)
+        cigaret = CreateObject(hash, x, y, z + 0.2, true, true, true)
         AttachEntityToEntity(cigaret, ped, righthand, offsets.hand_enter.x, offsets.hand_enter.y, offsets.hand_enter.z, offsets.hand_enter.rx, offsets.hand_enter.ry, offsets.hand_enter.rz, true, true, false, true, 1, true)
         Wait(1000)
         AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_puff.x, offsets.mouth_puff.y, offsets.mouth_puff.z, offsets.mouth_puff.rx, offsets.mouth_puff.ry, offsets.mouth_puff.rz, true, true, false, true, 1, true)
@@ -163,6 +166,7 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, n
         RemoveAnimDict("amb_rest@world_human_smoking@male_c@stand_enter")
         Wait(1000)
     else --if female
+        cigaret = CreateObject(hash, x, y, z + 0.2, true, true, true)
         AttachEntityToEntity(cigaret, ped, mouth, offsets.mouth_start.x, offsets.mouth_start.y, offsets.mouth_start.z, offsets.mouth_start.rx, offsets.mouth_start.ry, offsets.mouth_start.rz, true, true, false, true, 1, true)
         Anim(ped, "amb_rest@world_human_smoking@female_c@base", "base", -1, 30)
         Wait(1000)
