@@ -11,7 +11,11 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/main.lua'
+    'client/main.lua',
+    'client/cleanliness.lua',
+    'client/bladder.lua',
+    'client/temperature.lua',
+    'client/health.lua'
 }
 
 server_scripts {
