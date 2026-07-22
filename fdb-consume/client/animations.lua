@@ -136,8 +136,9 @@ function playConsumeAnimation(spec)
 			TriggerEvent('fdb-consume:prop:cigaret')
 			return
 		elseif t == 'cigar' or t == 'smoke' then
-            print("DEBUG: Disparando evento fdb-consume:prop:cigaret com P_CIGAR01X")
-			TriggerEvent('fdb-consume:prop:cigaret', 'P_CIGAR01X')
+            print("DEBUG: Executando scenario nativo de charuto (WORLD_HUMAN_SMOKE_CIGAR)")
+			ClearPedTasks(PlayerPedId())
+			TaskStartScenarioInPlace(PlayerPedId(), GetHashKey('WORLD_HUMAN_SMOKE_CIGAR'), -1, true, false, false, false)
 			return
 		elseif t == 'pipe' or t == 'pipe_smoker' then
 			TriggerEvent('fdb-consume:prop:pipe_smoker')
