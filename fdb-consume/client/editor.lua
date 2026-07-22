@@ -95,7 +95,7 @@ RegisterCommand('propedit', function(source, args)
             -- Render HUD Vertical
             DrawTxt("MODO DE EDICAO: " .. string.upper(itemName), 0.02, 0.30)
             DrawTxt("ESTAGIO: " .. stages[currentStage].name .. " (" .. currentStage .. "/4)", 0.02, 0.33)
-            DrawTxt("[TAB] - Trocar Estagio", 0.02, 0.36)
+            DrawTxt("[ESPAÇO] - Trocar Estagio", 0.02, 0.36)
             DrawTxt("[W][S][A][D] - Mover Horizontal", 0.02, 0.39)
             DrawTxt("[PgUp][PgDn] - Mover Vertical", 0.02, 0.42)
             DrawTxt("Segurar [SHIFT] - Girar Prop (Rotacao)", 0.02, 0.45)
@@ -137,7 +137,7 @@ RegisterCommand('propedit', function(source, args)
                 Wait(50) 
             end
             
-            if IsControlJustPressed(0, 0x3C0A40F2) then -- TAB
+            if IsControlJustPressed(0, 0xD9D0E1C0) then -- ESPACO
                 currentStage = currentStage + 1
                 if currentStage > 4 then currentStage = 1 end
                 LoadOffsetsFromConfig()
