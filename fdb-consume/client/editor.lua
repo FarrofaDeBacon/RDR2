@@ -114,22 +114,22 @@ RegisterCommand('propedit', function(source, args)
             DisableControlAction(0, 0x7065027D, true) -- A
             DisableControlAction(0, 0xB4E465B4, true) -- D
             
-            local shift = IsDisabledControlPressed(0, 0x8FFC75D6) -- Shift
+            local shift = IsControlPressed(0, 0x8FFC75D6) -- Shift
             
             if shift then
                 if IsDisabledControlPressed(0, 0x8FD015D8) then e_rx = e_rx + rspeed; changed = true; end -- W
                 if IsDisabledControlPressed(0, 0xD27782E3) then e_rx = e_rx - rspeed; changed = true; end -- S
                 if IsDisabledControlPressed(0, 0x7065027D) then e_ry = e_ry + rspeed; changed = true; end -- A
                 if IsDisabledControlPressed(0, 0xB4E465B4) then e_ry = e_ry - rspeed; changed = true; end -- D
-                if IsDisabledControlPressed(0, 0x4403F97F) then e_rz = e_rz + rspeed; changed = true; end -- PgUp
-                if IsDisabledControlPressed(0, 0x3C3DD371) then e_rz = e_rz - rspeed; changed = true; end -- PgDn
+                if IsControlPressed(0, 0x4403F97F) then e_rz = e_rz + rspeed; changed = true; end -- PgUp
+                if IsControlPressed(0, 0x3C3DD371) then e_rz = e_rz - rspeed; changed = true; end -- PgDn
             else
                 if IsDisabledControlPressed(0, 0x8FD015D8) then e_y = e_y + speed; changed = true; end -- W
                 if IsDisabledControlPressed(0, 0xD27782E3) then e_y = e_y - speed; changed = true; end -- S
                 if IsDisabledControlPressed(0, 0x7065027D) then e_x = e_x - speed; changed = true; end -- A
                 if IsDisabledControlPressed(0, 0xB4E465B4) then e_x = e_x + speed; changed = true; end -- D
-                if IsDisabledControlPressed(0, 0x4403F97F) then e_z = e_z + speed; changed = true; end -- PgUp
-                if IsDisabledControlPressed(0, 0x3C3DD371) then e_z = e_z - speed; changed = true; end -- PgDn
+                if IsControlPressed(0, 0x4403F97F) then e_z = e_z + speed; changed = true; end -- PgUp
+                if IsControlPressed(0, 0x3C3DD371) then e_z = e_z - speed; changed = true; end -- PgDn
             end
             
             if changed then
@@ -137,7 +137,7 @@ RegisterCommand('propedit', function(source, args)
                 Wait(50) 
             end
             
-            if IsDisabledControlJustPressed(0, 0x3C0A40F2) then -- TAB
+            if IsControlJustPressed(0, 0x3C0A40F2) then -- TAB
                 currentStage = currentStage + 1
                 if currentStage > 4 then currentStage = 1 end
                 LoadOffsetsFromConfig()
@@ -145,12 +145,12 @@ RegisterCommand('propedit', function(source, args)
                 UpdatePropAttach()
             end
             
-            if IsDisabledControlJustPressed(0, 0xC7B5340A) then -- ENTER
+            if IsControlJustPressed(0, 0xC7B5340A) then -- ENTER
                 local sn = stages[currentStage].name
                 print(string.format("%s = { x = %.3f, y = %.3f, z = %.3f, rx = %.1f, ry = %.1f, rz = %.1f },", sn, e_x, e_y, e_z, e_rx, e_ry, e_rz))
             end
             
-            if IsDisabledControlJustPressed(0, 0x156F7119) then -- BACKSPACE
+            if IsControlJustPressed(0, 0x156F7119) then -- BACKSPACE
                 isEditing = false
                 ClearPedTasks(ped)
                 DeleteObject(propObj)
