@@ -180,12 +180,4 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         Wait(2000)
         DeleteObject(prop)
     end
-    
-    local chewDict = "amb_misc@world_human_chew_tobacco@male_a@idle_a"
-    local chewName = "idle_a"
-    RequestAnimDict(chewDict)
-    while not HasAnimDictLoaded(chewDict) do Wait(10) end
-    
-    -- Flag 49 = Looping (1) + UpperBody (16) + AllowPlayerControl (32)
-    TaskPlayAnim(ped, chewDict, chewName, 1.0, -1.0, 60000, 49, 0.0, false, false, false)
 end)
