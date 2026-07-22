@@ -113,6 +113,10 @@ AddEventHandler('fdb-consume:prop:cigaret', function(propModel, maxUses, dict, n
     local x, y, z = table.unpack(GetEntityCoords(ped, true))
     
     local hash = GetHashKey(propModel or 'P_CIGARETTE01X')
+    if not HasModelLoaded(hash) then
+        RequestModel(hash)
+        while not HasModelLoaded(hash) do Wait(10) end
+    end
     local cigaret = CreateObject(hash, x, y, z + 0.2, true, true, true)
     
     -- Configuração de Offsets (Com defaults do cigarro original)
