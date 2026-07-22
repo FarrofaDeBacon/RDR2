@@ -28,7 +28,7 @@ CreateThread(function()
                 end
                 
                 if HasNamedPtfxAssetLoaded(assetName) then
-                    UseParticleFxAsset(assetName)
+                    UseParticleFxAssetNextCall(assetName)
                     local boneIndex = GetEntityBoneIndexByName(ped, "SKEL_Spine2")
                     flyParticle = StartNetworkedParticleFxLoopedOnEntityBone(
                         ptfxName, ped,
