@@ -315,3 +315,9 @@ RegisterNUICallback('closeMenu', function(data, cb)
     SetNuiFocus(false, false)
     cb('ok')
 end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if GetCurrentResourceName() == resourceName then
+        SetNuiFocus(false, false)
+    end
+end)
