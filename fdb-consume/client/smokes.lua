@@ -777,7 +777,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         RequestAnimDict(dict)
         while not HasAnimDictLoaded(dict) do Wait(10) end
         
-        TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 31, 0.0, false, false, false)
+        -- Flag 0 garante que o corpo todo possa participar da animação (abrir a lata com as duas mãos)
+        TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 0, 0.0, false, false, false)
         Wait(4000)
         DeleteObject(prop)
     end
@@ -787,7 +788,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     RequestAnimDict(chewDict)
     while not HasAnimDictLoaded(chewDict) do Wait(10) end
     
-    TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 49, 0.0, false, false, false)
+    -- Usando o nativo de animação facial para não travar as pernas/corpo do jogador!
+    Citizen.InvokeNative(0x7A6535691B477C48, ped, chewName, chewDict)
     
     Citizen.CreateThread(function()
         Wait(60000)
