@@ -57,6 +57,12 @@
     // Buffs
     $: showColdResistance = isEditing || coldResistance > 0;
     $: showHeatResistance = isEditing || heatResistance > 0;
+
+    // Lógica RDR2: Dividir o status em Metades.
+    // Anel Externo (Outer): Representa os 50% superiores (51-100). Drena primeiro.
+    // Ícone Interno (Inner): Representa os 50% inferiores (0-50). Drena depois.
+    $: getOuter = (val) => Math.max(0, (val - 50) * 2);
+    $: getInner = (val) => Math.min(100, val * 2);
 </script>
 
 <div class="status-cores-container">
@@ -64,8 +70,8 @@
     <DraggableModule id="health" defaultX={-240} defaultY={0}>
         <HUDItem 
             itemId="health"
-            value={health} 
-            innerValue={health} 
+            value={getOuter(health)} 
+            innerValue={getInner(health)} 
             icon="./assets/health.svg" 
             outerColor="#ffffff"
             innerColor={getInnerColor(health, '#ffffff', '#ff0000')}
@@ -77,8 +83,8 @@
     <DraggableModule id="stamina" defaultX={-180} defaultY={0}>
         <HUDItem 
             itemId="stamina"
-            value={stamina} 
-            innerValue={stamina} 
+            value={getOuter(stamina)} 
+            innerValue={getInner(stamina)} 
             icon="./assets/stamina.svg" 
             outerColor="#ffd700" 
             innerColor={getInnerColor(stamina, '#ffffff', '#ff0000')}
@@ -90,8 +96,8 @@
     <DraggableModule id="food" defaultX={-120} defaultY={0}>
         <HUDItem 
             itemId="food"
-            value={food} 
-            innerValue={food} 
+            value={getOuter(food)} 
+            innerValue={getInner(food)} 
             icon="./assets/food.svg" 
             outerColor="#ffa500" 
             innerColor={getInnerColor(food, '#ffffff', '#ff0000')}
@@ -103,8 +109,8 @@
     <DraggableModule id="water" defaultX={-60} defaultY={0}>
         <HUDItem 
             itemId="water"
-            value={water} 
-            innerValue={water} 
+            value={getOuter(water)} 
+            innerValue={getInner(water)} 
             icon="./assets/water.svg" 
             outerColor="#00bfff" 
             innerColor={getInnerColor(water, '#ffffff', '#ff0000')}
@@ -116,8 +122,8 @@
     <DraggableModule id="stress" defaultX={0} defaultY={0}>
         <HUDItem 
             itemId="stress"
-            value={stress} 
-            innerValue={stress} 
+            value={getOuter(stress)} 
+            innerValue={getInner(stress)} 
             icon="./assets/stress.svg" 
             outerColor="#ff4500" 
             innerColor="#ffffff"
@@ -159,8 +165,8 @@
         <DraggableModule id="horseHealth" defaultX={-180} defaultY={-60}>
             <HUDItem 
                 itemId="horseHealth"
-                value={horseHealth} 
-                innerValue={horseHealth} 
+                value={getOuter(horseHealth)} 
+                innerValue={getInner(horseHealth)} 
                 icon="./assets/horse_health.svg" 
                 outerColor="#ffffff"
                 innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
@@ -169,8 +175,8 @@
         <DraggableModule id="horseStamina" defaultX={-120} defaultY={-60}>
             <HUDItem 
                 itemId="horseStamina"
-                value={horseStamina} 
-                innerValue={horseStamina} 
+                value={getOuter(horseStamina)} 
+                innerValue={getInner(horseStamina)} 
                 icon="./assets/horse_stamina.svg" 
                 outerColor="#ffd700"
                 innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
@@ -183,8 +189,8 @@
         <DraggableModule id="urine" defaultX={-60} defaultY={-60}>
             <HUDItem 
                 itemId="urine"
-                value={urine} 
-                innerValue={urine} 
+                value={getOuter(urine)} 
+                innerValue={getInner(urine)} 
                 icon="./assets/urine.svg" 
                 outerColor="#ffff00" 
                 innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
@@ -197,8 +203,8 @@
         <DraggableModule id="hygiene" defaultX={0} defaultY={-60}>
             <HUDItem 
                 itemId="hygiene"
-                value={hygiene} 
-                innerValue={hygiene} 
+                value={getOuter(hygiene)} 
+                innerValue={getInner(hygiene)} 
                 icon="./assets/hygiene.svg" 
                 outerColor="#8b4513" 
                 innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
@@ -210,8 +216,8 @@
         <DraggableModule id="temperature" defaultX={60} defaultY={-60}>
             <HUDItem 
                 itemId="temperature"
-                value={getTempValue(temp)} 
-                innerValue={100} 
+                value={getOuter(getTempValue(temp))} 
+                innerValue={getInner(getTempValue(temp))} 
                 icon={temp > 35 ? "./assets/temp_hot.svg" : "./assets/temp_cold.svg"} 
                 outerColor={temp < 15 ? "#00ffff" : "#ff4500"} 
                 innerColor="#ffffff"
@@ -224,8 +230,8 @@
         <DraggableModule id="poison" defaultX={120} defaultY={-60}>
             <HUDItem 
                 itemId="poison"
-                value={poison} 
-                innerValue={poison} 
+                value={getOuter(poison)} 
+                innerValue={getInner(poison)} 
                 icon="./assets/poison.svg" 
                 outerColor="#32cd32" 
                 innerColor={getInnerColorReverse(poison, '#ffffff', '#ff0000', 80)}
@@ -238,8 +244,8 @@
         <DraggableModule id="illness" defaultX={180} defaultY={-60}>
             <HUDItem 
                 itemId="illness"
-                value={illness} 
-                innerValue={illness} 
+                value={getOuter(illness)} 
+                innerValue={getInner(illness)} 
                 icon="./assets/illness.svg" 
                 outerColor="#808000" 
                 innerColor="#ffffff"
@@ -252,8 +258,8 @@
         <DraggableModule id="drunkenness" defaultX={240} defaultY={-60}>
             <HUDItem 
                 itemId="drunkenness"
-                value={drunkenness} 
-                innerValue={drunkenness} 
+                value={getOuter(drunkenness)} 
+                innerValue={getInner(drunkenness)} 
                 icon="./assets/alcohol.svg" 
                 outerColor="#ff69b4" 
                 innerColor="#ffffff"
