@@ -186,10 +186,11 @@ exports('AddCleanliness', function(src, amount)
 end)
 
 exports('SetWet', function(src, isWet)
+    local playerState = Player(src).state
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData("isWet", isWet)
-    Player(src).state:set('isWet', isWet, true)
+    playerState:set('isWet', isWet, true)
     TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = isWet })
 end)
 
