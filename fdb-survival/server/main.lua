@@ -189,7 +189,7 @@ exports('SetWet', function(src, isWet)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData("isWet", isWet)
-    PlayerState(src):set('isWet', isWet, true)
+    Player(src).state:set('isWet', isWet, true)
     TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = isWet })
 end)
 
