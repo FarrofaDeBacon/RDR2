@@ -75,6 +75,29 @@ AddEventHandler('RSGCore:Client:OnPlayerLogout', function()
     SendNUIMessage({ action = 'setVisibility', value = false })
 end)
 
+local function SyncMetadata()
+    if not PlayerData or not PlayerData.metadata then return end
+    if nuiReady then
+        local hunger = PlayerData.metadata["hunger"] or 100
+        local thirst = PlayerData.metadata["thirst"] or 100
+        local stress = PlayerData.metadata["stress"] or 0
+        
+        SendNUIMessage({ action = 'food', value = hunger })
+        SendNUIMessage({ action = 'water', value = thirst })
+        SendNUIMessage({ action = 'stress', value = stress })
+    end
+end
+
+RegisterNetEvent('RSGCore:Client:OnPlayerInfoUpdate', function(data)
+    PlayerData = RSGCore.Functions.GetPlayerData()
+    SyncMetadata()
+end)
+
+RegisterNetEvent('RSGCore:Player:SetPlayerData', function(val)
+    PlayerData = RSGCore.Functions.GetPlayerData()
+    SyncMetadata()
+end)
+
 -- -------------------------------------------------------
 -- Callbacks NUI
 -- -------------------------------------------------------
@@ -203,6 +226,7 @@ AddEventHandler("onResourceStart", function(resourceName)
             isLoggedIn = true
             LoadSettings()
             SendNUIMessage({ action = 'setVisibility', value = true })
+            SyncMetadata()
         end
     end
 end)
