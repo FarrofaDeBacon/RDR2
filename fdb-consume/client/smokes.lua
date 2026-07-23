@@ -779,8 +779,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         while not HasAnimDictLoaded(dict) and t1 < 100 do Wait(10); t1 = t1 + 1 end
         
         if HasAnimDictLoaded(dict) then
-            -- Flag 0 garante que o corpo todo possa participar da animação (abrir a lata com as duas mãos)
-            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 0, 0.0, false, false, false)
+            -- Flag 1 para garantir que ele faça o movimento completo com as duas mãos
+            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 1, 0.0, false, false, false)
         else
             print("fdb-consume ERRO: Dicionário de animação inicial não encontrado: " .. tostring(dict))
         end
@@ -795,8 +795,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     while not HasAnimDictLoaded(chewDict) and t2 < 100 do Wait(10); t2 = t2 + 1 end
     
     if HasAnimDictLoaded(chewDict) then
-        -- Usando o nativo de animação facial para não travar as pernas/corpo do jogador!
-        Citizen.InvokeNative(0x7A6535691B477C48, ped, chewName, chewDict)
+        -- Flag 49 = Loop + UpperBody + Controle
+        TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 49, 0.0, false, false, false)
     else
         print("fdb-consume ERRO: Dicionário facial não encontrado: " .. tostring(chewDict))
     end
