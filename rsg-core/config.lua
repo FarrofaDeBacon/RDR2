@@ -69,6 +69,7 @@ RSGConfig.Player.PlayerDefaults = {
         -- [FDB CUSTOM METADATA] (NÃO REMOVER EM ATUALIZAÇÕES DO FRAMEWORK)
         poison = 0,
         illness = 0,
+        isWet = false,
         isdead = false,
         armor = 0,
         ishandcuffed = false,

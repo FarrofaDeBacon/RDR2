@@ -56,6 +56,11 @@ end
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     FDB.IsLoggedIn = true
     SyncLocalMetadata(true)
+    
+    local PlayerData = RSGCore.Functions.GetPlayerData()
+    if PlayerData and PlayerData.metadata then
+        LocalPlayer.state:set('isWet', PlayerData.metadata["isWet"] or false, true)
+    end
 end)
 
 RegisterNetEvent('fdb-survival:client:ForceClean', function()

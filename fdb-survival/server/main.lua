@@ -182,8 +182,15 @@ exports('AddCleanliness', function(src, amount)
     local current = Player.PlayerData.metadata["cleanliness"] or 100
     local newClean = math.max(0, math.min(100, current + amount))
     Player.Functions.SetMetaData("cleanliness", newClean)
-    TriggerClientEvent('fdb-survival:client:ForceClean', src) -- Still uses this to override race conditions
     TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'cleanliness', value = newClean })
+end)
+
+exports('SetWet', function(src, isWet)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("isWet", isWet)
+    PlayerState(src):set('isWet', isWet, true)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = isWet })
 end)
 
 exports('CurePoison', function(src)

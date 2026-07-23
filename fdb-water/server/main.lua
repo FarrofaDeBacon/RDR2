@@ -214,8 +214,7 @@ RegisterNetEvent('fdb-water:server:washAtPump', function()
     end
     
     -- Mark player as wet
-    Player.Functions.SetMetaData("isWet", true)
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = true })
+    exports['fdb-survival']:SetWet(src, true)
 end)
 
 RSGCore.Functions.CreateUseableItem('towel', function(source, item)
@@ -232,6 +231,5 @@ RegisterNetEvent('fdb-water:server:dryPlayer', function()
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     
-    Player.Functions.SetMetaData("isWet", false)
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = false })
+    exports['fdb-survival']:SetWet(src, false)
 end)
