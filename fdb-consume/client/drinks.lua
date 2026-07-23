@@ -39,7 +39,7 @@ RegisterNetEvent('fdb-consume:client:ConsumeDrink', function(propModel, animType
     local ped = PlayerPedId()
 
     if isHoldingDrink then
-        TriggerEvent('fdb-consume:client:StopDrink')
+        TriggerEvent('fdb-consume:client:StopInteractiveConsumable')
     end
 
     isHoldingDrink = true
@@ -54,7 +54,7 @@ RegisterNetEvent('fdb-consume:client:ConsumeDrink', function(propModel, animType
         TaskItemInteraction_2(ped, 599184882, activeProp, GetHashKey('p_cs_coffee_mug01x_ph_r_hand'), -583731576, 1, 0, 0.0)
         
         Wait(5000)
-        TriggerEvent('fdb-consume:client:StopDrink')
+        TriggerEvent('fdb-consume:client:StopInteractiveConsumable')
         return
     end
 
