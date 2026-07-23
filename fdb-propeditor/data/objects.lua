@@ -17024,5 +17024,3 @@ Objects = {
 	"bridge1",
 	"wand",
 }
-
-ObjectsHashLookup = GetIndexedHashList(Objects)
