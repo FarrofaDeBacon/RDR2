@@ -64,26 +64,10 @@ RegisterNetEvent('fdb-consume:server:takeBite', function()
 
     consume.currentUses = consume.currentUses - 1
 
-    local currentHunger = Player.PlayerData.metadata['hunger'] or 100
-    local currentThirst = Player.PlayerData.metadata['thirst'] or 100
-    local currentStress = Player.PlayerData.metadata['stress'] or 0
-    local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
-
-    local newHunger = math.max(0, math.min(100, currentHunger + consume.stats.hunger))
-    local newThirst = math.max(0, math.min(100, currentThirst + consume.stats.thirst))
-    local newStress = math.max(0, math.min(100, currentStress + consume.stats.stress))
-    local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol + consume.stats.alcohol))
-
-    Player.Functions.SetMetaData('hunger', newHunger)
-    Player.Functions.SetMetaData('thirst', newThirst)
-    Player.Functions.SetMetaData('stress', newStress)
-    Player.Functions.SetMetaData('alcohol', newAlcohol)
-    
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'food', value = math.floor(newHunger) })
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
-    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
-    TriggerClientEvent('fdb-consume:client:checkAlcohol', src, newAlcohol)
+    exports['fdb-survival']:AddHunger(src, consume.stats.hunger)
+    exports['fdb-survival']:AddThirst(src, consume.stats.thirst)
+    exports['fdb-survival']:AddStress(src, consume.stats.stress)
+    exports['fdb-survival']:AddAlcohol(src, consume.stats.alcohol)
 
     if consume.stats.health ~= 0 or consume.stats.stamina ~= 0 then
         TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, consume.stats.health, consume.stats.stamina)
@@ -107,60 +91,7 @@ RegisterNetEvent('fdb-consume:server:cancelConsume', function()
     end
 end)
 
--- Loop de Decaimento do Álcool (Server-Side)
-CreateThread(function()
-    while true do
-        Wait(Config.Alcohol.DecreaseInterval)
-        for _, player in ipairs(RSGCore.Functions.GetPlayers()) do
-            local Player = RSGCore.Functions.GetPlayer(player)
-            if Player then
-                local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
-                if currentAlcohol > 0 then
-                    local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol - Config.Alcohol.DecreaseAmount))
-                    Player.Functions.SetMetaData('alcohol', newAlcohol)
-                    -- Sincronizar HUD passivo
-                    TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'drunkenness', value = math.floor(newAlcohol) })
-                    -- Trigger para verificar efeitos no cliente baseado no novo valor
-                    TriggerClientEvent('fdb-consume:client:checkAlcohol', player, newAlcohol)
-                end
-            end
-        end
-    end
-end)
 
--- Loop Passivo de Fome e Sede (Server-Side)
-CreateThread(function()
-    while true do
-        Wait(Config.Metabolism.DrainInterval)
-        for _, player in ipairs(RSGCore.Functions.GetPlayers()) do
-            local Player = RSGCore.Functions.GetPlayer(player)
-            if Player then
-                local currentHunger = Player.PlayerData.metadata['hunger'] or 100
-                local currentThirst = Player.PlayerData.metadata['thirst'] or 100
-                
-                if currentHunger > 0 or currentThirst > 0 then
-                    local newHunger = math.max(0, currentHunger - Config.Metabolism.HungerDrain)
-                    local newThirst = math.max(0, currentThirst - Config.Metabolism.ThirstDrain)
-                    
-                    Player.Functions.SetMetaData('hunger', newHunger)
-                    Player.Functions.SetMetaData('thirst', newThirst)
-                    
-                    local floorHunger = math.floor(newHunger)
-                    local floorThirst = math.floor(newThirst)
-                    local oldFloorHunger = math.floor(currentHunger)
-                    local oldFloorThirst = math.floor(currentThirst)
-                    
-                    if floorHunger ~= oldFloorHunger then
-                        TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'food', value = floorHunger })
-                    end
-                    if floorThirst ~= oldFloorThirst then
-                        TriggerClientEvent('fdb-survival:client:stateChanged', player, { field = 'water', value = floorThirst })
-                    end
-                end
-            end
-        end
-    end
-end)
 
 AddEventHandler('playerDropped', function(reason)
     local src = source

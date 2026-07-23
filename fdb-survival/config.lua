@@ -1,5 +1,24 @@
 Config = {}
 
+-- Configurações Globais do Álcool
+Config.Alcohol = {
+    DrunkThreshold = 15,      -- Nível para começar a ficar tonto
+    PassOutThreshold = 100,   -- Nível para desmaiar de bêbado
+    DecreaseAmount = 1,       -- Quantidade que diminui por ciclo (1)
+    DecreaseInterval = 45000,  -- Tempo do ciclo em ms (45 segundos) - efeito passa BEM mais devagar
+    MaxAlcoholLevel = 150,    -- Limite máximo (não morre, mas passa mal)
+    
+    -- Efeitos
+    VomitDuration = 10000,
+    SleepDuration = 20000,
+}
+
+Config.Metabolism = {
+    DrainInterval = 4000, -- Intervalo base em ms
+    HungerDrain = 0.08,   -- Dreno por intervalo
+    ThirstDrain = 0.12,   -- Dreno por intervalo
+}
+
 -- ==========================================
 -- TAXAS DE DRENAGEM BÁSICAS (Por Tick de 4s)
 -- ==========================================

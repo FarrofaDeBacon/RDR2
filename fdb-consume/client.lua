@@ -78,9 +78,10 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
 end)
 
 -- Efeitos do Álcool
-RegisterNetEvent('fdb-consume:client:checkAlcohol', function(alcoholLevel)
+RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
+    if data.field ~= 'drunkenness' then return end
+    local alcoholLevel = data.value
     local ped = PlayerPedId()
-
     if alcoholLevel > Config.Alcohol.PassOutThreshold and not IsPassedOut then
         IsPassedOut = true
         lib.notify({title = '💥 Desmaio', description = 'Você bebeu demais e apagou!', type = 'error'})

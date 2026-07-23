@@ -130,14 +130,44 @@ RegisterNetEvent('fdb-survival:server:ForceClean', function()
 end)
 
 RegisterNetEvent('fdb-survival:server:AddThirst', function(amount)
-    local src = source
+    exports['fdb-survival']:AddThirst(source, amount)
+end)
+
+exports('AddHunger', function(src, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-    
+    local current = Player.PlayerData.metadata["hunger"] or 100
+    local newHunger = math.max(0, math.min(100, current + amount))
+    Player.Functions.SetMetaData("hunger", newHunger)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'food', value = math.floor(newHunger) })
+end)
+
+exports('AddThirst', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
     local current = Player.PlayerData.metadata["thirst"] or 100
-    local newThirst = math.max(0, math.min(100, current + (amount or 100)))
+    local newThirst = math.max(0, math.min(100, current + amount))
     Player.Functions.SetMetaData("thirst", newThirst)
     TriggerClientEvent('fdb-survival:client:AddThirst', src, newThirst)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
+end)
+
+exports('AddStress', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["stress"] or 0
+    local newStress = math.max(0, math.min(100, current + amount))
+    Player.Functions.SetMetaData("stress", newStress)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
+end)
+
+exports('AddAlcohol', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["alcohol"] or 0
+    local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, current + amount))
+    Player.Functions.SetMetaData("alcohol", newAlcohol)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
 end)
 exports('AddBladder', function(src, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -173,4 +203,40 @@ end)
 
 exports('AddHeatResistance', function(src, seconds)
     TriggerClientEvent('fdb-survival:client:EatThermalItem', src, 'heat', seconds)
+end)
+
+-- ==========================================
+-- LOOPS PASSIVOS (METABOLISMO E ÁLCOOL)
+-- ==========================================
+CreateThread(function()
+    while true do
+        Wait(Config.Alcohol.DecreaseInterval)
+        for _, player in ipairs(RSGCore.Functions.GetPlayers()) do
+            local Player = RSGCore.Functions.GetPlayer(player)
+            if Player then
+                local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
+                if currentAlcohol > 0 then
+                    exports['fdb-survival']:AddAlcohol(player, -Config.Alcohol.DecreaseAmount)
+                end
+            end
+        end
+    end
+end)
+
+CreateThread(function()
+    while true do
+        Wait(Config.Metabolism.DrainInterval)
+        for _, player in ipairs(RSGCore.Functions.GetPlayers()) do
+            local Player = RSGCore.Functions.GetPlayer(player)
+            if Player then
+                local currentHunger = Player.PlayerData.metadata['hunger'] or 100
+                local currentThirst = Player.PlayerData.metadata['thirst'] or 100
+                
+                if currentHunger > 0 or currentThirst > 0 then
+                    exports['fdb-survival']:AddHunger(player, -Config.Metabolism.HungerDrain)
+                    exports['fdb-survival']:AddThirst(player, -Config.Metabolism.ThirstDrain)
+                end
+            end
+        end
+    end
 end)
