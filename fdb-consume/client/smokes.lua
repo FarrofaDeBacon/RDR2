@@ -791,15 +791,16 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     Wait(4000)
     if prop then DeleteObject(prop) end
     
-    local chewDict = "face_human@gen_male@scenario@eating"
-    local chewName = "mixchew_loop_long" -- Animacao sugerida pelo usuario
+    -- Mudar para a animação do veado que mastiga, mas usando o nativo FACIAL (para NUNCA bloquear o corpo!)
+    local chewDict = "face_creatures@gestures@deer"
+    local chewName = "chew_01"
     RequestAnimDict(chewDict)
     local t2 = 0
     while not HasAnimDictLoaded(chewDict) and t2 < 100 do Wait(10); t2 = t2 + 1 end
     
     if HasAnimDictLoaded(chewDict) then
-        -- Flag 51 = UpperBody + Control + Loop + Hold
-        TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 51, 0.0, false, false, false)
+        -- PlayFacialAnim nativo (só afeta o rosto, deixa o corpo 100% livre pra andar)
+        Citizen.InvokeNative(0x7A6535691B477C48, ped, chewName, chewDict)
     else
         print("fdb-consume ERRO: Dicionário facial não encontrado: " .. tostring(chewDict))
     end
@@ -809,14 +810,15 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         local pedId = PlayerPedId()
         if IsPedDeadOrDying(pedId, true) then return end
         
-        local spitDict = "script_re@friendly_outdoorsman@tabacco"
-        local spitName = "tabacco_spit_line_male"
+        -- Animação de encerramento que o usuário pediu (descruza o braço e cospe)
+        local spitDict = "amb_misc@world_human_chew_tobacco@male_a@trans"
+        local spitName = "a_trans_b"
         RequestAnimDict(spitDict)
         local timeout = 0
         while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
         
         if HasAnimDictLoaded(spitDict) then
-            -- Duração -1 (toca a animação inteira), Flag 48 (UpperBody + Controle SEM Loop)
+            -- Duração -1 (toca até o fim)
             TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, -1, 48, 0.0, false, false, false)
         end
     end)

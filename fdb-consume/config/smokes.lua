@@ -45,7 +45,7 @@ local items = {
         stamina = 20,
         dict = "mech_pickup@system@lh@use", -- Animação de abrir a lata e colocar na boca
         name = "2h_tabacco",
-        prop = "s_inv_chewingtobacco01x", -- Usando modelo válido de RedM
+        prop = "p_tobaccopouch01x", -- Prop 100% válido do RedM (bolsa de tabaco)
         offsets = {
             bone = "SKEL_R_Finger13",
             mouth_start = { x = 0.0, y = 0.0, z = 0.0, rx = 0.0, ry = 0.0, rz = 0.0 },
