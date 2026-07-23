@@ -12,6 +12,7 @@ local propObj    = 0
 local e_x, e_y, e_z     = 0.0, 0.0, 0.0
 local e_rx, e_ry, e_rz  = 0.0, 0.0, 0.0
 local ped = 0
+local isSearching = false
 
 -- Stages são fornecidos pelo resource alvo via GetPropEditData;
 -- este é o fallback padrão para itens de fumo (pode ser sobrescrito).
@@ -77,6 +78,8 @@ end
 
 local function StopEditor()
     isEditing = false
+    isSearching = false
+    SetNuiFocus(false, false)
     ClearPedTasks(ped)
     if DoesEntityExist(propObj) then
         DeleteObject(propObj)
@@ -147,6 +150,9 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
     PlayStageAnim()
     UpdatePropAttach()
 
+    -- Envia a lista global Objects do data/objects.lua (17k)
+    SendNUIMessage({ action = 'initObjects', objects = Objects or {} })
+
     -- Mostra a NUI
     SendNUIMessage({ action = 'show', resource = resource, item = item })
     UpdateNUI()
@@ -213,6 +219,13 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
                 ))
             end
 
+            -- Busca Prop
+            if IsControlJustPressed(0, 0xB2F377E8) then -- F
+                isSearching = not isSearching
+                SetNuiFocus(isSearching, isSearching)
+                SendNUIMessage({ action = 'toggleSearch', state = isSearching })
+            end
+
             -- Fechar editor
             if IsControlJustPressed(0, 0x156F7119) then -- BACKSPACE
                 SendNUIMessage({ action = 'hide' })
@@ -220,4 +233,43 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
             end
         end
     end)
+end)
+
+-- -------------------------------------------------------
+-- Callbacks NUI
+-- -------------------------------------------------------
+RegisterNUICallback('changeProp', function(data, cb)
+    local newProp = data.propName
+    if newProp then
+        local hash = GetHashKey(newProp)
+        if not HasModelLoaded(hash) then
+            RequestModel(hash)
+            local t = 0
+            while not HasModelLoaded(hash) and t < 100 do Wait(10); t = t + 1 end
+        end
+
+        if HasModelLoaded(hash) then
+            if DoesEntityExist(propObj) then
+                DeleteObject(propObj)
+            end
+            local coords = GetEntityCoords(ped)
+            propObj = CreateObject(hash, coords.x, coords.y, coords.z, true, true, false)
+            UpdatePropAttach()
+            print('[fdb-propeditor] Prop alterado para: ' .. newProp)
+        else
+            print('[fdb-propeditor] Falha ao carregar modelo: ' .. newProp)
+        end
+    end
+
+    isSearching = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'toggleSearch', state = false })
+    cb('ok')
+end)
+
+RegisterNUICallback('closeSearch', function(data, cb)
+    isSearching = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'toggleSearch', state = false })
+    cb('ok')
 end)

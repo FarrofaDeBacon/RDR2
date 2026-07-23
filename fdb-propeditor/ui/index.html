@@ -157,6 +157,49 @@
             box-shadow: 0 0 6px rgba(255, 200, 80, 0.5);
             animation: pulse 2s ease-in-out infinite;
         }
+        /* Search */
+        .search-container {
+            margin-top: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .search-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            color: #fff;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 11px;
+            outline: none;
+            pointer-events: auto;
+        }
+        .search-input:focus {
+            border-color: rgba(255, 200, 80, 0.6);
+        }
+        .search-results {
+            max-height: 150px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            pointer-events: auto;
+        }
+        .search-results::-webkit-scrollbar { width: 4px; }
+        .search-results::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
+        .search-item {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 4px 6px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        .search-item:hover {
+            background: rgba(255, 200, 80, 0.2);
+            color: #fff;
+        }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
@@ -212,7 +255,12 @@
             <div class="hint-row"><span class="key">WASD</span> Mover — <span class="key">SHIFT+WASD</span> Girar</div>
             <div class="hint-row"><span class="key">PgUp</span><span class="key">PgDn</span> Altura / Pitch Z</div>
             <div class="hint-row"><span class="key">ESPAÇO</span> Trocar estágio — <span class="key">ENTER</span> Print F8</div>
-            <div class="hint-row"><span class="key">BACKSPACE</span> Fechar editor</div>
+            <div class="hint-row"><span class="key">F</span> Buscar prop (Ativa Mouse) — <span class="key">BACKSPACE</span> Fechar</div>
+        </div>
+
+        <div id="search-container" class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar prop (17k)..." />
+            <div id="search-results" class="search-results"></div>
         </div>
     </div>
 
@@ -232,13 +280,59 @@
         function fmt3(v) { return parseFloat(v).toFixed(3); }
         function fmt1(v) { return parseFloat(v).toFixed(1); }
 
+        let allObjects = [];
+        const searchContainer = document.getElementById('search-container');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            searchResults.innerHTML = '';
+            if (query.length < 2) return;
+            const filtered = allObjects.filter(o => o.toLowerCase().includes(query)).slice(0, 50);
+            filtered.forEach(objName => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.textContent = objName;
+                div.onclick = function() {
+                    fetch(`https://${window.GetParentResourceName()}/changeProp`, {
+                        method: 'POST',
+                        body: JSON.stringify({ propName: objName })
+                    });
+                };
+                searchResults.appendChild(div);
+            });
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fetch(`https://${window.GetParentResourceName()}/closeSearch`, { method: 'POST', body: '{}' });
+            }
+        });
+
         window.addEventListener('message', function(event) {
             const data = event.data;
+
+            if (data.action === 'initObjects') {
+                allObjects = data.objects || [];
+            }
+
+            if (data.action === 'toggleSearch') {
+                if (data.state) {
+                    searchContainer.style.display = 'flex';
+                    searchInput.value = '';
+                    searchResults.innerHTML = '';
+                    setTimeout(() => searchInput.focus(), 50);
+                } else {
+                    searchContainer.style.display = 'none';
+                }
+            }
 
             if (data.action === 'show') {
                 resLabel.textContent  = data.resource  || '';
                 itemLabel.textContent = data.item      || '';
                 panel.style.display = 'flex';
+                searchContainer.style.display = 'none';
             }
 
             if (data.action === 'hide') {

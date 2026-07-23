@@ -17,5 +17,6 @@ server_scripts {
 }
 
 client_scripts {
+    'data/objects.lua',
     'client.lua'
 }
