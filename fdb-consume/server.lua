@@ -3,11 +3,9 @@ local pendingReturnItems = {}
 
 -- Registrar Itens Consumíveis
 CreateThread(function()
-    print("^3[fdb-consume] INICIANDO REGISTRO DE ITENS...^7")
     local count = 0
     for itemName, data in pairs(Config.Items) do
         count = count + 1
-        print("DEBUG fdb-consume: Registrando item: " .. itemName)
 
         -- Validação no boot
         if data.give and data.give.item then
@@ -21,12 +19,9 @@ CreateThread(function()
             local Player = RSGCore.Functions.GetPlayer(src)
             if not Player then return end
             
-            print("DEBUG fdb-consume: Jogador " .. src .. " tentou usar " .. itemName)
-
             -- Servidor é quem retira o item (impossível fraudar no cliente)
             if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-                print("DEBUG fdb-consume: Item removido com sucesso!")
-                -- Opcional: Atualizar o inventário visualmente
+                -- Atualizar o inventário visualmente
                 TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], "remove")
 
                 -- Recuperar Metadatas Atuais
@@ -59,6 +54,11 @@ CreateThread(function()
                 TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
                 TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
                 TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
+
+                -- Aplicar health e stamina no ped do cliente
+                if (data.health or 0) ~= 0 or (data.stamina or 0) ~= 0 then
+                    TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, data.health or 0, data.stamina or 0)
+                end
 
                 -- Dar o item de retorno foi movido para o final da animação no cliente
                 TriggerClientEvent('fdb-consume:client:playAnim', src, itemName)
