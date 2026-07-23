@@ -809,17 +809,24 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         local startTime = GetGameTimer()
         local isChewing = true
         
-        -- Mostrar o aviso na tela do jogador (RSG Core)
-        pcall(function() exports['rsg-core']:DrawText('[E] ou [Clique] para Cuspir', 'left') end)
+        -- Cria o Prompt Nativo do RedM
+        local spitPrompt = PromptRegisterBegin()
+        PromptSetControlAction(spitPrompt, 0x07CE1E61) -- Botão Esquerdo do Mouse
+        PromptSetText(spitPrompt, CreateVarString(10, 'LITERAL_STRING', "Cuspir"))
+        PromptSetEnabled(spitPrompt, true)
+        PromptSetVisible(spitPrompt, true)
+        PromptSetHoldMode(spitPrompt, false)
+        PromptRegisterEnd(spitPrompt)
         
         while isChewing do
             Wait(0)
-            -- 0x07CE1E61 = Left Mouse Button, 0xCEFD9220 = Tecla E
-            if IsControlJustPressed(0, 0x07CE1E61) or IsControlJustPressed(0, 0xCEFD9220) or (GetGameTimer() - startTime > 60000) then
+            -- 0x07CE1E61 = Left Mouse Button
+            if IsControlJustPressed(0, 0x07CE1E61) or (GetGameTimer() - startTime > 60000) then
                 isChewing = false
                 
-                -- Esconder o aviso da tela
-                pcall(function() exports['rsg-core']:HideText() end)
+                -- Esconde o prompt nativo
+                PromptSetEnabled(spitPrompt, false)
+                PromptSetVisible(spitPrompt, false)
                 
                 local pedId = PlayerPedId()
                 
@@ -831,7 +838,6 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
                     while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
                     
                     if HasAnimDictLoaded(spitDict) then
-                        -- Duração -1 (toca até o fim)
                         TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, -1, 48, 0.0, false, false, false)
                     end
                 end
