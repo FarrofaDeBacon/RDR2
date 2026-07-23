@@ -750,12 +750,13 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     local ped = PlayerPedId()
     
     local hash = GetHashKey(propModel)
+    local prop = nil
     if IsModelValid(hash) then
         RequestModel(hash)
         while not HasModelLoaded(hash) do Wait(10) end
         
         local coords = GetEntityCoords(ped)
-        local prop = CreateObject(hash, coords.x, coords.y, coords.z, true, true, false)
+        prop = CreateObject(hash, coords.x, coords.y, coords.z, true, true, false)
         local boneName = 'SKEL_L_HAND'
         local x, y, z = 0.0, 0.0, 0.0
         local rx, ry, rz = 0.0, 0.0, 0.0
@@ -771,22 +772,24 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         
         local boneIndex = GetEntityBoneIndexByName(ped, boneName)
         AttachEntityToEntity(prop, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
-        
-        local dict = animDict or "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
-        local name = animName or "quick_left_hand"
-        RequestAnimDict(dict)
-        local t1 = 0
-        while not HasAnimDictLoaded(dict) and t1 < 100 do Wait(10); t1 = t1 + 1 end
-        
-        if HasAnimDictLoaded(dict) then
-            -- Flag 1 para forçar a tocar (Looping) ou Flag 48
-            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 1, 0.0, false, false, false)
-        else
-            print("fdb-consume ERRO: Dicionário de animação inicial não encontrado: " .. tostring(dict))
-        end
-        Wait(4000)
-        DeleteObject(prop)
+    else
+        print("fdb-consume ERRO: Prop invalido: " .. tostring(propModel))
     end
+    
+    local dict = animDict or "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
+    local name = animName or "quick_left_hand"
+    RequestAnimDict(dict)
+    local t1 = 0
+    while not HasAnimDictLoaded(dict) and t1 < 100 do Wait(10); t1 = t1 + 1 end
+    
+    if HasAnimDictLoaded(dict) then
+        -- Flag 1 para forçar a tocar (Looping) ou Flag 48
+        TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 1, 0.0, false, false, false)
+    else
+        print("fdb-consume ERRO: Dicionário de animação inicial não encontrado: " .. tostring(dict))
+    end
+    Wait(4000)
+    if prop then DeleteObject(prop) end
     
     local chewDict = "face_human@gen_male@scenario@eating"
     local chewName = "mixchew_loop_long" -- Animacao sugerida pelo usuario
