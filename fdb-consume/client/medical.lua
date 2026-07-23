@@ -1,4 +1,4 @@
-RegisterNetEvent('fdb-consume:client:ConsumeMedical', function(propModel, animDict, animName)
+RegisterNetEvent('fdb-consume:client:ConsumeMedical', function(propModel, animType, maxUses, animDict, animName, itemName)
     local ped = PlayerPedId()
     
     local dict = animDict or "mech_inventory@drinking@bottle_cylinder_d1-3_h30-5_neck_a13_b2-5"
@@ -11,9 +11,22 @@ RegisterNetEvent('fdb-consume:client:ConsumeMedical', function(propModel, animDi
 
     local coords = GetEntityCoords(ped)
     local prop = CreateObject(modelHash, coords.x, coords.y, coords.z, true, true, false)
-    local boneIndex = GetEntityBoneIndexByName(ped, 'SKEL_R_HAND')
+    local boneName = 'SKEL_R_HAND'
+    local x, y, z = 0.0, 0.0, 0.04
+    local rx, ry, rz = 0.0, 0.0, 0.0
+
+    if itemName and Config.Items[itemName] and Config.Items[itemName].offsets then
+        local off = Config.Items[itemName].offsets
+        if off.bone then boneName = off.bone end
+        if off.hand_idle then
+            x, y, z = off.hand_idle.x or x, off.hand_idle.y or y, off.hand_idle.z or z
+            rx, ry, rz = off.hand_idle.rx or rx, off.hand_idle.ry or ry, off.hand_idle.rz or rz
+        end
+    end
+
+    local boneIndex = GetEntityBoneIndexByName(ped, boneName)
     
-    AttachEntityToEntity(prop, ped, boneIndex, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+    AttachEntityToEntity(prop, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
 
     RequestAnimDict(dict)
     local timeout = 0

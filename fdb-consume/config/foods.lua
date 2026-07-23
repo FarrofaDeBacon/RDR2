@@ -1,3 +1,7 @@
+local foodStages = {
+    { name = 'hand_idle', animDict = 'amb_rest@world_human_smoking@male_c@base', animName = 'base', bone = 'SKEL_R_HAND' }
+}
+
 local items = {
     ['bread'] = {
         type = "Eat",
@@ -7,7 +11,10 @@ local items = {
         alcohol = 0,
         health = 5,
         stamina = 0,
-        uses = 5 -- Quantas mordidas o pão vai durar
+        prop = "p_cs_bread01x",
+        offsets = { hand_idle = { x = 0.1, y = -0.01, z = -0.07, rx = -90.0, ry = 100.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 5
     },
     ['stew'] = {
         type = "Stew",
@@ -17,7 +24,10 @@ local items = {
         alcohol = -10,
         health = 20,
         stamina = 20,
-        uses = 1 -- Ensopado é 1 uso só (pois a animação é única e longa)
+        prop = "p_bowl04x_stew",
+        offsets = { hand_idle = { x = 0.1, y = -0.01, z = -0.07, rx = -90.0, ry = 100.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 1
     },
     ['canned_apricots'] = {
         type = "Canned",
@@ -26,7 +36,10 @@ local items = {
         stress = 10,
         alcohol = -3,
         health = 10,
-        uses = 4 -- Quantas mordidas a lata vai durar
+        prop = "p_canned_apricot01x",
+        offsets = { hand_idle = { x = 0.10, y = -0.01, z = -0.07, rx = -90.0, ry = 10.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 4
     },
     ['canned_beans'] = {
         type = "Canned",
@@ -34,7 +47,10 @@ local items = {
         thirst = 10,
         stress = 5,
         health = 15,
-        uses = 4 -- Quantas mordidas a lata vai durar
+        prop = "p_canned_beans01x",
+        offsets = { hand_idle = { x = 0.10, y = -0.01, z = -0.07, rx = -90.0, ry = 10.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 4
     },
     ['apple'] = {
         type = "Eat",
@@ -42,7 +58,9 @@ local items = {
         thirst = 10,
         health = 5,
         prop = "p_apple01x",
-        uses = 2 -- Maçã acaba rápido
+        offsets = { hand_idle = { x = 0.1, y = -0.01, z = -0.07, rx = -90.0, ry = 100.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 2
     },
     ['cheese'] = {
         type = "Eat",
@@ -50,8 +68,11 @@ local items = {
         thirst = -5,
         health = 5,
         prop = "p_baitcheese01x",
-        uses = 3 -- Pedaço de queijo
+        offsets = { hand_idle = { x = 0.1, y = -0.01, z = -0.07, rx = -90.0, ry = 100.0, rz = 0.0 } },
+        editorStages = foodStages,
+        uses = 3
     }
 }
 
 Config.AddItems(items)
+

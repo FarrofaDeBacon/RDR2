@@ -58,9 +58,20 @@ RegisterNetEvent('fdb-consume:client:ConsumeDrink', function(propModel, animType
     local coords = GetEntityCoords(ped)
     activeProp = CreateObject(modelHash, coords.x, coords.y, coords.z, true, true, false)
     
-    local boneIndex = GetEntityBoneIndexByName(ped, 'SKEL_R_HAND')
+    local boneName = 'SKEL_R_HAND'
     local x, y, z = 0.05, -0.07, -0.05
     local rx, ry, rz = -75.0, 60.0, 0.0
+
+    if itemName and Config.Items[itemName] and Config.Items[itemName].offsets then
+        local off = Config.Items[itemName].offsets
+        if off.bone then boneName = off.bone end
+        if off.hand_idle then
+            x, y, z = off.hand_idle.x or x, off.hand_idle.y or y, off.hand_idle.z or z
+            rx, ry, rz = off.hand_idle.rx or rx, off.hand_idle.ry or ry, off.hand_idle.rz or rz
+        end
+    end
+
+    local boneIndex = GetEntityBoneIndexByName(ped, boneName)
 
     AttachEntityToEntity(activeProp, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
     CreateDrinkPrompts()
