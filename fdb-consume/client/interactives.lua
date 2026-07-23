@@ -62,35 +62,45 @@ RegisterNetEvent('fdb-consume:client:StartInteractiveConsumable', function(animT
 
     CreateConsumablePrompts(animType)
 
-    -- Loop de Interação
     Citizen.CreateThread(function()
+        local isAnimating = false
         while isHoldingConsumable do
             Wait(0)
             if IsControlJustReleased(0, Config.Prompts.DropKey) then
+                TriggerServerEvent('fdb-consume:server:cancelConsume')
                 TriggerEvent('fdb-consume:client:StopInteractiveConsumable')
             end
 
-            if IsControlJustReleased(0, Config.Prompts.SmokeKey) then
-                -- Toca a animação de morder/beber dependendo do tipo
+            if IsDisabledControlJustPressed(0, Config.Prompts.SmokeKey) then
+                local dict = "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
+                local clip = "quick_right_hand"
+                
                 if activeType == "drink" or activeType == "medical" or activeType == "drug" then
-                    RequestAnimDict("amb_rest_drunk@world_human_drinking@male_a@idle_a")
-                    while not HasAnimDictLoaded("amb_rest_drunk@world_human_drinking@male_a@idle_a") do Wait(10) end
-                    TaskPlayAnim(ped, "amb_rest_drunk@world_human_drinking@male_a@idle_a", "idle_a", 1.0, 1.0, 3000, 31, 0.0, false, false, false)
-                elseif activeType == "eat" then
-                    RequestAnimDict("mech_inventory@eating@multi_bite@sphere_d8-2_sandwich")
-                    while not HasAnimDictLoaded("mech_inventory@eating@multi_bite@sphere_d8-2_sandwich") do Wait(10) end
-                    TaskPlayAnim(ped, "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich", "quick_right_hand", 1.0, 1.0, 2000, 31, 0.0, false, false, false)
+                    dict = "amb_rest_drunk@world_human_drinking@male_a@idle_a"
+                    clip = "idle_a"
                 elseif activeType == "canned" then
-                    RequestAnimDict("mech_inventory@eating@canned_food@cylinder@d8-2_h10-5")
-                    while not HasAnimDictLoaded("mech_inventory@eating@canned_food@cylinder@d8-2_h10-5") do Wait(10) end
-                    TaskPlayAnim(ped, "mech_inventory@eating@canned_food@cylinder@d8-2_h10-5", "left_hand", 1.0, 1.0, 2000, 31, 0.0, false, false, false)
-                else
-                    RequestAnimDict("mech_inventory@eating@multi_bite@sphere_d8-2_sandwich")
-                    while not HasAnimDictLoaded("mech_inventory@eating@multi_bite@sphere_d8-2_sandwich") do Wait(10) end
-                    TaskPlayAnim(ped, "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich", "quick_right_hand", 1.0, 1.0, 2000, 31, 0.0, false, false, false)
+                    dict = "mech_inventory@eating@canned_food@cylinder@d8-2_h10-5"
+                    clip = "left_hand"
+                end
+
+                RequestAnimDict(dict)
+                while not HasAnimDictLoaded(dict) do Wait(10) end
+                
+                TaskPlayAnim(ped, dict, clip, 8.0, -8.0, -1, 31, 0.0, false, false, false)
+                
+                local lastBiteTime = GetGameTimer()
+                TriggerServerEvent('fdb-consume:server:takeBite')
+
+                while IsDisabledControlPressed(0, Config.Prompts.SmokeKey) and isHoldingConsumable do
+                    Wait(0)
+                    DisableControlAction(0, Config.Prompts.SmokeKey, true)
+                    local now = GetGameTimer()
+                    if now - lastBiteTime > 2000 then
+                        TriggerServerEvent('fdb-consume:server:takeBite')
+                        lastBiteTime = now
+                    end
                 end
                 
-                Wait(2000)
                 ClearPedTasks(ped)
             end
         end

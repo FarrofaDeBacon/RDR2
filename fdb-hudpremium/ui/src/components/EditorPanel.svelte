@@ -275,6 +275,10 @@
                                     <label>Inner Color</label>
                                     <input type="color" value={cfg.innerColor} on:input={(e) => updateConfig(selectedElementId, 'innerColor', e.target.value)} />
                                 </div>
+                                <div class="color-picker">
+                                    <label>Track Color</label>
+                                    <input type="color" value={cfg.trackColor || '#000000'} on:input={(e) => updateConfig(selectedElementId, 'trackColor', e.target.value)} />
+                                </div>
                             </div>
 
                             <hr>

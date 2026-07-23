@@ -68,12 +68,14 @@ export const createDefaultConfigs = () => {
     const cfgs = {};
     defaultElements.forEach(id => {
         let outerColor = '#ffffff';
+        let trackColor = ''; // empty means transparent/default
+        
         if (id === 'stamina' || id === 'horseStamina') outerColor = '#ffd700';
         else if (id === 'food') outerColor = '#ffa500';
         else if (id === 'water') outerColor = '#00bfff';
         else if (id === 'stress') outerColor = '#ff4500';
         else if (id === 'urine') outerColor = '#ffff00';
-        else if (id === 'hygiene') outerColor = '#8b4513';
+        else if (id === 'hygiene') { outerColor = '#ffffff'; trackColor = '#8b4513'; } // Branca por cima, Marrom no fundo
         else if (id === 'poison') outerColor = '#32cd32';
         else if (id === 'illness') outerColor = '#808000';
         else if (id === 'drunkenness') outerColor = '#ff69b4';
@@ -94,6 +96,7 @@ export const createDefaultConfigs = () => {
             goldColor: '#ffd700',
             maxOuterColor: '#ffffff',
             innerColor: '#ffffff',
+            trackColor: trackColor,
             showSegments: false,
             segmentsCount: 10,
             badge: {

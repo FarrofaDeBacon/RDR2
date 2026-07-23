@@ -93,21 +93,31 @@ RegisterNetEvent('fdb-consume:client:ConsumeFood', function(propModel, animType,
     local boneIndex = GetEntityBoneIndexByName(ped, boneName)
     AttachEntityToEntity(activeProp, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
 
+    if animType == "Stew" then
+        RequestModel(`p_spoon01x`)
+        while not HasModelLoaded(`p_spoon01x`) do Wait(10) end
+        activeProp2 = CreateObject(`p_spoon01x`, coords.x, coords.y, coords.z, true, true, false)
+        local spoonBoneIndex = GetEntityBoneIndexByName(ped, "PH_R_HAND")
+        AttachEntityToEntity(activeProp2, ped, spoonBoneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+    end
+
     CreateFoodPrompts()
 
-    local bitesTaken = 0
-
     Citizen.CreateThread(function()
+        local isAnimating = false
         while isHoldingFood do
             Wait(0)
             DisableControlAction(0, Config.Prompts.SmokeKey, true)
-
+            DisableControlAction(0, Config.Prompts.ChugKey, true)
+            
             if IsControlJustReleased(0, Config.Prompts.DropKey) then
+                TriggerServerEvent('fdb-consume:server:cancelConsume')
                 TriggerEvent('fdb-consume:client:StopFood')
             end
 
-            if IsDisabledControlJustReleased(0, Config.Prompts.SmokeKey) then
-                bitesTaken = bitesTaken + 1
+            -- MODO 1: Clique Rápido (Mordida Unica)
+            if IsDisabledControlJustPressed(0, Config.Prompts.SmokeKey) and not isAnimating then
+                isAnimating = true
                 local dict = animDict or "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
                 local clip = animName or "quick_right_hand"
                 
@@ -120,15 +130,45 @@ RegisterNetEvent('fdb-consume:client:ConsumeFood', function(propModel, animType,
                 while not HasAnimDictLoaded(dict) do Wait(10) end
                 
                 TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 2000, 31, 0.0, false, false, false)
+                TriggerServerEvent('fdb-consume:server:takeBite')
+                
                 Wait(2000)
                 ClearPedSecondaryTask(ped)
+                isAnimating = false
+            end
 
-                if bitesTaken >= maxUses then
-                    if itemName then
-                        TriggerServerEvent('fdb-consume:server:giveReturnItem', itemName)
-                    end
-                    TriggerEvent('fdb-consume:client:StopFood')
+            -- MODO 2: Segurar Botão Direito (Comer Tudo)
+            if IsDisabledControlJustPressed(0, Config.Prompts.ChugKey) and not isAnimating then
+                isAnimating = true
+                local dict = animDict or "mech_inventory@eating@multi_bite@sphere_d8-2_sandwich"
+                local clip = animName or "quick_right_hand"
+                
+                if not animDict and animType == "Canned" then
+                    dict = "mech_inventory@eating@canned_food@cylinder@d8-2_h10-5"
+                    clip = "left_hand"
                 end
+
+                RequestAnimDict(dict)
+                while not HasAnimDictLoaded(dict) do Wait(10) end
+                
+                TaskPlayAnim(ped, dict, clip, 8.0, -8.0, -1, 31, 0.0, false, false, false)
+                
+                local lastBiteTime = GetGameTimer()
+                TriggerServerEvent('fdb-consume:server:takeBite')
+
+                while IsDisabledControlPressed(0, Config.Prompts.ChugKey) and isHoldingFood do
+                    Wait(0)
+                    DisableControlAction(0, Config.Prompts.SmokeKey, true)
+                    DisableControlAction(0, Config.Prompts.ChugKey, true)
+                    local now = GetGameTimer()
+                    if now - lastBiteTime > 2000 then
+                        TriggerServerEvent('fdb-consume:server:takeBite')
+                        lastBiteTime = now
+                    end
+                end
+                
+                ClearPedSecondaryTask(ped)
+                isAnimating = false
             end
         end
     end)
@@ -138,6 +178,7 @@ RegisterNetEvent('fdb-consume:client:StopFood', function()
     if isHoldingFood then
         isHoldingFood = false
         if consumePrompt then PromptDelete(consumePrompt); consumePrompt = nil end
+        if chugPrompt then PromptDelete(chugPrompt); chugPrompt = nil end
         if dropPrompt then PromptDelete(dropPrompt); dropPrompt = nil end
         if activeProp and DoesEntityExist(activeProp) then DeleteObject(activeProp); activeProp = nil end
         if activeProp2 and DoesEntityExist(activeProp2) then DeleteObject(activeProp2); activeProp2 = nil end

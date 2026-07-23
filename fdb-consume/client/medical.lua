@@ -34,7 +34,11 @@ RegisterNetEvent('fdb-consume:client:ConsumeMedical', function(propModel, animTy
     
     if timeout < 50 then
         TaskPlayAnim(ped, dict, clip, 1.0, 1.0, 2000, 31, 0.0, false, false, false)
-        Wait(2000)
+        Wait(1000)
+        TriggerServerEvent('fdb-consume:server:takeBite')
+        Wait(1000)
+    else
+        TriggerServerEvent('fdb-consume:server:cancelConsume')
     end
 
     ClearPedTasks(ped)

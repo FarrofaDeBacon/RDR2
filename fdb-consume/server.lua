@@ -1,5 +1,5 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
-local pendingReturnItems = {}
+local activeConsumptions = {}
 
 -- Registrar Itens Consumíveis
 CreateThread(function()
@@ -24,68 +24,86 @@ CreateThread(function()
                 -- Atualizar o inventário visualmente
                 TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], "remove")
 
-                -- Recuperar Metadatas Atuais
-                local currentHunger = Player.PlayerData.metadata['hunger'] or 100
-                local currentThirst = Player.PlayerData.metadata['thirst'] or 100
-                local currentStress = Player.PlayerData.metadata['stress'] or 0
-                local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
-
-                -- Matemática Segura
-                local newHunger = math.max(0, math.min(100, currentHunger + (data.hunger or 0)))
-                local newThirst = math.max(0, math.min(100, currentThirst + (data.thirst or 0)))
-                local newStress = math.max(0, math.min(100, currentStress + (data.stress or 0)))
-                local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol + (data.alcohol or 0)))
-
-                -- Autorização para item de retorno
-                local returnItem = data.give and data.give.item
-                if returnItem then
-                    if not pendingReturnItems[src] then pendingReturnItems[src] = {} end
-                    pendingReturnItems[src][itemName] = (pendingReturnItems[src][itemName] or 0) + 1
+                local uses = data.uses or 3 -- Se não tiver uses definido, padrão 3 mordidas
+                if Config.Animations[data.type] and Config.Animations[data.type].uses then
+                    uses = data.uses or Config.Animations[data.type].uses
                 end
 
-                -- Aplicar Metadatas
-                Player.Functions.SetMetaData('hunger', newHunger)
-                Player.Functions.SetMetaData('thirst', newThirst)
-                Player.Functions.SetMetaData('stress', newStress)
-                Player.Functions.SetMetaData('alcohol', newAlcohol)
-                
-                -- Avisar passivamente o HUD da mudança de dados do consume
-                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'food', value = math.floor(newHunger) })
-                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
-                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
-                TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
+                activeConsumptions[src] = {
+                    itemName = itemName,
+                    totalUses = uses,
+                    currentUses = uses,
+                    stats = {
+                        hunger = (data.hunger or 0) / uses,
+                        thirst = (data.thirst or 0) / uses,
+                        stress = (data.stress or 0) / uses,
+                        alcohol = (data.alcohol or 0) / uses,
+                        health = (data.health or 0) / uses,
+                        stamina = (data.stamina or 0) / uses,
+                    },
+                    returnItem = data.give and data.give.item or nil
+                }
 
-                -- Aplicar health e stamina no ped do cliente
-                if (data.health or 0) ~= 0 or (data.stamina or 0) ~= 0 then
-                    TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, data.health or 0, data.stamina or 0)
-                end
-
-                -- Dar o item de retorno foi movido para o final da animação no cliente
+                -- Avisa o cliente para segurar o prop (e começar a animação/loop de botão)
                 TriggerClientEvent('fdb-consume:client:playAnim', src, itemName)
             end
         end)
     end
 end)
 
-RegisterNetEvent('fdb-consume:server:giveReturnItem', function(itemName)
+RegisterNetEvent('fdb-consume:server:takeBite', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
 
-    if not pendingReturnItems[src] or not pendingReturnItems[src][itemName] or pendingReturnItems[src][itemName] <= 0 then
-        print(("[fdb-consume] HACK DETECTADO: Jogador %s tentou forjar item de retorno '%s' sem uso prévio."):format(src, itemName))
+    local consume = activeConsumptions[src]
+    if not consume or consume.currentUses <= 0 then
+        TriggerClientEvent('fdb-consume:client:StopInteractiveConsumable', src)
         return
     end
 
-    pendingReturnItems[src][itemName] = pendingReturnItems[src][itemName] - 1
+    consume.currentUses = consume.currentUses - 1
 
-    local data = Config.Items[itemName]
-    if data and data.give and data.give.item then
-        if Player.Functions.AddItem(data.give.item, data.give.count or 1) then
-            TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[data.give.item], "add")
-        else
-            print("^3[fdb-consume] AVISO: Nao foi possivel dar o item de retorno "..data.give.item.." para o jogador "..src.." (inventário cheio?)^7")
+    local currentHunger = Player.PlayerData.metadata['hunger'] or 100
+    local currentThirst = Player.PlayerData.metadata['thirst'] or 100
+    local currentStress = Player.PlayerData.metadata['stress'] or 0
+    local currentAlcohol = Player.PlayerData.metadata['alcohol'] or 0
+
+    local newHunger = math.max(0, math.min(100, currentHunger + consume.stats.hunger))
+    local newThirst = math.max(0, math.min(100, currentThirst + consume.stats.thirst))
+    local newStress = math.max(0, math.min(100, currentStress + consume.stats.stress))
+    local newAlcohol = math.max(0, math.min(Config.Alcohol.MaxAlcoholLevel, currentAlcohol + consume.stats.alcohol))
+
+    Player.Functions.SetMetaData('hunger', newHunger)
+    Player.Functions.SetMetaData('thirst', newThirst)
+    Player.Functions.SetMetaData('stress', newStress)
+    Player.Functions.SetMetaData('alcohol', newAlcohol)
+    
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'food', value = math.floor(newHunger) })
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'water', value = math.floor(newThirst) })
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'stress', value = math.floor(newStress) })
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = math.floor(newAlcohol) })
+    TriggerClientEvent('fdb-consume:client:checkAlcohol', src, newAlcohol)
+
+    if consume.stats.health ~= 0 or consume.stats.stamina ~= 0 then
+        TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, consume.stats.health, consume.stats.stamina)
+    end
+
+    if consume.currentUses <= 0 then
+        if consume.returnItem then
+            if Player.Functions.AddItem(consume.returnItem, 1) then
+                TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[consume.returnItem], "add")
+            end
         end
+        activeConsumptions[src] = nil
+        TriggerClientEvent('fdb-consume:client:StopInteractiveConsumable', src)
+    end
+end)
+
+RegisterNetEvent('fdb-consume:server:cancelConsume', function()
+    local src = source
+    if activeConsumptions[src] then
+        activeConsumptions[src] = nil
     end
 end)
 
@@ -146,7 +164,7 @@ end)
 
 AddEventHandler('playerDropped', function(reason)
     local src = source
-    if pendingReturnItems[src] then
-        pendingReturnItems[src] = nil
+    if activeConsumptions[src] then
+        activeConsumptions[src] = nil
     end
 end)

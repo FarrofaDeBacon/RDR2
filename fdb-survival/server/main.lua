@@ -97,7 +97,7 @@ RegisterNetEvent('fdb-survival:server:SaveMeta', function(meta, value)
     local safeValue = math.floor(math.max(0, math.min(100, value)))
 
     local maxDeltaPerSync = {
-        cleanliness = 5,
+        cleanliness = 101, -- desativado (permite limpar/sujar 100% de uma vez sem bugar o anticheat)
         bladder = 5
     }
     if maxDeltaPerSync[meta] then
@@ -121,6 +121,12 @@ end)
 -- -------------------------------------------------------
 -- EXPORTS DE MANIPULAÇÃO DIRETA
 -- -------------------------------------------------------
+RegisterNetEvent('fdb-survival:server:ForceClean', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("cleanliness", 100)
+end)
 exports('AddBladder', function(src, amount)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end

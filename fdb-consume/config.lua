@@ -4,8 +4,8 @@ Config = {}
 Config.Alcohol = {
     DrunkThreshold = 15,      -- Nível para começar a ficar tonto
     PassOutThreshold = 100,   -- Nível para desmaiar de bêbado
-    DecreaseAmount = 2,       -- Quantidade que diminui por ciclo
-    DecreaseInterval = 10000,  -- Tempo do ciclo em ms
+    DecreaseAmount = 1,       -- Quantidade que diminui por ciclo (1)
+    DecreaseInterval = 45000,  -- Tempo do ciclo em ms (45 segundos) - efeito passa BEM mais devagar
     MaxAlcoholLevel = 150,    -- Limite máximo (não morre, mas passa mal)
     
     -- Efeitos
@@ -15,18 +15,20 @@ Config.Alcohol = {
 
 Config.Metabolism = {
     DrainInterval = 4000, -- Intervalo base em ms
-    HungerDrain = 0.08,   -- Dreno por intervalo (mesma taxa que o HUD costumava ter)
+    HungerDrain = 0.08,   -- Dreno por intervalo
     ThirstDrain = 0.12,   -- Dreno por intervalo
 }
 
 Config.Drop = "Jogar Fora"
-Config.Smoke = "Fumar / Dar Trago"
+Config.Smoke = "Dar Gole / Mordida"
+Config.Chug = "Beber Tudo de uma Vez"
 Config.Change = "Mudar Pose"
 
 Config.Prompts = {
     DropKey = 0x27D1C284, -- R
     SmokeKey = 0x07CE1E61, -- Clique Botão Esquerdo do Mouse
-    ChangeKey = 0xCC1075A7 -- Roda do Mouse para Baixo (Mouse Wheel Down)
+    ChugKey = 0xF84FA74F,  -- Clique Botão Direito do Mouse (INPUT_INTERACT_LOCKON_POS / RIGHT MOUSE)
+    ChangeKey = 0xCC1075A7 -- Roda do Mouse para Baixo
 }
 
 -- Animações Padrão

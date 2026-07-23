@@ -206,7 +206,8 @@
                 value={getOuter(hygiene)} 
                 innerValue={getInner(hygiene)} 
                 icon="./assets/hygiene.svg" 
-                outerColor="#8b4513" 
+                outerColor="#ffffff" 
+                trackColor="#8b4513"
                 innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
             />
         </DraggableModule>

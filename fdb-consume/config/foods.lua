@@ -11,8 +11,8 @@ local items = {
         alcohol = 0,
         health = 5,
         stamina = 0,
-        prop = "p_cs_bread01x",
-        offsets = { hand_idle = { x = 0.1, y = -0.01, z = -0.07, rx = -90.0, ry = 100.0, rz = 0.0 } },
+        prop = "s_inv_bread01x",
+        offsets = { hand_idle = { x = 0.1, y = 0.0, z = -0.05, rx = -90.0, ry = 0.0, rz = 0.0 } },
         editorStages = foodStages,
         uses = 5
     },

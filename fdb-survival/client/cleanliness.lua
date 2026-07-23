@@ -17,40 +17,37 @@ CreateThread(function()
                 })
 
                 -- Efeito de moscas rodeando
-                local assetName = "core"
-                local ptfxName = "ent_anim_fly_swarm"
-                
-                RequestNamedPtfxAsset(assetName)
+                local propName = "p_horseflies"
+                local modelHash = GetHashKey(propName)
+                RequestModel(modelHash)
                 local timeout = 0
-                while not HasNamedPtfxAssetLoaded(assetName) and timeout < 50 do
+                while not HasModelLoaded(modelHash) and timeout < 50 do
                     Wait(10)
                     timeout = timeout + 1
                 end
                 
-                if HasNamedPtfxAssetLoaded(assetName) then
-                    UseParticleFxAssetNextCall(assetName)
+                if HasModelLoaded(modelHash) then
+                    local coords = GetEntityCoords(ped)
+                    flyParticle = CreateObject(modelHash, coords.x, coords.y, coords.z, true, true, false)
                     local boneIndex = GetEntityBoneIndexByName(ped, "SKEL_Spine2")
-                    flyParticle = StartNetworkedParticleFxLoopedOnEntityBone(
-                        ptfxName, ped,
-                        0.0, 0.0, 0.0, -- Offset
-                        0.0, 0.0, 0.0, -- Rotação
-                        boneIndex,
-                        1.5, -- Escala
-                        false, false, false
-                    )
+                    AttachEntityToEntity(flyParticle, ped, boneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
                 end
 
             elseif FDB.Survival.cleanliness >= 20 and isSmelly then
                 isSmelly = false
-                if flyParticle then
-                    StopParticleFxLooped(flyParticle, false)
+                if flyParticle and DoesEntityExist(flyParticle) then
+                    DeleteObject(flyParticle)
                     flyParticle = nil
                 end
-                RemoveNamedPtfxAsset("core")
             end
         end
     end
 end)
+RegisterCommand("dirtyme", function()
+    FDB.Survival.cleanliness = 10
+    FDB.BroadcastState('cleanliness', 10)
+    exports['ox_lib']:notify({ title = 'Sujeira', description = 'Higiene definida para 10.', type = 'inform' })
+end, false)
 
 RegisterCommand("lavar", function()
     local ped = PlayerPedId()
@@ -59,6 +56,11 @@ RegisterCommand("lavar", function()
         return
     end
     
+    if not IsEntityInWater(ped) then
+        exports['ox_lib']:notify({ title = 'Erro', description = 'Você precisa estar na água ou no banho para se lavar!', type = 'error' })
+        return
+    end
+
     ClearPedTasks(ped)
     TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_CLEAN_TABLE'), -1, true, false, false, false)
     exports['ox_lib']:progressBar({
@@ -75,5 +77,5 @@ RegisterCommand("lavar", function()
     
     FDB.Survival.cleanliness = 100
     FDB.BroadcastState('cleanliness', 100)
-    TriggerServerEvent('fdb-survival:server:SaveMeta', 'cleanliness', 100)
+    TriggerServerEvent('fdb-survival:server:ForceClean')
 end, false)

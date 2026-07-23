@@ -49,6 +49,7 @@
     export let icon = '';        
     export let outerColor = '#ffffff'; // Fallback
     export let innerColor = '#ffffff'; // Controlled by StatusCores
+    export let trackColor = null;      // Custom background track color
     export let isFlashing = false;
 
     // Retrieve configs
@@ -114,6 +115,7 @@
                     cx="28" cy="28" r="{radius}"
                     stroke-width="4"
                     fill="none"
+                    stroke="{trackColor || ''}"
                 />
                 <circle
                     class="ring-fill"

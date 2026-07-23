@@ -15,19 +15,47 @@ function FDB.BroadcastState(field, value)
     TriggerEvent('fdb-survival:client:stateChanged', { field = field, value = value })
 end
 
-local function SyncLocalMetadata()
+local function SyncLocalMetadata(isInit)
     local PlayerData = RSGCore.Functions.GetPlayerData()
     if PlayerData and PlayerData.metadata then
-        FDB.Survival.bladder = PlayerData.metadata["bladder"] or 0
-        FDB.Survival.cleanliness = PlayerData.metadata["cleanliness"] or 100
-        FDB.Survival.poison = PlayerData.metadata["poison"] or 0
-        FDB.Survival.illness = PlayerData.metadata["illness"] or 0
+        if isInit then
+            FDB.Survival.bladder = PlayerData.metadata["bladder"] or 0
+            FDB.Survival.cleanliness = PlayerData.metadata["cleanliness"] or 100
+            FDB.Survival.poison = PlayerData.metadata["poison"] or 0
+            FDB.Survival.illness = PlayerData.metadata["illness"] or 0
+        else
+            -- Durante o jogo, não deixamos o server sobrescrever o progresso local (que pode estar até 16s na frente)
+            -- Exceto se o server mandar um valor de RESET absoluto (ex: script de banho mandou 100)
+            local sClean = PlayerData.metadata["cleanliness"] or 100
+            if sClean == 100 and FDB.Survival.cleanliness < 99 then
+                FDB.Survival.cleanliness = 100
+                FDB.BroadcastState('cleanliness', 100)
+            end
+            
+            local sBladder = PlayerData.metadata["bladder"] or 0
+            if sBladder == 0 and FDB.Survival.bladder > 1 then
+                FDB.Survival.bladder = 0
+                FDB.BroadcastState('bladder', 0)
+            end
+            
+            local sPoison = PlayerData.metadata["poison"] or 0
+            if sPoison == 0 and FDB.Survival.poison > 1 then
+                FDB.Survival.poison = 0
+                FDB.BroadcastState('poison', 0)
+            end
+            
+            local sIllness = PlayerData.metadata["illness"] or 0
+            if sIllness == 0 and FDB.Survival.illness > 1 then
+                FDB.Survival.illness = 0
+                FDB.BroadcastState('illness', 0)
+            end
+        end
     end
 end
 
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     FDB.IsLoggedIn = true
-    SyncLocalMetadata()
+    SyncLocalMetadata(true)
 end)
 
 RegisterNetEvent('RSGCore:Client:OnPlayerLogout', function()
@@ -48,7 +76,7 @@ CreateThread(function()
         local data = RSGCore.Functions.GetPlayerData()
         if data and data.citizenid then
             FDB.IsLoggedIn = true
-            SyncLocalMetadata()
+            SyncLocalMetadata(true)
         end
     end
 end)
@@ -69,8 +97,24 @@ CreateThread(function()
                 cleanlinessDrain = cleanlinessDrain * Config.DrainRates.WeatherMultipliers.Rain
             end
             
+            local currentHealth = GetEntityHealth(ped)
+            if not FDB.Survival.lastHealth then FDB.Survival.lastHealth = currentHealth end
+            
+            if currentHealth < FDB.Survival.lastHealth then
+                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.DirtinessActions.BloodDamage
+            end
+            FDB.Survival.lastHealth = currentHealth
+            
+            if IsPedRagdoll(ped) or IsPedFalling(ped) then
+                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.DirtinessActions.FallMud
+            end
+            
+            if IsEntityInWater(ped) and GetEntitySubmergedLevel(ped) > 0.3 then
+                cleanlinessDrain = -Config.DrainRates.DirtinessActions.WashInWater
+            end
+            
             local oldCleanliness = FDB.Survival.cleanliness
-            FDB.Survival.cleanliness = math.max(0, FDB.Survival.cleanliness - cleanlinessDrain)
+            FDB.Survival.cleanliness = math.max(0, math.min(100, FDB.Survival.cleanliness - cleanlinessDrain))
             if math.floor(FDB.Survival.cleanliness) ~= math.floor(oldCleanliness) then
                 FDB.BroadcastState('cleanliness', math.floor(FDB.Survival.cleanliness))
             end
@@ -144,6 +188,34 @@ CreateThread(function()
                 TriggerServerEvent('fdb-survival:server:SaveMeta', 'poison', math.floor(FDB.Survival.poison))
                 TriggerServerEvent('fdb-survival:server:SaveMeta', 'illness', math.floor(FDB.Survival.illness))
             end
+        end
+    end
+end)
+
+-- =======================================================
+-- LOOP DE STAMINA (Velocidade e Movimento)
+-- =======================================================
+CreateThread(function()
+    while true do
+        Wait(0)
+        if FDB.IsLoggedIn then
+            local ped = PlayerPedId()
+            local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
+            
+            if stamina and stamina < 30 then
+                -- Reduz a velocidade gradualmente
+                local moveRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
+                Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
+                
+                -- Se chegar quase a zero, bloqueia o sprint completamente
+                if stamina < 5 then
+                    DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
+                    DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
+                    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 2.0) -- SetPedMaxMoveBlendRatio (trote no max)
+                end
+            end
+        else
+            Wait(1000)
         end
     end
 end)

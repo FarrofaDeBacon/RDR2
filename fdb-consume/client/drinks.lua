@@ -6,19 +6,28 @@ local dropPrompt = nil
 local function CreateDrinkPrompts()
     Citizen.CreateThread(function()
         consumePrompt = nil
+        chugPrompt = nil
         dropPrompt = nil
 
         consumePrompt = PromptRegisterBegin()
-        PromptSetControlAction(consumePrompt, Config.Prompts.SmokeKey) -- Botão Esquerdo
-        PromptSetText(consumePrompt, CreateVarString(10, 'LITERAL_STRING', "Beber"))
+        PromptSetControlAction(consumePrompt, Config.Prompts.SmokeKey)
+        PromptSetText(consumePrompt, CreateVarString(10, 'LITERAL_STRING', Config.Smoke))
         PromptSetEnabled(consumePrompt, true)
         PromptSetVisible(consumePrompt, true)
         PromptSetHoldMode(consumePrompt, false)
         PromptRegisterEnd(consumePrompt)
+        
+        chugPrompt = PromptRegisterBegin()
+        PromptSetControlAction(chugPrompt, Config.Prompts.ChugKey)
+        PromptSetText(chugPrompt, CreateVarString(10, 'LITERAL_STRING', Config.Chug))
+        PromptSetEnabled(chugPrompt, true)
+        PromptSetVisible(chugPrompt, true)
+        PromptSetHoldMode(chugPrompt, false)
+        PromptRegisterEnd(chugPrompt)
 
         dropPrompt = PromptRegisterBegin()
-        PromptSetControlAction(dropPrompt, Config.Prompts.DropKey) -- R
-        PromptSetText(dropPrompt, CreateVarString(10, 'LITERAL_STRING', "Jogar Fora"))
+        PromptSetControlAction(dropPrompt, Config.Prompts.DropKey)
+        PromptSetText(dropPrompt, CreateVarString(10, 'LITERAL_STRING', Config.Drop))
         PromptSetEnabled(dropPrompt, true)
         PromptSetVisible(dropPrompt, true)
         PromptSetHoldMode(dropPrompt, false)
@@ -76,20 +85,21 @@ RegisterNetEvent('fdb-consume:client:ConsumeDrink', function(propModel, animType
     AttachEntityToEntity(activeProp, ped, boneIndex, x, y, z, rx, ry, rz, true, true, false, true, 1, true)
     CreateDrinkPrompts()
 
-    local sipsTaken = 0
-
     Citizen.CreateThread(function()
+        local isAnimating = false
         while isHoldingDrink do
             Wait(0)
             DisableControlAction(0, Config.Prompts.SmokeKey, true)
+            DisableControlAction(0, Config.Prompts.ChugKey, true)
             
             if IsControlJustReleased(0, Config.Prompts.DropKey) then
-                TriggerEvent('fdb-consume:client:StopDrink')
+                TriggerServerEvent('fdb-consume:server:cancelConsumable')
+                TriggerEvent('fdb-consume:client:StopInteractiveConsumable')
             end
 
-            if IsDisabledControlJustReleased(0, Config.Prompts.SmokeKey) then
-                sipsTaken = sipsTaken + 1
-                
+            -- MODO 1: Clique Rápido (Dar um Gole)
+            if IsDisabledControlJustPressed(0, Config.Prompts.SmokeKey) and not isAnimating then
+                isAnimating = true
                 local dict = animDict or "mech_inventory@drinking@bottle_cylinder_d1-3_h30-5_neck_a13_b2-5"
                 local clip = animName or "chug_a"
 
@@ -97,24 +107,50 @@ RegisterNetEvent('fdb-consume:client:ConsumeDrink', function(propModel, animType
                 while not HasAnimDictLoaded(dict) do Wait(10) end
                 
                 TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 2000, 31, 0.0, false, false, false)
+                TriggerServerEvent('fdb-consume:server:takeBite')
+                
                 Wait(2000)
                 ClearPedSecondaryTask(ped)
+                isAnimating = false
+            end
 
-                if sipsTaken >= maxUses then
-                    if itemName then
-                        TriggerServerEvent('fdb-consume:server:giveReturnItem', itemName)
+            -- MODO 2: Segurar Botão Direito (Beber de Uma Vez)
+            if IsDisabledControlJustPressed(0, Config.Prompts.ChugKey) and not isAnimating then
+                isAnimating = true
+                local dict = animDict or "mech_inventory@drinking@bottle_cylinder_d1-3_h30-5_neck_a13_b2-5"
+                local clip = animName or "chug_a"
+
+                RequestAnimDict(dict)
+                while not HasAnimDictLoaded(dict) do Wait(10) end
+                
+                TaskPlayAnim(ped, dict, clip, 8.0, -8.0, -1, 31, 0.0, false, false, false)
+                
+                local lastBiteTime = GetGameTimer()
+                TriggerServerEvent('fdb-consume:server:takeBite')
+
+                while IsDisabledControlPressed(0, Config.Prompts.ChugKey) and isHoldingDrink do
+                    Wait(0)
+                    DisableControlAction(0, Config.Prompts.SmokeKey, true)
+                    DisableControlAction(0, Config.Prompts.ChugKey, true)
+                    local now = GetGameTimer()
+                    if now - lastBiteTime > 2000 then
+                        TriggerServerEvent('fdb-consume:server:takeBite')
+                        lastBiteTime = now
                     end
-                    TriggerEvent('fdb-consume:client:StopDrink')
                 end
+                
+                ClearPedSecondaryTask(ped)
+                isAnimating = false
             end
         end
     end)
 end)
 
-RegisterNetEvent('fdb-consume:client:StopDrink', function()
+RegisterNetEvent('fdb-consume:client:StopInteractiveConsumable', function()
     if isHoldingDrink then
         isHoldingDrink = false
         if consumePrompt then PromptDelete(consumePrompt); consumePrompt = nil end
+        if chugPrompt then PromptDelete(chugPrompt); chugPrompt = nil end
         if dropPrompt then PromptDelete(dropPrompt); dropPrompt = nil end
         if activeProp and DoesEntityExist(activeProp) then DeleteObject(activeProp); activeProp = nil end
         ClearPedTasks(PlayerPedId())

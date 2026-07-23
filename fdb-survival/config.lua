@@ -11,6 +11,13 @@ Config.DrainRates = {
     -- Multiplicadores de Clima (aplicados sobre Cleanliness)
     WeatherMultipliers = {
         Rain = 2.0             -- Mais sujeira se estiver chovendo (GetRainLevel > 0.1)
+    },
+    
+    -- Ganhos de Sujeira Imediata
+    DirtinessActions = {
+        BloodDamage = 15.0,     -- Sujeira ganha ao tomar dano na vida (Sangue)
+        FallMud = 10.0,         -- Sujeira ganha ao cair no chão/rolar (Lama)
+        WashInWater = 25.0      -- Quantidade limpa por tick ao entrar na água
     }
 }
 
