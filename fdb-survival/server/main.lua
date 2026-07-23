@@ -97,15 +97,15 @@ RegisterNetEvent('fdb-survival:server:SaveMeta', function(meta, value)
     local safeValue = math.floor(math.max(0, math.min(100, value)))
 
     local maxDeltaPerSync = {
-        cleanliness = 101, -- desativado (permite limpar/sujar 100% de uma vez sem bugar o anticheat)
+        cleanliness = 40, -- cobre o pior caso plausível de sangue+lama dentro da janela de 16s
         bladder = 5
     }
     if maxDeltaPerSync[meta] then
         local current = Player.PlayerData.metadata[meta] or 0
         local delta = math.abs(safeValue - current)
         if delta > maxDeltaPerSync[meta] then
-            print(("[fdb-survival] SaveMeta suspeito: delta de %d em '%s' de src %s (citizenid: %s)"):format(delta, meta, src, Player.PlayerData.citizenid))
-            return
+            print(("[fdb-survival] SaveMeta limitado: delta de %d (acima do max de %d) em '%s' de src %s (citizenid: %s)"):format(delta, maxDeltaPerSync[meta], meta, src, Player.PlayerData.citizenid))
+            safeValue = math.floor(math.max(0, math.min(100, current + (safeValue > current and maxDeltaPerSync[meta] or -maxDeltaPerSync[meta]))))
         end
     end
 
