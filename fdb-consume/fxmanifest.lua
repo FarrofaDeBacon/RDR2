@@ -18,7 +18,7 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/editor.lua',
+    'client/exports.lua',
     'client/foods.lua',
     'client/drinks.lua',
     'client/medical.lua',
