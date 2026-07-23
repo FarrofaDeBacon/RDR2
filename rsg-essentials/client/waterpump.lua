@@ -86,7 +86,7 @@ RegisterNetEvent('rsg-waterpump:client:drinking', function()
             anim = { scenario = 'WORLD_HUMAN_CROUCH_INSPECT' },
             label = locale('cl_canteen_take_b'),
         }) then
-            TriggerServerEvent('fdb-survival:server:ForceThirst', math.random(25, 50))
+            TriggerServerEvent('fdb-survival:server:AddThirst', math.random(25, 50))
         end
     end
 end)

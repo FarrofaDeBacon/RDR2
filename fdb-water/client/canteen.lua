@@ -83,7 +83,7 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
     local shouldDegrade = not refillable or not inWater
 
     if shouldRefill then
-        TriggerServerEvent("fdb-survival:server:ForceThirst", 100)
+        TriggerServerEvent("fdb-survival:server:AddThirst", 100)
 
         if item == 'canteen0' then
             TriggerServerEvent('fdb-water:server:givefullcanteen')
