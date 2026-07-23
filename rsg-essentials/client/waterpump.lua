@@ -61,7 +61,7 @@ RegisterNetEvent('rsg-waterpump:client:canteenfill', function()
                 anim = { scenario = 'WORLD_HUMAN_CROUCH_INSPECT' },
                 label = locale('cl_canteen_take_c'),
             }) then
-                TriggerServerEvent('rsg-canteen:server:givefullcanteen')
+                TriggerServerEvent('fdb-water:server:givefullcanteen')
             end
             LocalPlayer.state:set('inv_busy', false, true)
         else
@@ -86,7 +86,7 @@ RegisterNetEvent('rsg-waterpump:client:drinking', function()
             anim = { scenario = 'WORLD_HUMAN_CROUCH_INSPECT' },
             label = locale('cl_canteen_take_b'),
         }) then
-            TriggerEvent('hud:client:UpdateThirst', LocalPlayer.state.thirst + math.random(25, 50))
+            TriggerServerEvent('fdb-survival:server:ForceThirst', math.random(25, 50))
         end
     end
 end)

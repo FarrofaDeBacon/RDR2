@@ -58,6 +58,21 @@ RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     SyncLocalMetadata(true)
 end)
 
+RegisterNetEvent('fdb-survival:client:ForceClean', function()
+    FDB.Survival.cleanliness = 100
+    FDB.BroadcastState('cleanliness', 100)
+end)
+
+RegisterNetEvent('fdb-survival:client:ForceThirst', function(val)
+    -- thirst não está no objeto FDB.Survival, mas devemos atualizar a HUD/RSGCore
+    -- O RSGCore cuida da sede nativamente, então só passamos pro HUD se necessário
+    -- Mas como nós dissemos que o fdb-survival é o DONO, deveríamos rastrear sede aqui?
+    -- No RedM, thirst e hunger podem ser nativos ou do RSGCore. 
+    -- Faremos um update forçado no LocalPlayer state pra garantir o hud
+    LocalPlayer.state:set('thirst', val, true)
+    TriggerEvent('hud:client:UpdateThirst', val)
+end)
+
 RegisterNetEvent('RSGCore:Client:OnPlayerLogout', function()
     FDB.IsLoggedIn = false
 end)

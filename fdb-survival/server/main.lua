@@ -126,6 +126,18 @@ RegisterNetEvent('fdb-survival:server:ForceClean', function()
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData("cleanliness", 100)
+    TriggerClientEvent('fdb-survival:client:ForceClean', src)
+end)
+
+RegisterNetEvent('fdb-survival:server:ForceThirst', function(amount)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    local current = Player.PlayerData.metadata["thirst"] or 100
+    local newThirst = math.max(0, math.min(100, current + (amount or 100)))
+    Player.Functions.SetMetaData("thirst", newThirst)
+    TriggerClientEvent('fdb-survival:client:ForceThirst', src, newThirst)
 end)
 exports('AddBladder', function(src, amount)
     local Player = RSGCore.Functions.GetPlayer(src)

@@ -66,6 +66,7 @@ RSGConfig.Player.PlayerDefaults = {
         stress = 0,
         bladder = 0,
         alcohol = 0,
+        -- [FDB CUSTOM METADATA] (NÃO REMOVER EM ATUALIZAÇÕES DO FRAMEWORK)
         poison = 0,
         illness = 0,
         isdead = false,

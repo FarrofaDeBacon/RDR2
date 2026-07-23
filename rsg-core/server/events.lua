@@ -156,6 +156,16 @@ end)
 RegisterNetEvent('RSGCore:Server:SetMetaData', function(meta, data)
     local src = source
     if not meta then return end
+    
+    -- [FDB SECURITY FIX]
+    -- Bloqueio de Exploit: Impede que clientes injetem metadados como fome/sede/limpeza
+    if meta ~= "isdead" then
+        print(("[RSGCore] ALERTA: src %s tentou forçar SetMetaData não autorizado para '%s'"):format(src, meta))
+        return
+    end
+    
+    if type(data) ~= "boolean" then return end
+    
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData(meta, data)
