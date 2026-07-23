@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>fdb-propeditor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 20px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #editor-panel {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(10, 10, 14, 0.88);
+            border: 1px solid rgba(255, 200, 80, 0.35);
+            border-radius: 6px;
+            padding: 14px 18px;
+            min-width: 290px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 4px;
+        }
+        .label-resource {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: rgba(255, 200, 80, 0.7);
+            text-transform: uppercase;
+        }
+        .label-item {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* Stage badge */
+        .stage-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .stage-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 200, 80, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .stage-counter {
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            padding: 2px 6px;
+        }
+
+        /* Coordinates */
+        .coords-block {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px 8px;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .coord-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .coord-label {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+        }
+        .coord-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e0e0e0;
+            min-width: 60px;
+        }
+        .coord-value.rotation { color: rgba(180, 160, 255, 0.9); }
+
+        /* Divider label */
+        .divider-label {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            padding: 2px 0;
+        }
+
+        /* Keybind hints */
+        .hints {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding-top: 4px;
+        }
+        .hint-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.35);
+        }
+        .key {
+            display: inline-block;
+            padding: 1px 5px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.55);
+            background: rgba(255,255,255,0.04);
+            white-space: nowrap;
+        }
+
+        /* Active indicator */
+        .active-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 200, 80, 0.8);
+            box-shadow: 0 0 6px rgba(255, 200, 80, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div id="editor-panel">
+        <div class="header">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="active-dot"></span>
+                <span class="label-resource" id="res-label">resource</span>
+            </div>
+            <span class="label-item" id="item-label">item</span>
+        </div>
+
+        <div class="stage-row">
+            <span class="stage-name" id="stage-name">—</span>
+            <span class="stage-counter" id="stage-counter">1 / 4</span>
+        </div>
+
+        <div class="coords-block">
+            <div class="divider-label" style="grid-column:1/-1">Posição</div>
+            <div class="coord-cell">
+                <span class="coord-label">X</span>
+                <span class="coord-value" id="val-x">0.000</span>
+            </div>
+            <div class="coord-cell">
+                <span class="coord-label">Y</span>
+                <span class="coord-value" id="val-y">0.000</span>
+            </div>
+            <div class="coord-cell">
+                <span class="coord-label">Z</span>
+                <span class="coord-value" id="val-z">0.000</span>
+            </div>
+
+            <div class="divider-label" style="grid-column:1/-1;margin-top:4px;">Rotação</div>
+            <div class="coord-cell">
+                <span class="coord-label">RX</span>
+                <span class="coord-value rotation" id="val-rx">0.0</span>
+            </div>
+            <div class="coord-cell">
+                <span class="coord-label">RY</span>
+                <span class="coord-value rotation" id="val-ry">0.0</span>
+            </div>
+            <div class="coord-cell">
+                <span class="coord-label">RZ</span>
+                <span class="coord-value rotation" id="val-rz">0.0</span>
+            </div>
+        </div>
+
+        <div class="hints">
+            <div class="hint-row"><span class="key">WASD</span> Mover — <span class="key">SHIFT+WASD</span> Girar</div>
+            <div class="hint-row"><span class="key">PgUp</span><span class="key">PgDn</span> Altura / Pitch Z</div>
+            <div class="hint-row"><span class="key">ESPAÇO</span> Trocar estágio — <span class="key">ENTER</span> Print F8</div>
+            <div class="hint-row"><span class="key">BACKSPACE</span> Fechar editor</div>
+        </div>
+    </div>
+
+    <script>
+        const panel      = document.getElementById('editor-panel');
+        const resLabel   = document.getElementById('res-label');
+        const itemLabel  = document.getElementById('item-label');
+        const stageName  = document.getElementById('stage-name');
+        const stageCount = document.getElementById('stage-counter');
+        const valX  = document.getElementById('val-x');
+        const valY  = document.getElementById('val-y');
+        const valZ  = document.getElementById('val-z');
+        const valRX = document.getElementById('val-rx');
+        const valRY = document.getElementById('val-ry');
+        const valRZ = document.getElementById('val-rz');
+
+        function fmt3(v) { return parseFloat(v).toFixed(3); }
+        function fmt1(v) { return parseFloat(v).toFixed(1); }
+
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+
+            if (data.action === 'show') {
+                resLabel.textContent  = data.resource  || '';
+                itemLabel.textContent = data.item      || '';
+                panel.style.display = 'flex';
+            }
+
+            if (data.action === 'hide') {
+                panel.style.display = 'none';
+            }
+
+            if (data.action === 'update') {
+                stageName.textContent  = data.stageName    || '—';
+                stageCount.textContent = `${data.stageIdx} / ${data.stageTotal}`;
+                valX.textContent  = fmt3(data.x);
+                valY.textContent  = fmt3(data.y);
+                valZ.textContent  = fmt3(data.z);
+                valRX.textContent = fmt1(data.rx);
+                valRY.textContent = fmt1(data.ry);
+                valRZ.textContent = fmt1(data.rz);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -19,12 +19,16 @@ local stages = {}
 local currentResource = nil
 local currentItem     = nil
 
-local function DrawTxt(text, x, y)
-    SetTextScale(0.25, 0.25)
-    SetTextColor(255, 255, 255, 255)
-    SetTextDropshadow(2, 0, 0, 0, 255)
-    SetTextFontForCurrentCommand(0)
-    DisplayText(CreateVarString(10, 'LITERAL_STRING', text), x, y)
+
+local function UpdateNUI()
+    SendNUIMessage({
+        action     = 'update',
+        stageName  = stages[currentStage] and stages[currentStage].name or '—',
+        stageIdx   = currentStage,
+        stageTotal = #stages,
+        x = e_x,  y = e_y,  z = e_z,
+        rx = e_rx, ry = e_ry, rz = e_rz,
+    })
 end
 
 local function PlayStageAnim()
@@ -143,6 +147,10 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
     PlayStageAnim()
     UpdatePropAttach()
 
+    -- Mostra a NUI
+    SendNUIMessage({ action = 'show', resource = resource, item = item })
+    UpdateNUI()
+
     -- -------------------------------------------------------
     -- Loop principal do editor
     -- -------------------------------------------------------
@@ -150,17 +158,8 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
         while isEditing do
             Wait(0)
 
-            -- HUD
-            DrawTxt('MODO DE EDICAO: ' .. string.upper(resource) .. ' > ' .. string.upper(item), 0.02, 0.30)
-            DrawTxt('ESTAGIO: ' .. stages[currentStage].name .. ' (' .. currentStage .. '/' .. #stages .. ')', 0.02, 0.33)
-            DrawTxt('[ESPACO] - Trocar Estagio',            0.02, 0.36)
-            DrawTxt('[W][S][A][D] - Mover Horizontal',      0.02, 0.39)
-            DrawTxt('[PgUp][PgDn] - Mover Vertical',        0.02, 0.42)
-            DrawTxt('Segurar [SHIFT] - Girar (Rotacao)',    0.02, 0.45)
-            DrawTxt('[ENTER] - Imprimir offset no F8',      0.02, 0.48)
-            DrawTxt('[BACKSPACE] - Sair do Editor',         0.02, 0.51)
-            DrawTxt(string.format('X: %.3f | Y: %.3f | Z: %.3f',    e_x,  e_y,  e_z),  0.02, 0.56)
-            DrawTxt(string.format('RX: %.1f | RY: %.1f | RZ: %.1f', e_rx, e_ry, e_rz), 0.02, 0.59)
+            -- HUD via NUI (substitui DrawTxt)
+            UpdateNUI()
 
             local speed  = 0.005
             local rspeed = 2.0
@@ -202,6 +201,7 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
                 LoadOffsetsFromStageData(itemData)
                 PlayStageAnim()
                 UpdatePropAttach()
+                UpdateNUI()
             end
 
             -- Imprimir offset atual no F8
@@ -215,6 +215,7 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
 
             -- Fechar editor
             if IsControlJustPressed(0, 0x156F7119) then -- BACKSPACE
+                SendNUIMessage({ action = 'hide' })
                 StopEditor()
             end
         end

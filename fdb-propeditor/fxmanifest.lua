@@ -6,6 +6,12 @@ lua54 'yes'
 description 'fdb-propeditor - Staff-only in-game prop offset editor'
 version '1.0.0'
 
+ui_page 'ui/index.html'
+
+files {
+    'ui/index.html'
+}
+
 server_scripts {
     'server.lua'
 }
