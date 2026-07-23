@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Anotações</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ui-container" class="hidden">
+        <div class="paper">
+            <!-- Header Tabs -->
+            <div class="tabs">
+                <button id="tab-add" class="tab-btn active">Nova Anotação</button>
+                <button id="tab-list" class="tab-btn">Minhas Anotações</button>
+            </div>
+
+            <!-- Tab Content: Add Marker -->
+            <div id="content-add" class="tab-content active">
+                <h2>Desenhar no Mapa</h2>
+                
+                <div class="input-group">
+                    <label for="marker-name">O que há aqui?</label>
+                    <input type="text" id="marker-name" placeholder="Ex: Acampamento, Caça..." autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label>Escolha o Símbolo</label>
+                    <div class="icon-grid" id="icon-grid">
+                        <div class="icon-option selected" data-value="blip_ambient_camp" title="Acampamento">🏕️</div>
+                        <div class="icon-option" data-value="blip_animal_deer" title="Ponto de Caça">🦌</div>
+                        <div class="icon-option" data-value="blip_shop_grocery" title="Provisões">🍎</div>
+                        <div class="icon-option" data-value="blip_shop_gunsmith" title="Armas / Perigo">🔫</div>
+                        <div class="icon-option" data-value="blip_defend_coach" title="Alvo / Destino">🎯</div>
+                        <div class="icon-option" data-value="blip_ambient_herb" title="Ervas / Coleta">🌿</div>
+                        <div class="icon-option" data-value="blip_shop_doctor" title="Médico / Ajuda">➕</div>
+                        <div class="icon-option" data-value="blip_shop_horses" title="Cavalos">🐎</div>
+                        <div class="icon-option" data-value="blip_mp_role_bounty_hunter" title="Estrela / Xerife">⭐</div>
+                        <div class="icon-option" data-value="blip_mp_role_collector" title="Tesouro">💎</div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="btn-cancel" class="btn btn-secondary">Rasgar (Cancelar)</button>
+                    <button id="btn-save" class="btn btn-primary">Anotar</button>
+                </div>
+            </div>
+
+            <!-- Tab Content: List Markers -->
+            <div id="content-list" class="tab-content">
+                <h2>Anotações Feitas</h2>
+                <div class="marker-list-container">
+                    <ul id="marker-list">
+                        <!-- Markers injected via JS -->
+                    </ul>
+                </div>
+                <div class="actions">
+                    <button id="btn-close-list" class="btn btn-secondary">Fechar Diário</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
