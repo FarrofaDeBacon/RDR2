@@ -108,7 +108,7 @@ RegisterNetEvent('fdb-propeditor:client:openMenu', function()
             local meta = GetResourceMetadata(res, 'fdb_propeditor_supported', 0)
             if meta == 'yes' then
                 local ok, items = pcall(function() return exports[res]:GetEditableItems() end)
-                if ok and type(items) == 'table' and #items > 0 then
+                if ok and type(items) == 'table' then
                     supportedResources[res] = items
                 end
             end
@@ -257,10 +257,11 @@ RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
                 SendNUIMessage({ action = 'toggleSearch', state = isSearching })
             end
 
-            -- Fechar editor
+            -- Fechar editor e voltar ao menu
             if IsControlJustPressed(0, 0x156F7119) then -- BACKSPACE
                 SendNUIMessage({ action = 'hide' })
                 StopEditor()
+                TriggerEvent('fdb-propeditor:client:openMenu')
             end
         end
     end)

@@ -15,24 +15,23 @@
             height: 100vh;
             background: transparent;
             font-family: 'JetBrains Mono', monospace;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
-            padding: 20px;
+            overflow: hidden;
             pointer-events: none;
             user-select: none;
         }
 
         #editor-panel {
             display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             flex-direction: column;
-            gap: 6px;
-            background: rgba(10, 10, 14, 0.88);
+            gap: 8px;
+            background: rgba(10, 10, 14, 0.95);
             border: 1px solid rgba(255, 200, 80, 0.35);
             border-radius: 6px;
-            padding: 14px 18px;
-            min-width: 290px;
-            backdrop-filter: blur(6px);
+            padding: 16px 20px;
+            min-width: 340px;
             box-shadow: 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
         }
 
@@ -40,20 +39,22 @@
         .header {
             display: flex;
             flex-direction: column;
-            gap: 2px;
-            padding-bottom: 10px;
+            gap: 4px;
+            padding-bottom: 12px;
             border-bottom: 1px solid rgba(255,255,255,0.08);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            cursor: grab;
         }
+        .header:active { cursor: grabbing; }
         .label-resource {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.12em;
             color: rgba(255, 200, 80, 0.7);
             text-transform: uppercase;
         }
         .label-item {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
             text-transform: uppercase;
@@ -65,82 +66,82 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 10px;
         }
         .stage-name {
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 600;
             color: rgba(255, 200, 80, 0.9);
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
         .stage-counter {
-            font-size: 10px;
+            font-size: 13px;
             color: rgba(255,255,255,0.35);
             background: rgba(255,255,255,0.05);
-            border-radius: 3px;
-            padding: 2px 6px;
+            border-radius: 4px;
+            padding: 3px 8px;
         }
 
         /* Coordinates */
         .coords-block {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 4px 8px;
-            padding: 8px 0;
+            gap: 6px 10px;
+            padding: 10px 0;
             border-top: 1px solid rgba(255,255,255,0.06);
             border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .coord-cell {
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 2px;
         }
         .coord-label {
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.14em;
             color: rgba(255,255,255,0.3);
             text-transform: uppercase;
         }
         .coord-value {
-            font-size: 12px;
+            font-size: 15px;
             font-weight: 600;
             color: #e0e0e0;
-            min-width: 60px;
+            min-width: 70px;
         }
         .coord-value.rotation { color: rgba(180, 160, 255, 0.9); }
 
         /* Divider label */
         .divider-label {
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.14em;
             color: rgba(255,255,255,0.2);
             text-transform: uppercase;
-            padding: 2px 0;
+            padding: 4px 0;
         }
 
         /* Keybind hints */
         .hints {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            padding-top: 4px;
+            gap: 5px;
+            padding-top: 6px;
         }
         .hint-row {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 9px;
+            gap: 8px;
+            font-size: 12px;
             color: rgba(255,255,255,0.35);
         }
         .key {
             display: inline-block;
-            padding: 1px 5px;
+            padding: 2px 6px;
             border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 3px;
-            font-size: 8px;
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: 700;
             color: rgba(255,255,255,0.55);
             background: rgba(255,255,255,0.04);
@@ -150,8 +151,8 @@
         /* Active indicator */
         .active-dot {
             display: inline-block;
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: rgba(255, 200, 80, 0.8);
             box-shadow: 0 0 6px rgba(255, 200, 80, 0.5);
@@ -159,20 +160,20 @@
         }
         /* Search */
         .search-container {
-            margin-top: 6px;
+            margin-top: 8px;
             display: none;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         .search-input {
             width: 100%;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            border-radius: 4px;
             color: #fff;
-            padding: 6px 8px;
+            padding: 8px 10px;
             font-family: inherit;
-            font-size: 11px;
+            font-size: 14px;
             outline: none;
             pointer-events: auto;
         }
@@ -180,21 +181,21 @@
             border-color: rgba(255, 200, 80, 0.6);
         }
         .search-results {
-            max-height: 150px;
+            max-height: 180px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
             pointer-events: auto;
         }
-        .search-results::-webkit-scrollbar { width: 4px; }
-        .search-results::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
+        .search-results::-webkit-scrollbar { width: 6px; }
+        .search-results::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
         .search-item {
-            font-size: 10px;
+            font-size: 13px;
             color: rgba(255, 255, 255, 0.6);
-            padding: 4px 6px;
+            padding: 6px 8px;
             cursor: pointer;
-            border-radius: 2px;
+            border-radius: 3px;
         }
         .search-item:hover {
             background: rgba(255, 200, 80, 0.2);
@@ -207,48 +208,52 @@
         /* Menu Inicial */
         #init-menu {
             display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             flex-direction: column;
-            gap: 12px;
-            background: rgba(10, 10, 14, 0.88);
+            gap: 14px;
+            background: rgba(10, 10, 14, 0.95);
             border: 1px solid rgba(255, 200, 80, 0.35);
             border-radius: 6px;
-            padding: 14px 18px;
-            min-width: 290px;
-            backdrop-filter: blur(6px);
+            padding: 16px 20px;
+            min-width: 320px;
             box-shadow: 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
             pointer-events: auto;
         }
         .menu-title {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             border-bottom: 1px solid rgba(255,255,255,0.08);
-            padding-bottom: 8px;
-            margin-bottom: 4px;
+            padding-bottom: 10px;
+            margin-bottom: 6px;
+            cursor: grab;
         }
+        .menu-title:active { cursor: grabbing; }
         .menu-select {
             width: 100%;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            border-radius: 4px;
             color: #fff;
-            padding: 8px;
+            padding: 10px;
             font-family: inherit;
-            font-size: 11px;
+            font-size: 14px;
             outline: none;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         .menu-select:focus { border-color: rgba(255, 200, 80, 0.6); }
         .menu-btn {
             background: rgba(255, 200, 80, 0.2);
             border: 1px solid rgba(255, 200, 80, 0.5);
             color: #fff;
-            padding: 8px;
-            border-radius: 3px;
+            padding: 10px;
+            border-radius: 4px;
             font-family: inherit;
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             text-transform: uppercase;
@@ -261,11 +266,11 @@
     <div id="init-menu">
         <div class="menu-title">Prop Editor</div>
         <div>
-            <label style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Resource:</label>
+            <label style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Resource:</label>
             <select id="sel-resource" class="menu-select"></select>
         </div>
         <div>
-            <label style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Item:</label>
+            <label style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Item:</label>
             <select id="sel-item" class="menu-select"></select>
         </div>
         <button id="btn-start" class="menu-btn" style="margin-top:4px;">Iniciar Edição</button>
@@ -356,17 +361,30 @@
         const btnStart = document.getElementById('btn-start');
         const btnCancel = document.getElementById('btn-cancel');
 
-        selResource.addEventListener('change', () => {
-            const res = selResource.value;
+        function populateItems(res) {
             selItem.innerHTML = '';
-            if (supportedResources[res]) {
-                supportedResources[res].forEach(item => {
+            const items = supportedResources[res];
+            if (items && items.length > 0) {
+                items.forEach(item => {
                     const opt = document.createElement('option');
                     opt.value = item;
                     opt.textContent = item;
                     selItem.appendChild(opt);
                 });
+                btnStart.style.opacity = '1';
+                btnStart.style.pointerEvents = 'auto';
+            } else {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '[ Nenhum prop configurado ]';
+                selItem.appendChild(opt);
+                btnStart.style.opacity = '0.5';
+                btnStart.style.pointerEvents = 'none';
             }
+        }
+
+        selResource.addEventListener('change', () => {
+            populateItems(selResource.value);
         });
 
         btnStart.addEventListener('click', () => {
@@ -434,12 +452,7 @@
                 
                 if (firstRes) {
                     selResource.value = firstRes;
-                    supportedResources[firstRes].forEach(item => {
-                        const opt = document.createElement('option');
-                        opt.value = item;
-                        opt.textContent = item;
-                        selItem.appendChild(opt);
-                    });
+                    populateItems(firstRes);
                 }
                 
                 initMenu.style.display = 'flex';
@@ -478,8 +491,46 @@
                 valRX.textContent = fmt1(data.rx);
                 valRY.textContent = fmt1(data.ry);
                 valRZ.textContent = fmt1(data.rz);
+                valRZ.textContent = fmt1(data.rz);
             }
         });
+
+        // Draggable Logic
+        function makeDraggable(element, handleSelector) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const handle = element.querySelector(handleSelector);
+            if (handle) {
+                handle.onmousedown = dragMouseDown;
+            }
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        makeDraggable(document.getElementById('init-menu'), '.menu-title');
+        makeDraggable(document.getElementById('editor-panel'), '.header');
     </script>
 </body>
 </html>
