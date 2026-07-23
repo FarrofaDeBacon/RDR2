@@ -134,3 +134,25 @@ RegisterNetEvent('fdb-consume:client:checkAlcohol', function(alcoholLevel)
         end
     end
 end)
+
+-- Aplicar Health e Stamina do item consumível
+-- health: valor relativo (-100 a +100) — soma sobre a saúde atual do ped
+-- stamina: valor relativo — restaura fôlego do jogador (0 a 100)
+RegisterNetEvent('fdb-consume:client:applyHealthStamina', function(healthDelta, staminaDelta)
+    local ped = PlayerPedId()
+
+    if healthDelta ~= 0 then
+        local maxHp = GetEntityMaxHealth(ped)
+        local currentHp = GetEntityHealth(ped)
+        -- GetEntityHealth em RDR2 usa escala 0-maxHp; 100 = morto, maxHp = cheio
+        local delta = math.floor((healthDelta / 100) * (maxHp - 100))
+        local newHp = math.max(101, math.min(maxHp, currentHp + delta))
+        SetEntityHealth(ped, newHp)
+    end
+
+    if staminaDelta ~= 0 then
+        local currentStaminaPct = 100 - GetPlayerSprintStaminaRemaining(PlayerId()) -- inverte a escala nativa
+        local targetPct = math.max(0, math.min(100, currentStaminaPct + staminaDelta))
+        RestorePlayerStamina(PlayerId(), targetPct / 100.0) -- espera 0.0-1.0
+    end
+end)
