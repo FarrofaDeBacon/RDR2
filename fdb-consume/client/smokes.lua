@@ -779,12 +779,12 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         while not HasAnimDictLoaded(dict) and t1 < 100 do Wait(10); t1 = t1 + 1 end
         
         if HasAnimDictLoaded(dict) then
-            -- Flag 48 para animações upperbody de 1 tiro sem loop
-            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 2000, 48, 0.0, false, false, false)
+            -- Flag 50 (16 UpperBody + 32 Control + 2 Hold) permite abrir a lata mesmo andando!
+            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 50, 0.0, false, false, false)
         else
             print("fdb-consume ERRO: Dicionário de animação inicial não encontrado: " .. tostring(dict))
         end
-        Wait(2000)
+        Wait(4000)
         DeleteObject(prop)
     end
     
@@ -795,8 +795,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     while not HasAnimDictLoaded(chewDict) and t2 < 100 do Wait(10); t2 = t2 + 1 end
     
     if HasAnimDictLoaded(chewDict) then
-        -- Flag 49 = Loop + UpperBody + Controle
-        TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 49, 0.0, false, false, false)
+        -- Flag 51 (16 UpperBody + 32 Control + 1 Loop + 2 Hold) força a mastigação a continuar MESMO andando!
+        TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 51, 0.0, false, false, false)
     else
         print("fdb-consume ERRO: Dicionário facial não encontrado: " .. tostring(chewDict))
     end
