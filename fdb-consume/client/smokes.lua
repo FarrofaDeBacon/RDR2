@@ -779,12 +779,12 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         while not HasAnimDictLoaded(dict) and t1 < 100 do Wait(10); t1 = t1 + 1 end
         
         if HasAnimDictLoaded(dict) then
-            -- Flag 1 para garantir que ele faça o movimento completo com as duas mãos
-            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 4000, 1, 0.0, false, false, false)
+            -- Flag 48 para animações upperbody de 1 tiro sem loop
+            TaskPlayAnim(ped, dict, name, 8.0, -8.0, 2000, 48, 0.0, false, false, false)
         else
             print("fdb-consume ERRO: Dicionário de animação inicial não encontrado: " .. tostring(dict))
         end
-        Wait(4000)
+        Wait(2000)
         DeleteObject(prop)
     end
     
@@ -813,7 +813,8 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
         
         if HasAnimDictLoaded(spitDict) then
-            TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, 3000, 31, 0.0, false, false, false)
+            -- Duração -1 (toca a animação inteira), Flag 48 (UpperBody + Controle SEM Loop)
+            TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, -1, 48, 0.0, false, false, false)
         end
     end)
 end)
