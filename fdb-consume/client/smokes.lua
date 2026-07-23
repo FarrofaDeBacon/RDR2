@@ -806,20 +806,29 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     end
     
     Citizen.CreateThread(function()
-        Wait(60000)
-        local pedId = PlayerPedId()
-        if IsPedDeadOrDying(pedId, true) then return end
+        local startTime = GetGameTimer()
+        local isChewing = true
         
-        -- Animação de encerramento que o usuário pediu (descruza o braço e cospe)
-        local spitDict = "amb_misc@world_human_chew_tobacco@male_a@trans"
-        local spitName = "a_trans_b"
-        RequestAnimDict(spitDict)
-        local timeout = 0
-        while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
-        
-        if HasAnimDictLoaded(spitDict) then
-            -- Duração -1 (toca até o fim)
-            TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, -1, 48, 0.0, false, false, false)
+        while isChewing do
+            Wait(0)
+            -- 0x07CE1E61 = Left Mouse Button (INPUT_ATTACK)
+            if IsControlJustPressed(0, 0x07CE1E61) or (GetGameTimer() - startTime > 60000) then
+                isChewing = false
+                local pedId = PlayerPedId()
+                
+                if not IsPedDeadOrDying(pedId, true) then
+                    local spitDict = "amb_misc@world_human_chew_tobacco@male_a@trans"
+                    local spitName = "a_trans_b"
+                    RequestAnimDict(spitDict)
+                    local timeout = 0
+                    while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
+                    
+                    if HasAnimDictLoaded(spitDict) then
+                        -- Duração -1 (toca até o fim)
+                        TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, -1, 48, 0.0, false, false, false)
+                    end
+                end
+            end
         end
     end)
 end)
