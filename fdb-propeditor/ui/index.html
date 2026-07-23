@@ -371,16 +371,14 @@
                     opt.textContent = item;
                     selItem.appendChild(opt);
                 });
-                btnStart.style.opacity = '1';
-                btnStart.style.pointerEvents = 'auto';
             } else {
                 const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = '[ Nenhum prop configurado ]';
+                opt.value = 'novo_item';
+                opt.textContent = '[ Explorar Props / Novo ]';
                 selItem.appendChild(opt);
-                btnStart.style.opacity = '0.5';
-                btnStart.style.pointerEvents = 'none';
             }
+            btnStart.style.opacity = '1';
+            btnStart.style.pointerEvents = 'auto';
         }
 
         selResource.addEventListener('change', () => {
@@ -443,7 +441,10 @@
                 
                 let firstRes = null;
                 for (const res in supportedResources) {
-                    if (!firstRes) firstRes = res;
+                    // Tenta achar o primeiro resource que realmente tenha itens para ser o default
+                    if (!firstRes || (supportedResources[firstRes].length === 0 && supportedResources[res].length > 0)) {
+                        firstRes = res;
+                    }
                     const opt = document.createElement('option');
                     opt.value = res;
                     opt.textContent = res;
