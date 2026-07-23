@@ -134,14 +134,20 @@ CreateThread(function()
         if isLoggedIn and nuiReady then
             local ped = PlayerPedId()
             
-            -- Saúde do jogador
+            -- Saúde do jogador (Tank + Core combinados em 0-100 para a UI)
             local currentHealth = GetEntityHealth(ped)
             local maxHealth = GetEntityMaxHealth(ped)
-            local health = GetNormalized(currentHealth - 100, maxHealth - 100)
+            local healthTank = GetNormalized(currentHealth - 100, maxHealth - 100)
+            local healthCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 0)
+            if not tonumber(healthCore) then healthCore = 0 end
+            local health = math.floor((healthTank / 2) + (healthCore / 2))
             
             -- Fôlego (Stamina) do jogador
             local rawStamina = GetPlayerStamina(PlayerId())
-            local stamina = math.max(0, math.min(100, math.floor(rawStamina)))
+            local staminaTank = math.max(0, math.min(100, math.floor(rawStamina)))
+            local staminaCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1)
+            if not tonumber(staminaCore) then staminaCore = 0 end
+            local stamina = math.floor((staminaTank / 2) + (staminaCore / 2))
             
             -- Cavalo (Mount)
             local mount = GetMount(ped)
@@ -151,9 +157,16 @@ CreateThread(function()
             
             if mount and mount ~= 0 then
                 isMounted = true
-                horseHealth = GetNormalized(GetEntityHealth(mount), GetEntityMaxHealth(mount))
+                local hHealthTank = GetNormalized(GetEntityHealth(mount), GetEntityMaxHealth(mount))
+                local hHealthCore = Citizen.InvokeNative(0x36731AC041289BB1, mount, 0)
+                if not tonumber(hHealthCore) then hHealthCore = 0 end
+                horseHealth = math.floor((hHealthTank / 2) + (hHealthCore / 2))
+
                 local rawHorseStamina = Citizen.InvokeNative(0x0FF421E467373FCF, mount, Citizen.ResultAsFloat())
-                horseStamina = math.max(0, math.min(100, math.floor(rawHorseStamina)))
+                local hStaminaTank = math.max(0, math.min(100, math.floor(rawHorseStamina)))
+                local hStaminaCore = Citizen.InvokeNative(0x36731AC041289BB1, mount, 1)
+                if not tonumber(hStaminaCore) then hStaminaCore = 0 end
+                horseStamina = math.floor((hStaminaTank / 2) + (hStaminaCore / 2))
             end
             
             -- Envia apenas atualizações reativas de alta prioridade se algum valor mudou
