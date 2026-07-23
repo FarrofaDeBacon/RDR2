@@ -12,3 +12,8 @@ exports('GetPropEditData', function(itemName)
     --   return { prop = '...', offsets = {...}, stages = {...} }
     return nil
 end)
+
+exports('GetEditableItems', function()
+    -- fdb-survival ainda não possui itens editáveis
+    return {}
+end)

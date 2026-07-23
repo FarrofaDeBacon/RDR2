@@ -6,6 +6,8 @@ author 'Antigravity'
 description 'Survival Engine'
 version '1.0.0'
 
+fdb_propeditor_supported 'yes'
+
 shared_scripts {
     'config.lua'
 }

@@ -17,27 +17,22 @@ RegisterCommand('propedit', function(source, args)
 
     if not resource or not item then
         if source == 0 then
-            print('[fdb-propeditor] Uso: /propedit <resource> <item> — ex: /propedit fdb-consume cigar')
-        else
-            TriggerClientEvent('chat:addMessage', source, {
-                args = { 'Sistema', '[fdb-propeditor] Uso: /propedit <resource> <item>' }
-            })
+            print('[fdb-propeditor] O console não pode abrir o menu UI. Use: /propedit <resource> <item>')
+            return
         end
+        -- Abre o menu de seleção no cliente do staff
+        TriggerClientEvent('fdb-propeditor:client:openMenu', source)
         return
     end
 
     -- Valida que o resource alvo existe e está rodando
     if GetResourceState(resource) ~= 'started' then
         local msg = ('[fdb-propeditor] Resource "%s" não encontrado ou não está rodando.'):format(resource)
-        if source == 0 then
-            print(msg)
-        else
-            TriggerClientEvent('chat:addMessage', source, { args = { 'Sistema', msg } })
-        end
+        if source == 0 then print(msg) else TriggerClientEvent('chat:addMessage', source, { args = { 'Sistema', msg } }) end
         return
     end
 
-    -- Abre o editor no cliente do staff (lógica de mover entra no item 4.2)
+    -- Abre o editor diretamente
     TriggerClientEvent('fdb-propeditor:client:open', source, resource, item)
 
 end, false)

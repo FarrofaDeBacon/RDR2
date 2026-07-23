@@ -17,3 +17,14 @@ exports('GetPropEditData', function(itemName)
         stages  = itemData.editorStages or nil,
     }
 end)
+
+exports('GetEditableItems', function()
+    local list = {}
+    for k, v in pairs(Config.Items) do
+        if v.prop then
+            table.insert(list, k)
+        end
+    end
+    table.sort(list)
+    return list
+end)

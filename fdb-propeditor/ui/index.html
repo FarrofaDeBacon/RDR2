@@ -203,10 +203,73 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
+        /* Menu Inicial */
+        #init-menu {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(10, 10, 14, 0.88);
+            border: 1px solid rgba(255, 200, 80, 0.35);
+            border-radius: 6px;
+            padding: 14px 18px;
+            min-width: 290px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+            pointer-events: auto;
         }
+        .menu-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+        }
+        .menu-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            color: #fff;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 11px;
+            outline: none;
+            margin-top: 2px;
+        }
+        .menu-select:focus { border-color: rgba(255, 200, 80, 0.6); }
+        .menu-btn {
+            background: rgba(255, 200, 80, 0.2);
+            border: 1px solid rgba(255, 200, 80, 0.5);
+            color: #fff;
+            padding: 8px;
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .menu-btn:hover { background: rgba(255, 200, 80, 0.4); }
     </style>
 </head>
 <body>
+    <div id="init-menu">
+        <div class="menu-title">Prop Editor</div>
+        <div>
+            <label style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Resource:</label>
+            <select id="sel-resource" class="menu-select"></select>
+        </div>
+        <div>
+            <label style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;">Item:</label>
+            <select id="sel-item" class="menu-select"></select>
+        </div>
+        <button id="btn-start" class="menu-btn" style="margin-top:4px;">Iniciar Edição</button>
+        <button id="btn-cancel" class="menu-btn" style="background:rgba(255,50,50,0.1);border-color:rgba(255,50,50,0.3);">Cancelar</button>
+    </div>
     <div id="editor-panel">
         <div class="header">
             <div style="display:flex;align-items:center;gap:8px;">
@@ -285,6 +348,43 @@
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
 
+        let supportedResources = {};
+        const initMenu = document.getElementById('init-menu');
+        const selResource = document.getElementById('sel-resource');
+        const selItem = document.getElementById('sel-item');
+        const btnStart = document.getElementById('btn-start');
+        const btnCancel = document.getElementById('btn-cancel');
+
+        selResource.addEventListener('change', () => {
+            const res = selResource.value;
+            selItem.innerHTML = '';
+            if (supportedResources[res]) {
+                supportedResources[res].forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    selItem.appendChild(opt);
+                });
+            }
+        });
+
+        btnStart.addEventListener('click', () => {
+            const res = selResource.value;
+            const itm = selItem.value;
+            if (res && itm) {
+                initMenu.style.display = 'none';
+                fetch(`https://${window.GetParentResourceName()}/startEdit`, {
+                    method: 'POST',
+                    body: JSON.stringify({ resource: res, item: itm })
+                });
+            }
+        });
+
+        btnCancel.addEventListener('click', () => {
+            initMenu.style.display = 'none';
+            fetch(`https://${window.GetParentResourceName()}/closeMenu`, { method: 'POST', body: '{}' });
+        });
+
         searchInput.addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             searchResults.innerHTML = '';
@@ -315,6 +415,35 @@
 
             if (data.action === 'initObjects') {
                 allObjects = data.objects || [];
+            }
+
+            if (data.action === 'openMenu') {
+                supportedResources = data.resources || {};
+                selResource.innerHTML = '';
+                selItem.innerHTML = '';
+                
+                let firstRes = null;
+                for (const res in supportedResources) {
+                    if (!firstRes) firstRes = res;
+                    const opt = document.createElement('option');
+                    opt.value = res;
+                    opt.textContent = res;
+                    selResource.appendChild(opt);
+                }
+                
+                if (firstRes) {
+                    selResource.value = firstRes;
+                    supportedResources[firstRes].forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item;
+                        opt.textContent = item;
+                        selItem.appendChild(opt);
+                    });
+                }
+                
+                initMenu.style.display = 'flex';
+                panel.style.display = 'none';
+                searchContainer.style.display = 'none';
             }
 
             if (data.action === 'toggleSearch') {

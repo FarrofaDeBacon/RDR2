@@ -92,7 +92,38 @@ local function StopEditor()
 end
 
 -- -------------------------------------------------------
--- Entrada: disparado pelo server após checar ACE
+-- Menu Inicial Automático
+-- -------------------------------------------------------
+RegisterNetEvent('fdb-propeditor:client:openMenu', function()
+    if isEditing then
+        print('[fdb-propeditor] Feche o editor atual antes de abrir o menu.')
+        return
+    end
+
+    local supportedResources = {}
+    local num = GetNumResources()
+    for i = 0, num - 1 do
+        local res = GetResourceByFindIndex(i)
+        if GetResourceState(res) == 'started' then
+            local meta = GetResourceMetadata(res, 'fdb_propeditor_supported', 0)
+            if meta == 'yes' then
+                local ok, items = pcall(function() return exports[res]:GetEditableItems() end)
+                if ok and type(items) == 'table' and #items > 0 then
+                    supportedResources[res] = items
+                end
+            end
+        end
+    end
+
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = 'openMenu',
+        resources = supportedResources
+    })
+end)
+
+-- -------------------------------------------------------
+-- Entrada: disparado pelo server ou pelo menu UI
 -- -------------------------------------------------------
 RegisterNetEvent('fdb-propeditor:client:open', function(resource, item)
     if isEditing then
@@ -271,5 +302,16 @@ RegisterNUICallback('closeSearch', function(data, cb)
     isSearching = false
     SetNuiFocus(false, false)
     SendNUIMessage({ action = 'toggleSearch', state = false })
+    cb('ok')
+end)
+
+RegisterNUICallback('startEdit', function(data, cb)
+    SetNuiFocus(false, false)
+    TriggerEvent('fdb-propeditor:client:open', data.resource, data.item)
+    cb('ok')
+end)
+
+RegisterNUICallback('closeMenu', function(data, cb)
+    SetNuiFocus(false, false)
     cb('ok')
 end)
