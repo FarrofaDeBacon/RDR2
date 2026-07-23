@@ -809,11 +809,18 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         local startTime = GetGameTimer()
         local isChewing = true
         
+        -- Mostrar o aviso na tela do jogador (RSG Core)
+        pcall(function() exports['rsg-core']:DrawText('[E] ou [Clique] para Cuspir', 'left') end)
+        
         while isChewing do
             Wait(0)
-            -- 0x07CE1E61 = Left Mouse Button (INPUT_ATTACK)
-            if IsControlJustPressed(0, 0x07CE1E61) or (GetGameTimer() - startTime > 60000) then
+            -- 0x07CE1E61 = Left Mouse Button, 0xCEFD9220 = Tecla E
+            if IsControlJustPressed(0, 0x07CE1E61) or IsControlJustPressed(0, 0xCEFD9220) or (GetGameTimer() - startTime > 60000) then
                 isChewing = false
+                
+                -- Esconder o aviso da tela
+                pcall(function() exports['rsg-core']:HideText() end)
+                
                 local pedId = PlayerPedId()
                 
                 if not IsPedDeadOrDying(pedId, true) then
