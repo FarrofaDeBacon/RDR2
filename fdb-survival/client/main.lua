@@ -103,6 +103,9 @@ CreateThread(function()
             Citizen.InvokeNative(0xB98B78C3768AF6E0, true)
             local temp = GetTemperatureAtCoords(coords.x, coords.y, coords.z)
             
+            -- Envia temp para o HUD
+            FDB.BroadcastState('temp', math.floor(temp))
+            
             local hasThermalProtection = false
             if temp < Config.Hazards.ExtremeColdThreshold and FDB.Survival.coldResistance > 0 then
                 hasThermalProtection = true
