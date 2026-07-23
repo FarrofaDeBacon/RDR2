@@ -151,8 +151,9 @@ RegisterNetEvent('fdb-consume:client:applyHealthStamina', function(healthDelta, 
     end
 
     if staminaDelta ~= 0 then
-        local currentStaminaPct = 100 - GetPlayerSprintStaminaRemaining(PlayerId()) -- inverte a escala nativa
-        local targetPct = math.max(0, math.min(100, currentStaminaPct + staminaDelta))
-        RestorePlayerStamina(PlayerId(), targetPct / 100.0) -- espera 0.0-1.0
+        local currentStamina = GetPlayerStamina(PlayerId())
+        local targetPct = math.max(0, math.min(100, currentStamina + staminaDelta))
+        -- Restaura o stamina do cavalo ou do player usando native
+        Citizen.InvokeNative(0xC6258F41D86676E0, PlayerPedId(), 1, staminaDelta)
     end
 end)
