@@ -15,7 +15,8 @@ client_scripts {
     'client/cleanliness.lua',
     'client/bladder.lua',
     'client/temperature.lua',
-    'client/health.lua'
+    'client/health.lua',
+    'client/exports.lua'
 }
 
 server_scripts {
