@@ -27,6 +27,15 @@ CreateThread(function()
                 canInteract = function(_, distance)
                     return distance < 3.0
                 end
+            },
+            {
+                name = 'waterpump_main_wash',
+                event = 'rsg-waterpump:client:wash',
+                icon = 'fa fa-shower',
+                label = 'Lavar-se (Com/Sem Sabão)',
+                canInteract = function(_, distance)
+                    return distance < 3.0
+                end
             }
         })
     else
@@ -36,6 +45,15 @@ CreateThread(function()
                 event = 'rsg-waterpump:client:drinking',
                 icon = 'fa fa-droplet',
                 label = locale('cl_canteen_take_b'),
+                canInteract = function(_, distance)
+                    return distance < 3.0
+                end
+            },
+            {
+                name = 'waterpump_main_wash_c',
+                event = 'rsg-waterpump:client:wash',
+                icon = 'fa fa-shower',
+                label = 'Lavar-se (Com/Sem Sabão)',
                 canInteract = function(_, distance)
                     return distance < 3.0
                 end
@@ -89,4 +107,39 @@ RegisterNetEvent('rsg-waterpump:client:drinking', function()
             TriggerServerEvent('fdb-survival:server:AddThirst', math.random(25, 50))
         end
     end
+end)
+
+RegisterNetEvent('rsg-waterpump:client:wash', function()
+    if isBusy then return end
+    isBusy = true
+    
+    local hasSoap = RSGCore.Functions.HasItem('soap')
+    local washText = hasSoap and 'Lavando com sabão...' or 'Lavando-se...'
+    
+    LocalPlayer.state:set('inv_busy', true, true)
+    SetCurrentPedWeapon(cache.ped, joaat('weapon_unarmed'))
+    Wait(100)
+    
+    if lib.progressBar({
+        duration = 10000,
+        position = 'bottom',
+        useWhileDead = false,
+        canCancel = true,
+        disableControl = true,
+        disable = { move = true, mouse = true },
+        label = washText,
+        anim = {
+            dict = 'amb_misc@world_human_wash_face_bucket@ground@male_a@idle_a',
+            clip = 'idle_a'
+        },
+    }) then
+        TriggerServerEvent('fdb-water:server:washAtPump')
+        lib.notify({ title = 'Limpeza', description = 'Você lavou um pouco da sujeira do corpo.', type = 'success' })
+    else
+        lib.notify({ title = 'Cancelado', description = 'Ação cancelada', type = 'error' })
+    end
+    
+    ClearPedTasks(cache.ped)
+    LocalPlayer.state:set('inv_busy', false, true)
+    isBusy = false
 end)

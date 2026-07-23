@@ -194,3 +194,44 @@ AddEventHandler('onResourceStop', function(resource)
         BathingSessions = {}
     end
 end)
+
+----------------------------------------------------------------------
+-- WASHING & TOWEL LOGIC
+----------------------------------------------------------------------
+
+RegisterNetEvent('fdb-water:server:washAtPump', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local soapItem = Player.Functions.GetItemByName('soap')
+    if soapItem and soapItem.amount > 0 then
+        Player.Functions.RemoveItem('soap', 1)
+        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['soap'], 'remove', 1)
+        exports['fdb-survival']:AddCleanliness(src, 100)
+    else
+        exports['fdb-survival']:AddCleanliness(src, 30)
+    end
+    
+    -- Mark player as wet
+    Player.Functions.SetMetaData("isWet", true)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = true })
+end)
+
+RSGCore.Functions.CreateUseableItem('towel', function(source, item)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    -- Towel is not consumed (unique = true). We just trigger the client event.
+    TriggerClientEvent('fdb-water:client:useTowel', src)
+end)
+
+RegisterNetEvent('fdb-water:server:dryPlayer', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    Player.Functions.SetMetaData("isWet", false)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'isWet', value = false })
+end)

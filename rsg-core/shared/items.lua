@@ -371,4 +371,7 @@ RSGShared.Items = {
     loadout_mp_v7                        = { name = 'loadout_mp_v7       ', label = 'Acessório Male          ', weight = 700, type = 'item', image = 'backpack_small.png', unique = true, useable = true, shouldClose = true, description = 'Acessório de bandoleira / coldre tático.' },
     loadout_cassidy                      = { name = 'loadout_cassidy     ', label = 'Acessório Cassidy       ', weight = 700, type = 'item', image = 'backpack_small.png', unique = true, useable = true, shouldClose = true, description = 'Acessório de bandoleira / coldre tático.' },
 
+    -- FDB Water Items
+    soap = { name = 'soap', label = 'Sabão', weight = 100, type = 'item', image = 'soap.png', unique = false, useable = false, shouldClose = true, description = 'Útil para tirar as sujeiras mais difíceis do corpo.' },
+    towel = { name = 'towel', label = 'Toalha', weight = 200, type = 'item', image = 'towel.png', unique = true, useable = true, shouldClose = true, description = 'Use para se secar após um banho.' },
 }
