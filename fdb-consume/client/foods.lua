@@ -176,7 +176,7 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
         RequestAnimDict(dict)
         while not HasAnimDictLoaded(dict) do Wait(10) end
         
-        TaskPlayAnim(ped, dict, name, 1.0, 1.0, 2000, 31, 0.0, false, false, false)
+        TaskPlayAnim(ped, dict, name, 8.0, -8.0, 2000, 31, 0.0, false, false, false)
         Wait(2000)
         DeleteObject(prop)
     end
@@ -187,5 +187,21 @@ RegisterNetEvent('fdb-consume:client:Chew', function(propModel, animDict, animNa
     while not HasAnimDictLoaded(chewDict) do Wait(10) end
     
     -- Flag 49 = Looping (1) + UpperBody (16) + AllowPlayerControl (32)
-    TaskPlayAnim(ped, chewDict, chewName, 1.0, -1.0, 60000, 49, 0.0, false, false, false)
+    TaskPlayAnim(ped, chewDict, chewName, 8.0, -8.0, 60000, 49, 0.0, false, false, false)
+    
+    Citizen.CreateThread(function()
+        Wait(60000) -- Espera os 60 segundos do mastigar
+        local pedId = PlayerPedId()
+        if IsPedDeadOrDying(pedId, true) then return end
+        
+        local spitDict = "amb_misc@world_human_chew_tobacco@male_a@trans"
+        local spitName = "a_trans_b"
+        RequestAnimDict(spitDict)
+        local timeout = 0
+        while not HasAnimDictLoaded(spitDict) and timeout < 50 do Wait(10); timeout = timeout + 1 end
+        
+        if HasAnimDictLoaded(spitDict) then
+            TaskPlayAnim(pedId, spitDict, spitName, 8.0, -8.0, 3000, 31, 0.0, false, false, false)
+        end
+    end)
 end)
