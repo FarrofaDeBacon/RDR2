@@ -64,6 +64,14 @@ CreateThread(function()
                 staminaPercent = (stamina <= 1.0) and (stamina * 100) or stamina
             end
             
+            -- [DEBUG TEMPORÁRIO] 
+            -- Apenas imprimir a cada 100 frames (aprox 1.5s) para não floodar
+            if not debugCounter then debugCounter = 0 end
+            debugCounter = debugCounter + 1
+            if debugCounter > 100 then
+                print(("[MAESTRO DEBUG] Stamina Raw: %s | Stamina Percent: %s"):format(tostring(stamina), tostring(staminaPercent)))
+            end
+            
             local staminaRate = 1.0
             local disableSprintStamina = false
             local disableRunStamina = false
@@ -111,6 +119,16 @@ CreateThread(function()
             -- 5. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
             -- Menor taxa vence (Stamina ou Mochila)
             local finalRate = math.min(staminaRate, backpackRate)
+            
+            if debugCounter > 100 then
+                print(("[MAESTRO DEBUG] finalRate: %s | blendRatio: %s | disableSprint: %s"):format(
+                    tostring(finalRate), 
+                    tostring(blendRatio or 3.0),
+                    tostring(disableSprintStamina or disableSprintBackpack)
+                ))
+                debugCounter = 0 -- reseta contador
+            end
+            
             Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride (Sempre aplica para garantir reset)
         end
         Wait(sleep)
