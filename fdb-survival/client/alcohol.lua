@@ -28,13 +28,20 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             lib.notify({title = '💥 Coma Alcoólico', description = 'Você bebeu demais e apagou!', type = 'error'})
             
             Citizen.CreateThread(function()
+                local lastCheck = 0
                 while IsPassedOut do
-                    local p = PlayerPedId()
-                    if not IsEntityPlayingAnim(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 3) then
-                        ClearPedTasks(p)
-                        PlayAnimation(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, -1)
+                    Wait(0)
+                    DisableAllControlActions(0)
+                    
+                    local now = GetGameTimer()
+                    if now - lastCheck > 1000 then
+                        local p = PlayerPedId()
+                        if not IsEntityPlayingAnim(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 3) then
+                            ClearPedTasks(p)
+                            PlayAnimation(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, -1)
+                        end
+                        lastCheck = now
                     end
-                    Wait(1000)
                 end
             end)
         end
