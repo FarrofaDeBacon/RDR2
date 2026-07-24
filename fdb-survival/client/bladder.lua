@@ -4,10 +4,8 @@ CreateThread(function()
     while true do
         Wait(1000)
         if FDB.IsLoggedIn then
-            local ped = PlayerPedId()
             if FDB.Survival.bladder >= 80 and not isHoldingPee then
                 isHoldingPee = true
-                Citizen.InvokeNative(0x923583741DC87BCE, ped, 'war_veteran')
                 exports['ox_lib']:notify({
                     title = 'Bexiga Cheia!',
                     description = 'Você precisa se aliviar urgente (/mijar).',
@@ -16,23 +14,12 @@ CreateThread(function()
                 })
             elseif FDB.Survival.bladder < 80 and isHoldingPee then
                 isHoldingPee = false
-                Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
             end
         end
     end
 end)
 
-CreateThread(function()
-    while true do
-        Wait(0)
-        if isHoldingPee then
-            DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
-            DisableControlAction(0, 0xD9D0E16C, true) -- INPUT_JUMP
-        else
-            Wait(1000)
-        end
-    end
-end)
+-- Thread de bloqueio de corrida movida para movement.lua (Maestro)
 
 RegisterCommand("mijar", function()
     local ped = PlayerPedId()

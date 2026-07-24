@@ -9,8 +9,11 @@ local currentClipset = nil
 -- ==========================================
 local function ResolveClipset()
     local drunkenness = FDB.Survival.drunkenness or 0
+    local bladder = FDB.Survival.bladder or 0
     if drunkenness >= Config.Alcohol.DrunkThreshold then
         return 'mp_style_drunk'
+    elseif bladder >= 80 then
+        return 'war_veteran'
     elseif FDB.Survival.inMud then
         return 'move_m@mud_wade'
     end
@@ -104,20 +107,32 @@ CreateThread(function()
                 end
             end
             
-            -- 3. RESOLVER CONTROLES
-            if disableSprintStamina or disableSprintBackpack then
+            -- 3. BEXIGA
+            local bladder = FDB.Survival.bladder or 0
+            local disableSprintBladder = false
+            local disableJumpBladder = false
+            if bladder >= 80 then
+                disableSprintBladder = true
+                disableJumpBladder = true
+            end
+            
+            -- 4. RESOLVER CONTROLES
+            if disableSprintStamina or disableSprintBackpack or disableSprintBladder then
                 DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
             end
             if disableRunStamina or disableRunBackpack then
                 DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
             end
+            if disableJumpBladder then
+                DisableControlAction(0, 0xD9D0E16C, true) -- INPUT_JUMP
+            end
             
-            -- 4. RESOLVER ANIMAÇÃO BASE (Blend Ratio)
+            -- 5. RESOLVER ANIMAÇÃO BASE (Blend Ratio)
             if blendRatio then
                 SetPedMaxMoveBlendRatio(ped, blendRatio)
             end
             
-            -- 5. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
+            -- 6. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
             -- Menor taxa vence (Stamina ou Mochila)
             local finalRate = math.min(staminaRate, backpackRate)
             
