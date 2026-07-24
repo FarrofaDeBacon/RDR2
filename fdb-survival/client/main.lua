@@ -210,14 +210,17 @@ end)
 -- =======================================================
 -- LOOP DE STAMINA (Velocidade e Movimento)
 -- =======================================================
+local wasStaminaLow = false
+
 CreateThread(function()
     while true do
-        Wait(0)
+        local sleep = 0
         if FDB.IsLoggedIn then
             local ped = PlayerPedId()
             local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
             
             if stamina and stamina < 30 then
+                wasStaminaLow = true
                 -- Reduz a velocidade gradualmente
                 local moveRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
                 Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
@@ -227,13 +230,20 @@ CreateThread(function()
                     DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
                     DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
                     SetPedMaxMoveBlendRatio(ped, 2.0) -- SetPedMaxMoveBlendRatio (trote no max)
+                else
+                    SetPedMaxMoveBlendRatio(ped, 3.0)
                 end
             else
-                Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
-                SetPedMaxMoveBlendRatio(ped, 3.0)
+                if wasStaminaLow then
+                    wasStaminaLow = false
+                    Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
+                    SetPedMaxMoveBlendRatio(ped, 3.0)
+                end
+                sleep = 500
             end
         else
-            Wait(1000)
+            sleep = 1000
         end
+        Wait(sleep)
     end
 end)
