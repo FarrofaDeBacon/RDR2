@@ -39,9 +39,9 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
             
-            -- Aplica walkstyle "drunk" usando as nativas de RedM (igual ao rsg-radialmenu)
-            Citizen.InvokeNative(0x923583741DC87BCE, ped, 'drunk')
-            Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+            -- Aplica walkstyle "drunk" usando as nativas de RedM
+            Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+            Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'drunk')
             
             Citizen.CreateThread(function()
                 while IsDrunk do
@@ -61,7 +61,7 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
         if IsDrunk and not IsPassedOut then
             IsDrunk = false
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
-            -- Remove o walkstyle "drunk" voltando pro "default"
+            -- Remove o walkstyle "drunk" voltando pro "normal"
             Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
             Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
             
@@ -82,8 +82,8 @@ RegisterCommand("testdrunk", function()
     local clipset = "mp_style_drunk"
     
     -- Tenta aplicar pelo modo RedM
-    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'drunk')
-    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'drunk')
     lib.notify({title = 'Debug', description = 'Animação forçada via nativas RedM!', type = 'success'})
 end, false)
 
