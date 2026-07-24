@@ -26,6 +26,7 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
         IsPassedOut = true
         lib.notify({title = '💥 Desmaio', description = 'Você bebeu demais e apagou!', type = 'error'})
         
+        ClearPedTasks(ped)
         PlayAnimation(ped, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, Config.Alcohol.SleepDuration)
         Wait(Config.Alcohol.SleepDuration)
 
