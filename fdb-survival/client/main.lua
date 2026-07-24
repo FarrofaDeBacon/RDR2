@@ -211,6 +211,7 @@ end)
 -- LOOP DE STAMINA (Velocidade e Movimento)
 -- =======================================================
 local wasStaminaLow = false
+local lastMoveRate = 1.0
 
 CreateThread(function()
     while true do
@@ -223,21 +224,23 @@ CreateThread(function()
                 wasStaminaLow = true
                 -- Reduz a velocidade gradualmente
                 local moveRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
-                Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
+                
+                -- Só aplica na engine se a taxa mudou para não quebrar outras animações (como walkstyles)
+                if not lastMoveRate or math.abs(lastMoveRate - moveRate) > 0.05 then
+                    Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
+                    lastMoveRate = moveRate
+                end
                 
                 -- Se chegar quase a zero, bloqueia o sprint completamente
                 if stamina < 5 then
                     DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
                     DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
-                    SetPedMaxMoveBlendRatio(ped, 2.0) -- SetPedMaxMoveBlendRatio (trote no max)
-                else
-                    SetPedMaxMoveBlendRatio(ped, 3.0)
                 end
             else
                 if wasStaminaLow then
                     wasStaminaLow = false
                     Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
-                    SetPedMaxMoveBlendRatio(ped, 3.0)
+                    lastMoveRate = 1.0
                 end
                 sleep = 500
             end
