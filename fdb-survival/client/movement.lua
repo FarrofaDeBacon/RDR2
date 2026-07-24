@@ -10,8 +10,12 @@ local currentClipset = nil
 local function ResolveClipset()
     local drunkenness = FDB.Survival.drunkenness or 0
     local bladder = FDB.Survival.bladder or 0
-    if drunkenness >= Config.Alcohol.DrunkThreshold then
+    if drunkenness >= 80 then
         return 'move_m@drunk@verydrunk'
+    elseif drunkenness >= 50 then
+        return 'move_m@drunk@moderatedrunk'
+    elseif drunkenness >= Config.Alcohol.DrunkThreshold then
+        return 'move_m@drunk@a'
     elseif bladder >= 80 then
         return 'war_veteran'
     elseif FDB.Survival.inMud then
@@ -110,9 +114,11 @@ CreateThread(function()
             local drunkenness = FDB.Survival.drunkenness or 0
             local disableSprintDrunk = false
             local disableRunDrunk = false
-            if drunkenness >= Config.Alcohol.DrunkThreshold then
+            if drunkenness >= 80 then
                 disableSprintDrunk = true
                 disableRunDrunk = true
+            elseif drunkenness >= 50 then
+                disableSprintDrunk = true
             end
             
             -- 3. BEXIGA

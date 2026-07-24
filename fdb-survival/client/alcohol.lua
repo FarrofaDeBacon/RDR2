@@ -49,7 +49,13 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
                     Wait(500)
                     local p = PlayerPedId()
                     if IsPedSprinting(p) or IsPedRunning(p) then
-                        if math.random(1, 100) <= 35 then
+                        local drunkenness = FDB.Survival.drunkenness or 0
+                        local tripChance = 35
+                        if drunkenness >= 50 then
+                            tripChance = 50
+                        end
+                        
+                        if math.random(1, 100) <= tripChance then
                             SetPedToRagdoll(p, 3000, 3000, 0, false, false, false)
                             lib.notify({title = '😵 Oops!', description = 'Você tentou correr bêbado e tropeçou!', type = 'error'})
                             Wait(4000)
