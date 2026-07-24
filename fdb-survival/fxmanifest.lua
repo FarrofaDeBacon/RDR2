@@ -9,6 +9,7 @@ version '1.0.0'
 fdb_propeditor_supported 'yes'
 
 shared_scripts {
+    '@ox_lib/init.lua',
     'config.lua'
 }
 
