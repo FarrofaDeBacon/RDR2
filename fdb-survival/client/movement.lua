@@ -39,15 +39,9 @@ CreateThread(function()
                     end
                     if Citizen.InvokeNative(0x61A53D9BA33F49A6, targetClipset) then
                         Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, targetClipset, 1.0) -- SetPedMovementClipset
-                        
-                        -- Se for bêbado, aplica a nativa complementar do RDR2
-                        if targetClipset == 'mp_style_drunk' then
-                            Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0)
-                        end
                     end
                 else
                     Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) -- ResetPedMovementClipset
-                    Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0) -- Remove estado bêbado
                 end
                 currentClipset = targetClipset
             end
