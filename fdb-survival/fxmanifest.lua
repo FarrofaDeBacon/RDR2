@@ -13,6 +13,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/alcohol.lua',
     'client/main.lua',
     'client/cleanliness.lua',
     'client/bladder.lua',
