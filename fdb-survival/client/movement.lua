@@ -44,8 +44,16 @@ CreateThread(function()
             end
             
             -- Aplica continuamente caso o clipset seja ignorado pela engine (ex: bebendo)
-            if currentClipset and Citizen.InvokeNative(0x61A53D9BA33F49A6, currentClipset) then
-                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, currentClipset) -- SetPedMovementClipset
+            if currentClipset then
+                if currentClipset == 'war_veteran' then
+                    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'war_veteran')
+                    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+                else
+                    if Citizen.InvokeNative(0x61A53D9BA33F49A6, currentClipset) then
+                        Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, currentClipset) -- SetPedMovementClipset
+                    end
+                end
             end
         end
     end
@@ -108,6 +116,15 @@ CreateThread(function()
                 end
             end
             
+            -- 2.5 DRUNKENNESS (Álcool)
+            local drunkenness = FDB.Survival.drunkenness or 0
+            local disableSprintDrunk = false
+            local disableRunDrunk = false
+            if drunkenness >= Config.Alcohol.DrunkThreshold then
+                disableSprintDrunk = true
+                disableRunDrunk = true
+            end
+            
             -- 3. BEXIGA
             local bladder = FDB.Survival.bladder or 0
             local disableSprintBladder = false
@@ -118,10 +135,10 @@ CreateThread(function()
             end
             
             -- 4. RESOLVER CONTROLES
-            if disableSprintStamina or disableSprintBackpack or disableSprintBladder then
+            if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk then
                 DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
             end
-            if disableRunStamina or disableRunBackpack then
+            if disableRunStamina or disableRunBackpack or disableRunDrunk then
                 DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
             end
             if disableJumpBladder then
