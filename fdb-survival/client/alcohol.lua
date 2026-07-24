@@ -78,24 +78,15 @@ end)
 -- COMANDOS DE DEPURAÇÃO PARA TESTAR A ANIMAÇÃO
 RegisterCommand("testdrunk", function()
     local ped = PlayerPedId()
-    lib.notify({title = 'Debug', description = 'Testando clipset de bêbado...', type = 'inform'})
+    lib.notify({title = 'Debug', description = 'Testando clipset direto...', type = 'inform'})
     
     ShakeGameplayCam("DRUNK_SHAKE", 0.5)
     Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
     
     local clipset = "mp_style_drunk"
-    Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
-    local timer = 0
-    while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
-        Wait(10)
-        timer = timer + 1
-    end
-    if Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) then
-        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
-        lib.notify({title = 'Debug', description = 'Clipset aplicado com sucesso!', type = 'success'})
-    else
-        lib.notify({title = 'Debug', description = 'Falha ao carregar clipset!', type = 'error'})
-    end
+    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
+    
+    lib.notify({title = 'Debug', description = 'Forçado '..clipset, type = 'success'})
 end, false)
 
 RegisterCommand("testsober", function()
