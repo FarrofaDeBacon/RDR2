@@ -37,23 +37,14 @@ CreateThread(function()
                         Wait(10)
                         timer = timer + 1
                     end
+                    
+                    if Citizen.InvokeNative(0x61A53D9BA33F49A6, targetClipset) then
+                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, targetClipset) -- SetPedMovementClipset
+                    end
                 else
                     Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) -- ResetPedMovementClipset
                 end
                 currentClipset = targetClipset
-            end
-            
-            -- Aplica continuamente caso o clipset seja ignorado pela engine (ex: bebendo)
-            if currentClipset then
-                if currentClipset == 'war_veteran' then
-                    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'war_veteran')
-                    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
-                else
-                    if Citizen.InvokeNative(0x61A53D9BA33F49A6, currentClipset) then
-                        Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
-                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, currentClipset) -- SetPedMovementClipset
-                    end
-                end
             end
         end
     end
