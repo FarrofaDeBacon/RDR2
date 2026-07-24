@@ -39,16 +39,9 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
             
-            local clipset = "mp_style_drunk"
-            Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
-            local timer = 0
-            while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
-                Wait(10)
-                timer = timer + 1
-            end
-            if Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) then
-                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
-            end
+            -- Aplica walkstyle "drunk" usando as nativas de RedM (igual ao rsg-radialmenu)
+            Citizen.InvokeNative(0x923583741DC87BCE, ped, 'drunk')
+            Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
             
             Citizen.CreateThread(function()
                 while IsDrunk do
@@ -68,7 +61,10 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
         if IsDrunk and not IsPassedOut then
             IsDrunk = false
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
-            Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) 
+            -- Remove o walkstyle "drunk" voltando pro "default"
+            Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+            Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+            
             ShakeGameplayCam("DRUNK_SHAKE", 0.0)
             lib.notify({title = '💧 Sóbrio', description = 'O efeito do álcool passou.', type = 'success'})
         end
@@ -78,21 +74,24 @@ end)
 -- COMANDOS DE DEPURAÇÃO PARA TESTAR A ANIMAÇÃO
 RegisterCommand("testdrunk", function()
     local ped = PlayerPedId()
-    lib.notify({title = 'Debug', description = 'Testando clipset direto...', type = 'inform'})
+    lib.notify({title = 'Debug', description = 'Testando clipset de bêbado...', type = 'inform'})
     
     ShakeGameplayCam("DRUNK_SHAKE", 0.5)
     Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
     
     local clipset = "mp_style_drunk"
-    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
     
-    lib.notify({title = 'Debug', description = 'Forçado '..clipset, type = 'success'})
+    -- Tenta aplicar pelo modo RedM
+    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'drunk')
+    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
+    lib.notify({title = 'Debug', description = 'Animação forçada via nativas RedM!', type = 'success'})
 end, false)
 
 RegisterCommand("testsober", function()
     local ped = PlayerPedId()
     Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
-    Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) 
+    Citizen.InvokeNative(0x923583741DC87BCE, ped, 'default')
+    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 'normal')
     ShakeGameplayCam("DRUNK_SHAKE", 0.0)
     lib.notify({title = 'Debug', description = 'Clipset removido.', type = 'success'})
 end, false)
