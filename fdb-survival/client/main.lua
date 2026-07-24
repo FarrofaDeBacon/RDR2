@@ -226,10 +226,10 @@ CreateThread(function()
                 local moveRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
                 
                 -- Só aplica na engine se a taxa mudou para não quebrar outras animações (como walkstyles)
-                if not lastMoveRate or math.abs(lastMoveRate - moveRate) > 0.05 then
-                    Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
-                    lastMoveRate = moveRate
-                end
+                -- if not lastMoveRate or math.abs(lastMoveRate - moveRate) > 0.05 then
+                --     Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
+                --     lastMoveRate = moveRate
+                -- end
                 
                 -- Se chegar quase a zero, bloqueia o sprint completamente
                 if stamina < 5 then
@@ -239,7 +239,7 @@ CreateThread(function()
             else
                 if wasStaminaLow then
                     wasStaminaLow = false
-                    Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
+                    -- Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
                     lastMoveRate = 1.0
                 end
                 sleep = 500
