@@ -220,10 +220,6 @@ CreateThread(function()
             local ped = PlayerPedId()
             local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
             
-            if stamina and stamina < 5 then
-                DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
-                DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
-            end
             sleep = 500
         else
             sleep = 1000
