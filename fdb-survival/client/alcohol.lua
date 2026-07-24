@@ -39,7 +39,7 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
             
-            local clipset = "MOVE_M@DRUNK@VERYDRUNK"
+            local clipset = "mp_style_drunk"
             Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
             local timer = 0
             while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
