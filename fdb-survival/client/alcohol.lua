@@ -37,7 +37,18 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             lib.notify({title = '🍻 Bêbado', description = 'Você está começando a ver as coisas girando...', type = 'inform'})
             
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
-            Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true)
+            Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
+            
+            local clipset = "mp_style_drunk"
+            Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
+            local timer = 0
+            while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
+                Wait(10)
+                timer = timer + 1
+            end
+            if Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) then
+                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
+            end
             
             Citizen.CreateThread(function()
                 while IsDrunk do
@@ -56,7 +67,8 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     else
         if IsDrunk and not IsPassedOut then
             IsDrunk = false
-            Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false)
+            Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
+            Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) 
             ShakeGameplayCam("DRUNK_SHAKE", 0.0)
             lib.notify({title = '💧 Sóbrio', description = 'O efeito do álcool passou.', type = 'success'})
         end
