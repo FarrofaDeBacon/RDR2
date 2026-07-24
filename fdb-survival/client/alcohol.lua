@@ -84,18 +84,21 @@ RegisterCommand("testdrunk", function()
     ShakeGameplayCam("DRUNK_SHAKE", 0.5)
     Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
     
-    local clipset = "MOVE_M@DRUNK@VERYDRUNK"
-    Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
+    local dict = "script_story@sal1@ig@sal1_ig12_wake_up"
+    local anim = "drunken_walking_up_arthur"
+    
+    RequestAnimDict(dict)
     local timer = 0
-    while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
+    while not HasAnimDictLoaded(dict) and timer < 100 do
         Wait(10)
         timer = timer + 1
     end
-    if Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) then
-        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
-        lib.notify({title = 'Debug', description = 'Clipset VERYDRUNK aplicado com sucesso!', type = 'success'})
+    
+    if HasAnimDictLoaded(dict) then
+        TaskPlayAnim(ped, dict, anim, 8.0, -8.0, -1, 1, 0, false, false, false)
+        lib.notify({title = 'Debug', description = 'Animação de andar bêbado ativada!', type = 'success'})
     else
-        lib.notify({title = 'Debug', description = 'Falha ao carregar clipset VERYDRUNK!', type = 'error'})
+        lib.notify({title = 'Debug', description = 'Falha ao carregar dicionário da animação!', type = 'error'})
     end
 end, false)
 
