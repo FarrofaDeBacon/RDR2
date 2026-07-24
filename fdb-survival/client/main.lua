@@ -8,7 +8,8 @@ FDB.Survival = {
     poison = 0,
     illness = 0,
     coldResistance = 0,
-    heatResistance = 0
+    heatResistance = 0,
+    drunkenness = 0
 }
 
 function FDB.BroadcastState(field, value)
@@ -210,8 +211,7 @@ end)
 -- =======================================================
 -- LOOP DE STAMINA (Velocidade e Movimento)
 -- =======================================================
-local wasStaminaLow = false
-local lastMoveRate = 1.0
+
 
 CreateThread(function()
     while true do
@@ -220,30 +220,11 @@ CreateThread(function()
             local ped = PlayerPedId()
             local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
             
-            if stamina and stamina < 30 then
-                wasStaminaLow = true
-                -- Reduz a velocidade gradualmente
-                local moveRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
-                
-                -- Só aplica na engine se a taxa mudou para não quebrar outras animações (como walkstyles)
-                -- if not lastMoveRate or math.abs(lastMoveRate - moveRate) > 0.05 then
-                --     Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, moveRate) -- SetPedMoveRateOverride
-                --     lastMoveRate = moveRate
-                -- end
-                
-                -- Se chegar quase a zero, bloqueia o sprint completamente
-                if stamina < 5 then
-                    DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
-                    DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
-                end
-            else
-                if wasStaminaLow then
-                    wasStaminaLow = false
-                    -- Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
-                    lastMoveRate = 1.0
-                end
-                sleep = 500
+            if stamina and stamina < 5 then
+                DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
+                DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
             end
+            sleep = 500
         else
             sleep = 1000
         end

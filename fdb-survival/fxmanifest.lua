@@ -20,7 +20,8 @@ client_scripts {
     'client/bladder.lua',
     'client/temperature.lua',
     'client/health.lua',
-    'client/exports.lua'
+    'client/exports.lua',
+    'client/movement.lua'
 }
 
 server_scripts {

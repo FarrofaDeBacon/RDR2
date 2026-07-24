@@ -19,6 +19,7 @@ end
 RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     if data.field ~= 'drunkenness' then return end
     local alcoholLevel = data.value
+    FDB.Survival.drunkenness = alcoholLevel
     local ped = PlayerPedId()
     
     if alcoholLevel > Config.Alcohol.PassOutThreshold and not IsPassedOut then
@@ -39,16 +40,8 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
             
-            local clipset = "mp_style_drunk"
-            Citizen.InvokeNative(0xB28BBFAAE059B169, clipset)
-            local timer = 0
-            while not Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) and timer < 100 do
-                Wait(10)
-                timer = timer + 1
-            end
-            if Citizen.InvokeNative(0x61A53D9BA33F49A6, clipset) then
-                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, clipset, 1.0)
-            end
+            -- O clipset mp_style_drunk será aplicado pelo movement.lua
+
             
             Citizen.CreateThread(function()
                 while IsDrunk do
@@ -68,7 +61,7 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
         if IsDrunk and not IsPassedOut then
             IsDrunk = false
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
-            Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) -- ResetPedMovementClipset
+            -- ResetPedMovementClipset removido; movement.lua cuida disso
             
             ShakeGameplayCam("DRUNK_SHAKE", 0.0)
             lib.notify({title = '💧 Sóbrio', description = 'O efeito do álcool passou.', type = 'success'})
@@ -76,36 +69,3 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     end
 end)
 
--- COMANDOS DE DEPURAÇÃO PARA TESTAR A ANIMAÇÃO
-RegisterCommand("testdrunk", function()
-    local ped = PlayerPedId()
-    lib.notify({title = 'Debug', description = 'Testando clipset de bêbado...', type = 'inform'})
-    
-    ShakeGameplayCam("DRUNK_SHAKE", 0.5)
-    Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 
-    
-    local dict = "script_story@sal1@ig@sal1_ig12_wake_up"
-    local anim = "drunken_walking_up_arthur"
-    
-    RequestAnimDict(dict)
-    local timer = 0
-    while not HasAnimDictLoaded(dict) and timer < 100 do
-        Wait(10)
-        timer = timer + 1
-    end
-    
-    if HasAnimDictLoaded(dict) then
-        TaskPlayAnim(ped, dict, anim, 8.0, -8.0, -1, 1, 0, false, false, false)
-        lib.notify({title = 'Debug', description = 'Animação de andar bêbado ativada!', type = 'success'})
-    else
-        lib.notify({title = 'Debug', description = 'Falha ao carregar dicionário da animação!', type = 'error'})
-    end
-end, false)
-
-RegisterCommand("testsober", function()
-    local ped = PlayerPedId()
-    Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
-    Citizen.InvokeNative(0x06D26A96CA1BCA75, ped)
-    ShakeGameplayCam("DRUNK_SHAKE", 0.0)
-    lib.notify({title = 'Debug', description = 'Clipset removido.', type = 'success'})
-end, false)
