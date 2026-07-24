@@ -62,8 +62,6 @@ RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     isBusy = false
 end)
 
-)
-
 -- Aplicar Health e Stamina do item consumível
 -- health: valor relativo (-100 a +100) — soma sobre a saúde atual do ped
 -- stamina: valor relativo — restaura fôlego do jogador (0 a 100)
