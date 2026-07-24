@@ -124,10 +124,8 @@ CreateThread(function()
                 cleanlinessDrain = cleanlinessDrain + Config.DrainRates.DirtinessActions.FallMud
             end
             
-            if IsEntityInWater(ped) and GetEntitySubmergedLevel(ped) > 0.3 then
-                cleanlinessDrain = -Config.DrainRates.DirtinessActions.WashInWater
-            end
             
+
             local oldCleanliness = FDB.Survival.cleanliness
             FDB.Survival.cleanliness = math.max(0, math.min(100, FDB.Survival.cleanliness - cleanlinessDrain))
             if math.floor(FDB.Survival.cleanliness) ~= math.floor(oldCleanliness) then
@@ -166,18 +164,20 @@ CreateThread(function()
             FDB.BroadcastState('temp', math.floor(temp))
             
             local hasThermalProtection = false
-            if temp < Config.Hazards.ExtremeColdThreshold and FDB.Survival.coldResistance > 0 then
+            if temp < Config.Hazards.ExtremeColdThreshold and (FDB.Survival.coldResistance > 0 and not LocalPlayer.state.isWet) then
                 hasThermalProtection = true
             elseif temp > Config.Hazards.ExtremeHeatThreshold and FDB.Survival.heatResistance > 0 then
                 hasThermalProtection = true
             end
             
             if (temp < Config.Hazards.ExtremeColdThreshold or temp > Config.Hazards.ExtremeHeatThreshold) and not hasThermalProtection then
+                -- No health damage purely for being wet, only temperature damage
                 if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
                     SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - Config.Hazards.TemperatureDamage))
                 end
                 
-                if temp < Config.Hazards.ExtremeColdThreshold and math.random(1, 100) <= Config.Hazards.IllnessChancePercent then
+                local illnessMultiplier = LocalPlayer.state.isWet and 3 or 1
+                if temp < Config.Hazards.ExtremeColdThreshold and math.random(1, 100) <= (Config.Hazards.IllnessChancePercent * illnessMultiplier) then
                     local oldIllness = FDB.Survival.illness
                     FDB.Survival.illness = math.min(100, FDB.Survival.illness + Config.Hazards.IllnessGain)
                     if math.floor(FDB.Survival.illness) ~= math.floor(oldIllness) then

@@ -233,3 +233,20 @@ RegisterNetEvent('fdb-water:server:dryPlayer', function()
     
     exports['fdb-survival']:SetWet(src, false)
 end)
+
+RegisterNetEvent('fdb-water:server:WashInRiver', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    -- Using the WashInWater value from config (25.0)
+    exports['fdb-survival']:AddCleanliness(src, 25.0)
+end)
+
+RegisterNetEvent('fdb-water:server:makeWet', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    exports['fdb-survival']:SetWet(src, true)
+end)

@@ -12,7 +12,8 @@ shared_scripts {
 client_scripts {
     'client/canteen.lua',
     'client/bathing.lua',
-    'client/items.lua'
+    'client/items.lua',
+    'client/environment.lua'
 }
 
 server_scripts {
