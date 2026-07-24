@@ -39,7 +39,7 @@ CreateThread(function()
                     end
                     
                     if Citizen.InvokeNative(0x61A53D9BA33F49A6, targetClipset) then
-                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, targetClipset, 1.0) -- SetPedMovementClipset
+                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, targetClipset) -- SetPedMovementClipset
                     end
                 else
                     Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) -- ResetPedMovementClipset
