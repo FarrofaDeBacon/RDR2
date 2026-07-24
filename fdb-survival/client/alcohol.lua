@@ -22,18 +22,29 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     FDB.Survival.drunkenness = alcoholLevel
     local ped = PlayerPedId()
     
-    if alcoholLevel > Config.Alcohol.PassOutThreshold and not IsPassedOut then
-        IsPassedOut = true
-        lib.notify({title = '💥 Desmaio', description = 'Você bebeu demais e apagou!', type = 'error'})
-        
-        ClearPedTasks(ped)
-        PlayAnimation(ped, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, Config.Alcohol.SleepDuration)
-        Wait(Config.Alcohol.SleepDuration)
+    if alcoholLevel > Config.Alcohol.PassOutThreshold then
+        if not IsPassedOut then
+            IsPassedOut = true
+            lib.notify({title = '💥 Coma Alcoólico', description = 'Você bebeu demais e apagou!', type = 'error'})
+            
+            Citizen.CreateThread(function()
+                while IsPassedOut do
+                    local p = PlayerPedId()
+                    if not IsEntityPlayingAnim(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 3) then
+                        ClearPedTasks(p)
+                        PlayAnimation(p, 'amb_rest@world_human_sleep_ground@arm@male_b@idle_b', 'idle_f', 1, -1)
+                    end
+                    Wait(1000)
+                end
+            end)
+        end
+    elseif alcoholLevel > Config.Alcohol.DrunkThreshold then
+        if IsPassedOut then
+            IsPassedOut = false
+            ClearPedTasks(ped)
+            lib.notify({title = '🤕 Ressaca', description = 'Você acordou, mas ainda está muito bêbado.', type = 'inform'})
+        end
 
-        ClearPedTasks(ped)
-        IsPassedOut = false
-
-    elseif alcoholLevel > Config.Alcohol.DrunkThreshold and not IsPassedOut then
         if not IsDrunk then
             IsDrunk = true
             lib.notify({title = '🍻 Bêbado', description = 'Você está começando a ver as coisas girando...', type = 'inform'})
@@ -65,7 +76,11 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
             end)
         end
     else
-        if IsDrunk and not IsPassedOut then
+        if IsPassedOut then
+            IsPassedOut = false
+            ClearPedTasks(ped)
+        end
+        if IsDrunk then
             IsDrunk = false
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, false, 0.0)
             -- ResetPedMovementClipset removido; movement.lua cuida disso
