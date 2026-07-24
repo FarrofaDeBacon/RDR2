@@ -59,18 +59,21 @@ CreateThread(function()
             
             -- 1. STAMINA
             local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
+            local staminaPercent = 100
+            if stamina then
+                staminaPercent = (stamina <= 1.0) and (stamina * 100) or stamina
+            end
+            
             local staminaRate = 1.0
             local disableSprintStamina = false
             local disableRunStamina = false
             
-            if stamina then
-                if stamina < 30 then
-                    staminaRate = 0.6 + (stamina / 75.0) -- 30 = 1.0, 0 = 0.6
-                end
-                if stamina < 5 then
-                    disableSprintStamina = true
-                    disableRunStamina = true
-                end
+            if staminaPercent < 30 then
+                staminaRate = 0.6 + (staminaPercent / 75.0) -- 30 = 1.0, 0 = 0.6
+            end
+            if staminaPercent < 5 then
+                disableSprintStamina = true
+                disableRunStamina = true
             end
             
             -- 2. BACKPACK WEIGHT
