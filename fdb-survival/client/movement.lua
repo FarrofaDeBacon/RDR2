@@ -105,16 +105,13 @@ CreateThread(function()
             end
             
             -- 4. RESOLVER ANIMAÇÃO BASE (Blend Ratio)
-            if blendRatio then
-                SetPedMaxMoveBlendRatio(ped, blendRatio)
-            end
+            -- 3.0 é o padrão (Sprint). 2.0 = Trot, 1.0 = Walk.
+            SetPedMaxMoveBlendRatio(ped, blendRatio or 3.0)
             
             -- 5. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
             -- Menor taxa vence (Stamina ou Mochila)
             local finalRate = math.min(staminaRate, backpackRate)
-            if finalRate < 1.0 then
-                Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
-            end
+            Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride (Sempre aplica para garantir reset)
         end
         Wait(sleep)
     end
