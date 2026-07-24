@@ -226,11 +226,11 @@ CreateThread(function()
                 if stamina < 5 then
                     DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
                     DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
-                    Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 2.0) -- SetPedMaxMoveBlendRatio (trote no max)
+                    SetPedMaxMoveBlendRatio(ped, 2.0) -- SetPedMaxMoveBlendRatio (trote no max)
                 end
             else
                 Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, 1.0)
-                Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, 3.0)
+                SetPedMaxMoveBlendRatio(ped, 3.0)
             end
         else
             Wait(1000)
