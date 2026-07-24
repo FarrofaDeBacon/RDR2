@@ -11,7 +11,7 @@ local function ResolveClipset()
     local drunkenness = FDB.Survival.drunkenness or 0
     local bladder = FDB.Survival.bladder or 0
     if drunkenness >= Config.Alcohol.DrunkThreshold then
-        return 'mp_style_drunk'
+        return 'move_m@drunk@verydrunk'
     elseif bladder >= 80 then
         return 'war_veteran'
     elseif FDB.Survival.inMud then
@@ -31,17 +31,17 @@ CreateThread(function()
             if targetClipset ~= currentClipset then
                 if targetClipset then
                     -- Solicita o clipset apenas na primeira vez
-                    Citizen.InvokeNative(0xB28BBFAAE059B169, targetClipset) -- RequestClipSet
+                    RequestAnimSet(targetClipset)
                     local timer = 0
-                    while not Citizen.InvokeNative(0x61A53D9BA33F49A6, targetClipset) and timer < 100 do
+                    while not HasAnimSetLoaded(targetClipset) and timer < 100 do
                         Wait(10)
                         timer = timer + 1
                     end
-                    if Citizen.InvokeNative(0x61A53D9BA33F49A6, targetClipset) then
-                        Citizen.InvokeNative(0x89F5E7ADECCCB49C, ped, targetClipset, 1.0) -- SetPedMovementClipset
+                    if HasAnimSetLoaded(targetClipset) then
+                        SetPedMovementClipset(ped, targetClipset, true)
                     end
                 else
-                    Citizen.InvokeNative(0x06D26A96CA1BCA75, ped) -- ResetPedMovementClipset
+                    ResetPedMovementClipset(ped, 0.0)
                 end
                 currentClipset = targetClipset
             end
