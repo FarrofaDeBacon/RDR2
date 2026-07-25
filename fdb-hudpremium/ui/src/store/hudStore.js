@@ -305,6 +305,16 @@ window.addEventListener('message', (event) => {
         case 'itemConsumed':
             // Logic for showing a toast or updating quick UI could go here
             break;
+            
+        case 'thirst':
+        case 'isWet':
+        case 'hunger':
+        case 'cleanliness':
+        case 'drunkenness':
+        case 'bladder':
+            // Silently ignore state updates that the HUD doesn't explicitly process via specific actions.
+            // The HUD likely handles these via direct statebag updates elsewhere or they are visual-only.
+            break;
 
         default:
             console.warn(`[fdb-hudpremium] Unhandled action: ${data.action}`);
