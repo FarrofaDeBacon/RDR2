@@ -86,17 +86,20 @@ CreateThread(function()
             end
 
             -- 2.2 MOCHILA (BACKPACK)
-            local backpackLimit = FDB.Survival.backpackLimit or Config.Backpacks.DefaultWeight
-            local backpackWeight = FDB.Survival.backpackWeight or 0
             local disableSprintBackpack = false
             local disableRunBackpack = false
-            if backpackWeight >= backpackLimit then
-                disableSprintBackpack = true
-                disableRunBackpack = true
-                finalRate = finalRate * 0.7
-            elseif backpackWeight >= (backpackLimit * 0.8) then
-                disableSprintBackpack = true
-                finalRate = finalRate * 0.9
+            if GetResourceState('fdb-backpacks') == 'started' then
+                local mod = exports['fdb-backpacks']:GetBackpackWeightModifier()
+                if mod == 0.70 then -- Peso > 20kg
+                    disableSprintBackpack = true
+                    disableRunBackpack = true
+                    blendRatio = 1.0
+                    finalRate = finalRate * 0.75
+                elseif mod == 0.85 then -- Peso entre 10kg e 20kg
+                    disableSprintBackpack = true
+                    blendRatio = 2.0
+                    finalRate = finalRate * 0.85
+                end
             end
 
             -- 2.3 SUJEIRA EXTREMA (MAU CHEIRO)
