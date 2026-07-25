@@ -105,12 +105,9 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
             TriggerServerEvent('fdb-water:server:refillbottle')
         end
 
-        TriggerEvent('hud:client:UpdateThirst', LocalPlayer.state.thirst + amount)
-
     elseif shouldDegrade then
         TriggerServerEvent('fdb-water:server:degradecanteen', item)
         TriggerServerEvent('fdb-survival:server:AddThirst', amount)
-        TriggerEvent('hud:client:UpdateThirst', LocalPlayer.state.thirst + amount)
 
     else
         -- This case: refillable canteen, not in water, no degrade
