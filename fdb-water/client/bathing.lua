@@ -115,7 +115,17 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
 
         local holdTime, bathMode = 0, 1
         while DoesCamExist(currentCam) do
-            while not IsTaskMoveNetworkReadyForTransition(cache.ped) do Wait(100) end
+            local timer = 0
+            while not IsTaskMoveNetworkReadyForTransition(cache.ped) and timer < 100 do
+                Wait(100)
+                timer = timer + 1
+            end
+            if timer >= 100 then
+                print("[fdb-water] ERRO: Timeout aguardando TaskMoveNetworkReadyForTransition (Regular Bath). Forçando saída.")
+                TriggerEvent('ox_lib:notify', {title = 'Erro no Banho', description = 'A animação falhou ao iniciar.', type = 'error'})
+                Action("STOP_BATHING")
+                break
+            end
 
             if IsPromptEnabled("SCRUB") and bathMode == #Config.BathingModes+1 then TogglePrompts({ "SCRUB" }, false) end
             if IsControlPressed(0, `INPUT_CONTEXT_X`) and IsPromptEnabled("SCRUB") then
@@ -173,7 +183,16 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
                     end
                     Wait(100)
                 end
-                while not IsTaskMoveNetworkReadyForTransition(cache.ped) do Wait(10) end
+                local timer2 = 0
+                while not IsTaskMoveNetworkReadyForTransition(cache.ped) and timer2 < 100 do
+                    Wait(100)
+                    timer2 = timer2 + 1
+                end
+                if timer2 >= 100 then
+                    print("[fdb-water] ERRO: Timeout aguardando TaskMoveNetworkReadyForTransition (Bathing Reset). Forçando saída.")
+                    Action("STOP_BATHING")
+                    break
+                end
 
                 local resetTo = (((bathMode == #Config.BathingModes+1) or DoesEntityExist(BathingPed)) and "Bathing" or "Scrub_Idle")
                 while GetTaskMoveNetworkState(cache.ped) ~= resetTo do
