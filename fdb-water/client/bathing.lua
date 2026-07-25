@@ -14,6 +14,15 @@ AddEventHandler('fdb-water:client:ToggleInvincibility', function(state)
     LocalPlayer.state.invincible = state
 end)
 
+AddEventHandler('fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS', function(data)
+    local ped = data[1]
+    local taskMoveName = data[2]
+    local initParams = data[3]
+    local p3 = data[4]
+    local taskName = data[5]
+    Citizen.InvokeNative(0x2D537BA194896636, ped, taskMoveName, initParams, p3, taskName, 0)
+end)
+
 Citizen.CreateThread(function()
     LocalPlayer.state.isBathingActive = false
     CreateBlips()
