@@ -71,15 +71,16 @@ CreateThread(function()
                 staminaPercent = (stamina <= 1.0) and (stamina * 100) or stamina
             end
             
-            local staminaRate = 1.0
+            local finalRate = 1.0
+            local blendRatio = 3.0
             local disableSprintStamina = false
             local disableRunStamina = false
-            if currentStamina < 10 then
+            if staminaPercent < 10 then
                 disableSprintStamina = true
                 disableRunStamina = true
                 finalRate = 0.5
                 blendRatio = 1.0
-            elseif currentStamina < 30 then
+            elseif staminaPercent < 30 then
                 disableSprintStamina = true
                 finalRate = 0.8
             end
