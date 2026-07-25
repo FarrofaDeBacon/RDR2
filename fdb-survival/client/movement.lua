@@ -3,6 +3,7 @@
 -- Nenhum outro arquivo deve chamar esses natives diretamente.
 
 local currentClipset = nil
+local baseClipset = nil
 
 -- ==========================================
 -- THREAD 1: CLIPSET (Executa a cada 500ms)
@@ -21,7 +22,7 @@ local function ResolveClipset()
     elseif FDB.Survival.inMud then
         return 'move_m@mud_wade'
     end
-    return nil -- volta ao padrão do jogo
+    return baseClipset -- volta ao estilo preferido pelo jogador ou nil (padrão do jogo)
 end
 
 CreateThread(function()
@@ -73,33 +74,35 @@ CreateThread(function()
             local staminaRate = 1.0
             local disableSprintStamina = false
             local disableRunStamina = false
-            
-            if staminaPercent < 30 then
-                staminaRate = 0.6 + (staminaPercent / 75.0) -- 30 = 1.0, 0 = 0.6
-            end
-            if staminaPercent < 5 then
+            if currentStamina < 10 then
                 disableSprintStamina = true
                 disableRunStamina = true
+                finalRate = 0.5
+                blendRatio = 1.0
+            elseif currentStamina < 30 then
+                disableSprintStamina = true
+                finalRate = 0.8
             end
-            
-            -- 2. BACKPACK WEIGHT
-            local backpackRate = 1.0
+
+            -- 2.2 MOCHILA (BACKPACK)
+            local backpackLimit = FDB.Survival.backpackLimit or Config.Backpacks.DefaultWeight
+            local backpackWeight = FDB.Survival.backpackWeight or 0
             local disableSprintBackpack = false
             local disableRunBackpack = false
-            local blendRatio = 3.0
-            
-            if GetResourceState('fdb-backpacks') == 'started' then
-                local mod = exports['fdb-backpacks']:GetBackpackWeightModifier()
-                if mod == 0.70 then -- Peso > 20kg
-                    disableSprintBackpack = true
-                    disableRunBackpack = true
-                    blendRatio = 1.0
-                    backpackRate = 0.75
-                elseif mod == 0.85 then -- Peso entre 10kg e 20kg
-                    disableSprintBackpack = true
-                    blendRatio = 2.0
-                    backpackRate = 0.85
-                end
+            if backpackWeight >= backpackLimit then
+                disableSprintBackpack = true
+                disableRunBackpack = true
+                finalRate = finalRate * 0.7
+            elseif backpackWeight >= (backpackLimit * 0.8) then
+                disableSprintBackpack = true
+                finalRate = finalRate * 0.9
+            end
+
+            -- 2.3 SUJEIRA EXTREMA (MAU CHEIRO)
+            local cleanliness = FDB.Survival.cleanliness or 100
+            if cleanliness < 20 then
+                -- Se estiver muito sujo, a velocidade de movimento cai levemente, simulando cansaço extra
+                finalRate = finalRate * 0.95
             end
             
             -- 2.5 DRUNKENNESS (Álcool)
@@ -137,12 +140,33 @@ CreateThread(function()
             SetPedMaxMoveBlendRatio(ped, blendRatio)
             
             -- 6. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
-            -- Menor taxa vence (Stamina ou Mochila)
-            local finalRate = math.min(staminaRate, backpackRate)
             Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
         end
         Wait(sleep)
     end
+end)
+
+-- ==========================================
+-- THREAD 3: EVENTOS DE PREFERÊNCIA
+-- ==========================================
+RegisterNetEvent('fdb-survival:client:setWalkstyle', function(style)
+    if style == 'default' or style == 'normal' then
+        baseClipset = nil
+    else
+        baseClipset = style
+    end
+    -- Força a reavaliação imediata
+    currentClipset = nil
+end)
+
+RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
+    baseClipset = nil
+    currentClipset = nil
+end)
+
+RegisterNetEvent('RSGCore:Client:OnPlayerUnload', function()
+    baseClipset = nil
+    currentClipset = nil
 end)
 
 -- Reset ao trocar de personagem / respawnar

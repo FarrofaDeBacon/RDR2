@@ -116,8 +116,7 @@ CreateThread(function()
                         Wait(4000)
                         ClearPedTasks(ped)
                         
-                        TriggerServerEvent('fdb-survival:server:AddThirst', 15)
-                        lib.notify({title = 'Refrescado', description = 'Você bebeu um pouco de água fresca.', type = 'success'})
+                        TriggerServerEvent('fdb-water:server:DrinkNaturalWater')
                         
                         Wait(3000) -- anti-spam cooldown
                         isDrinking = false

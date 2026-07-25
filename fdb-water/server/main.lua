@@ -276,6 +276,22 @@ RegisterNetEvent('fdb-water:server:WashInRiver', function()
     exports['fdb-survival']:AddCleanliness(src, 25.0)
 end)
 
+RegisterNetEvent('fdb-water:server:DrinkNaturalWater', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    
+    exports['fdb-survival']:AddThirst(src, 15)
+    
+    -- 30% chance of getting a waterborne illness
+    if math.random(1, 100) <= 30 then
+        exports['fdb-survival']:AddIllness(src, 40)
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Água Estranha', description = 'A água tinha um gosto estranho...', type = 'warning'})
+    else
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Refrescado', description = 'Você bebeu um pouco de água fresca.', type = 'success'})
+    end
+end)
+
 RegisterNetEvent('fdb-water:server:makeWet', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)

@@ -205,7 +205,16 @@ exports('CureIllness', function(src)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData("illness", 0)
-    TriggerClientEvent('fdb-survival:client:CureIllness', src)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'illness', value = 0 })
+end)
+
+exports('AddIllness', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["illness"] or 0
+    local newIllness = math.max(0, math.min(100, current + amount))
+    Player.Functions.SetMetaData("illness", newIllness)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'illness', value = newIllness })
 end)
 
 exports('AddColdResistance', function(src, seconds)

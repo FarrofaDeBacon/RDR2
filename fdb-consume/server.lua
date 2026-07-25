@@ -41,6 +41,10 @@ CreateThread(function()
                         health = (data.health or 0) / uses,
                         stamina = (data.stamina or 0) / uses,
                     },
+                    cures = {
+                        illness = data.cureIllness or false,
+                        poison = data.curePoison or false,
+                    },
                     returnItem = data.give and data.give.item or nil
                 }
 
@@ -71,6 +75,14 @@ RegisterNetEvent('fdb-consume:server:takeBite', function()
 
     if consume.stats.health ~= 0 or consume.stats.stamina ~= 0 then
         TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, consume.stats.health, consume.stats.stamina)
+    end
+
+    if consume.cures.illness then
+        exports['fdb-survival']:CureIllness(src)
+    end
+    
+    if consume.cures.poison then
+        exports['fdb-survival']:CurePoison(src)
     end
 
     if consume.currentUses <= 0 then

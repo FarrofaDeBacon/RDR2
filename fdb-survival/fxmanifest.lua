@@ -21,7 +21,8 @@ client_scripts {
     'client/temperature.lua',
     'client/health.lua',
     'client/exports.lua',
-    'client/movement.lua'
+    'client/movement.lua',
+    'client/illness.lua'
 }
 
 server_scripts {
