@@ -63,6 +63,10 @@ CreateThread(function()
         if FDB.IsLoggedIn then
             sleep = 0
             local ped = PlayerPedId()
+
+            if LocalPlayer.state.isBathingActive then
+                goto continue
+            end
             
             -- 1. STAMINA
             local stamina = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1) -- GetAttributeCoreValue for Stamina
@@ -145,6 +149,8 @@ CreateThread(function()
             
             -- 6. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
             Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
+
+            ::continue::
         end
         Wait(sleep)
     end
