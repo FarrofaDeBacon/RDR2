@@ -70,14 +70,6 @@ CreateThread(function()
                 staminaPercent = (stamina <= 1.0) and (stamina * 100) or stamina
             end
             
-            -- [DEBUG TEMPORÁRIO] 
-            -- Apenas imprimir a cada 100 frames (aprox 1.5s) para não floodar
-            if not debugCounter then debugCounter = 0 end
-            debugCounter = debugCounter + 1
-            if debugCounter > 100 then
-                print(("[MAESTRO DEBUG] Stamina Raw: %s | Stamina Percent: %s"):format(tostring(stamina), tostring(staminaPercent)))
-            end
-            
             local staminaRate = 1.0
             local disableSprintStamina = false
             local disableRunStamina = false
@@ -94,7 +86,7 @@ CreateThread(function()
             local backpackRate = 1.0
             local disableSprintBackpack = false
             local disableRunBackpack = false
-            local blendRatio = nil
+            local blendRatio = 3.0
             
             if GetResourceState('fdb-backpacks') == 'started' then
                 local mod = exports['fdb-backpacks']:GetBackpackWeightModifier()
@@ -142,26 +134,12 @@ CreateThread(function()
             end
             
             -- 5. RESOLVER ANIMAÇÃO BASE (Blend Ratio)
-            if blendRatio then
-                SetPedMaxMoveBlendRatio(ped, blendRatio)
-            end
+            SetPedMaxMoveBlendRatio(ped, blendRatio)
             
             -- 6. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
             -- Menor taxa vence (Stamina ou Mochila)
             local finalRate = math.min(staminaRate, backpackRate)
-            
-            if debugCounter > 100 then
-                print(("[MAESTRO DEBUG] finalRate: %s | blendRatio: %s | disableSprint: %s"):format(
-                    tostring(finalRate), 
-                    tostring(blendRatio),
-                    tostring(disableSprintStamina or disableSprintBackpack)
-                ))
-                debugCounter = 0 -- reseta contador
-            end
-            
-            if finalRate < 1.0 then
-                Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
-            end
+            Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
         end
         Wait(sleep)
     end
