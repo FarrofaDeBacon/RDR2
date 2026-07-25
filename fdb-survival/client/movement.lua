@@ -35,13 +35,13 @@ CreateThread(function()
             if targetClipset ~= currentClipset then
                 if targetClipset then
                     -- Solicita o clipset apenas na primeira vez
-                    RequestAnimSet(targetClipset)
+                    RequestClipSet(targetClipset)
                     local timer = 0
-                    while not HasAnimSetLoaded(targetClipset) and timer < 100 do
+                    while not HasClipSetLoaded(targetClipset) and timer < 100 do
                         Wait(10)
                         timer = timer + 1
                     end
-                    if HasAnimSetLoaded(targetClipset) then
+                    if HasClipSetLoaded(targetClipset) then
                         SetPedMovementClipset(ped, targetClipset, true)
                     end
                 else
