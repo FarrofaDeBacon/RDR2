@@ -140,6 +140,7 @@ CreateThread(function()
             local healthTank = GetNormalized(currentHealth - 100, maxHealth - 100)
             local healthCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 0)
             if not tonumber(healthCore) then healthCore = 0 end
+            healthCore = (healthCore <= 1.0) and (healthCore * 100) or healthCore
             local health = math.floor((healthTank / 2) + (healthCore / 2))
             
             -- Fôlego (Stamina) do jogador
@@ -147,6 +148,7 @@ CreateThread(function()
             local staminaTank = math.max(0, math.min(100, math.floor(rawStamina)))
             local staminaCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 1)
             if not tonumber(staminaCore) then staminaCore = 0 end
+            staminaCore = (staminaCore <= 1.0) and (staminaCore * 100) or staminaCore
             local stamina = math.floor((staminaTank / 2) + (staminaCore / 2))
             
             -- Cavalo (Mount)
@@ -160,12 +162,14 @@ CreateThread(function()
                 local hHealthTank = GetNormalized(GetEntityHealth(mount), GetEntityMaxHealth(mount))
                 local hHealthCore = Citizen.InvokeNative(0x36731AC041289BB1, mount, 0)
                 if not tonumber(hHealthCore) then hHealthCore = 0 end
+                hHealthCore = (hHealthCore <= 1.0) and (hHealthCore * 100) or hHealthCore
                 horseHealth = math.floor((hHealthTank / 2) + (hHealthCore / 2))
 
                 local rawHorseStamina = Citizen.InvokeNative(0x0FF421E467373FCF, mount, Citizen.ResultAsFloat())
                 local hStaminaTank = math.max(0, math.min(100, math.floor(rawHorseStamina)))
                 local hStaminaCore = Citizen.InvokeNative(0x36731AC041289BB1, mount, 1)
                 if not tonumber(hStaminaCore) then hStaminaCore = 0 end
+                hStaminaCore = (hStaminaCore <= 1.0) and (hStaminaCore * 100) or hStaminaCore
                 horseStamina = math.floor((hStaminaTank / 2) + (hStaminaCore / 2))
             end
             
