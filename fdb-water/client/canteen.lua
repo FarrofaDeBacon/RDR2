@@ -23,7 +23,7 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
     local coords = GetEntityCoords(cache.ped)
     local water = GetWaterMapZoneAtCoords(coords.x + 3, coords.y + 3, coords.z)
     local isValidWater = false
-    local refillable = item == 'canteen0' or item == 'canteen25' or item == 'canteen50' or item == 'canteen75'
+    local refillable = item == 'canteen0' or item == 'canteen25' or item == 'canteen50' or item == 'canteen75' or item == 'empty_bottle'
 
     for _, v in pairs(Config.WaterTypes) do
         if water == v.waterhash then
@@ -32,8 +32,8 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
         end
     end
 
-    -- Early block: prevent drinking from empty canteen in invalid water
-    if item == 'canteen0' and (not isValidWater or not IsEntityInWater(cache.ped)) then
+    -- Early block: prevent drinking from empty canteen/bottle in invalid water
+    if (item == 'canteen0' or item == 'empty_bottle') and (not isValidWater or not IsEntityInWater(cache.ped)) then
         lib.notify({
             title = locale('cl_lang_1'),
             description = locale('cl_lang_2'),
@@ -94,17 +94,20 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
             TriggerServerEvent('fdb-water:server:givefullcanteen50')
         elseif item == 'canteen75' then
             TriggerServerEvent('fdb-water:server:givefullcanteen75')
+        elseif item == 'empty_bottle' then
+            TriggerServerEvent('fdb-water:server:refillbottle')
         end
 
         TriggerEvent('hud:client:UpdateThirst', LocalPlayer.state.thirst + amount)
 
     elseif shouldDegrade then
         TriggerServerEvent('fdb-water:server:degradecanteen', item)
+        TriggerServerEvent('fdb-survival:server:AddThirst', amount)
         TriggerEvent('hud:client:UpdateThirst', LocalPlayer.state.thirst + amount)
 
     else
         -- This case: refillable canteen, not in water, no degrade
-        if item == 'canteen0' then
+        if item == 'canteen0' or item == 'empty_bottle' then
             lib.notify({
                 title = locale('cl_lang_1'),
                 description = locale('cl_lang_2'),

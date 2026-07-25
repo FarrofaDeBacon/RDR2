@@ -6,7 +6,7 @@ local items = {
     ['water'] = {
         type = "Drink",
         hunger = 0,
-        thirst = 25,
+        thirst = 50,
         stress = 5,
         alcohol = -5,
         health = 0,
@@ -14,7 +14,7 @@ local items = {
         prop = "p_bottle01x",
         offsets = { hand_idle = { x = 0.05, y = -0.07, z = -0.05, rx = -75.0, ry = 60.0, rz = 0.0 } },
         editorStages = drinkStages,
-        uses = 3,
+        uses = 1,
         give = { item = "empty_bottle", count = 1 }
     },
     ['beer'] = {

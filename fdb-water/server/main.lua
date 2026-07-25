@@ -35,9 +35,17 @@ end)
 RSGCore.Functions.CreateUseableItem('canteen0', function(source, item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
-	TriggerClientEvent('fdb-water:client:fillupcanteen', src)
     if not Player then return end
+	TriggerClientEvent('fdb-water:client:fillupcanteen', src)
     TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'canteen0')
+end)
+
+RSGCore.Functions.CreateUseableItem('empty_bottle', function(source, item)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+	TriggerClientEvent('fdb-water:client:fillupcanteen', src)
+    TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'empty_bottle')
 end)
 
 local function RefillCanteen(src, fromItem)
@@ -52,6 +60,16 @@ end
 RegisterServerEvent('fdb-water:server:givefullcanteen')
 AddEventHandler('fdb-water:server:givefullcanteen', function()
     RefillCanteen(source, 'canteen0')
+end)
+
+RegisterServerEvent('fdb-water:server:refillbottle')
+AddEventHandler('fdb-water:server:refillbottle', function()
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return end
+    Player.Functions.RemoveItem('empty_bottle', 1)
+    TriggerClientEvent('rsg-inventory:client:ItemBox', source, RSGCore.Shared.Items['empty_bottle'], 'remove', 1)
+    Player.Functions.AddItem('water', 1)
+    TriggerClientEvent('rsg-inventory:client:ItemBox', source, RSGCore.Shared.Items['water'], 'add', 1)
 end)
 
 RegisterServerEvent('fdb-water:server:givefullcanteen25')
