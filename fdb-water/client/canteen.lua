@@ -52,7 +52,12 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
         local dict = 'amb_rest_drunk@world_human_drinking@female_a@idle_a'
         local anim = 'idle_a'
         local boneIndex = GetEntityBoneIndexByName(cache.ped, 'SKEL_R_HAND')
-        local modelHash = GetHashKey('p_cs_canteen_hercule')
+        
+        local modelStr = 'p_cs_canteen_hercule'
+        if item == 'empty_bottle' then
+            modelStr = 'p_bottle01x'
+        end
+        local modelHash = GetHashKey(modelStr)
 
         LoadModel(modelHash)
         entity = CreateObject(modelHash, coords.x + 0.3, coords.y, coords.z, true, false, false)
@@ -62,21 +67,24 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
         SetModelAsNoLongerNeeded(modelHash)
         AttachEntityToEntity(entity, cache.ped, boneIndex, 0.10, 0.09, -0.05, 306.0, 18.0, 0.0, true, true, false, true, 2, true)
 
-        if isValidWater and refillable and IsPedOnFoot(cache.ped) and IsEntityInWater(cache.ped) then
+        local inWater = IsEntityInWater(cache.ped)
+        local shouldRefill = isValidWater and refillable and inWater
+
+        if shouldRefill and IsPedOnFoot(cache.ped) then
+            -- Se for para encher, o personagem se abaixa com o prop na mão e não bebe
             TaskStartScenarioInPlace(cache.ped, joaat('WORLD_HUMAN_CROUCH_INSPECT'), -1, true, false, false, false)
-            Wait(3000) -- Enche o cantil mais rápido
+            Wait(4000) -- Tempo abaixado enchendo
             ClearPedTasks(cache.ped)
-            Wait(500) -- Pausa para transição
+        else
+            -- Se for para beber (fora d'água ou cantil cheio), toca a animação de beber
+            RequestAnimDict(dict)
+            while not HasAnimDictLoaded(dict) do
+                Citizen.Wait(100)
+            end
+            TaskPlayAnim(cache.ped, dict, anim, 1.0, 1.0, -1, 31, 1.0, false, false, false)
+            Wait(5000)
         end
-
-        RequestAnimDict(dict)
-        while not HasAnimDictLoaded(dict) do
-            Citizen.Wait(100)
-        end
-        TaskPlayAnim(cache.ped, dict, anim, 1.0, 1.0, -1, 31, 1.0, false, false, false)
     end
-
-    Wait(5000)
 
     -- Decision logic: refill, degrade, or block
     local inWater = IsEntityInWater(cache.ped)
@@ -84,8 +92,7 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
     local shouldDegrade = not refillable or not inWater
 
     if shouldRefill then
-        TriggerServerEvent("fdb-survival:server:AddThirst", 100)
-
+        -- Encheu na água. Nenhuma sede é restaurada, só o item é dado.
         if item == 'canteen0' then
             TriggerServerEvent('fdb-water:server:givefullcanteen')
         elseif item == 'canteen25' then

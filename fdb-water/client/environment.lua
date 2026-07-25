@@ -60,3 +60,65 @@ CreateThread(function()
         end
     end
 end)
+
+local DrinkPrompt
+local function SetupDrinkPrompt()
+    local str = 'Beber Água'
+    DrinkPrompt = PromptRegisterBegin()
+    PromptSetControlAction(DrinkPrompt, 0xCEFD9220) -- E key
+    str = CreateVarString(10, 'LITERAL_STRING', str)
+    PromptSetText(DrinkPrompt, str)
+    PromptSetEnabled(DrinkPrompt, true)
+    PromptSetVisible(DrinkPrompt, true)
+    PromptSetStandardMode(DrinkPrompt, true)
+    PromptSetHoldMode(DrinkPrompt, 1000)
+    PromptRegisterEnd(DrinkPrompt)
+end
+
+CreateThread(function()
+    SetupDrinkPrompt()
+    local isDrinking = false
+    
+    while true do
+        local wait = 1000
+        if isLoggedIn then
+            local ped = cache.ped
+            if IsEntityInWater(ped) and GetEntitySubmergedLevel(ped) > 0.1 and not isDrinking and not IsPedOnMount(ped) and not IsPedInAnyVehicle(ped) then
+                local coords = GetEntityCoords(ped)
+                local water = GetWaterMapZoneAtCoords(coords.x, coords.y, coords.z)
+                
+                -- Check if it's a valid natural water source (not inside a bathtub)
+                if water ~= 0 then
+                    wait = 0
+                    PromptSetVisible(DrinkPrompt, true)
+                    PromptSetEnabled(DrinkPrompt, true)
+                    
+                    if PromptHasHoldModeCompleted(DrinkPrompt) then
+                        isDrinking = true
+                        PromptSetVisible(DrinkPrompt, false)
+                        PromptSetEnabled(DrinkPrompt, false)
+                        
+                        TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_CROUCH_INSPECT'), -1, true, false, false, false)
+                        Wait(4000)
+                        ClearPedTasks(ped)
+                        
+                        TriggerServerEvent('fdb-survival:server:AddThirst', 15)
+                        lib.notify({title = 'Refrescado', description = 'Você bebeu um pouco de água fresca.', type = 'success'})
+                        
+                        Wait(3000) -- anti-spam cooldown
+                        isDrinking = false
+                    end
+                else
+                    PromptSetVisible(DrinkPrompt, false)
+                    PromptSetEnabled(DrinkPrompt, false)
+                end
+            else
+                if DrinkPrompt then
+                    PromptSetVisible(DrinkPrompt, false)
+                    PromptSetEnabled(DrinkPrompt, false)
+                end
+            end
+        end
+        Wait(wait)
+    end
+end)
