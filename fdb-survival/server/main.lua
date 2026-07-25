@@ -251,3 +251,16 @@ CreateThread(function()
         end
     end
 end)
+
+-- -------------------------------------------------------
+-- COMANDOS DE ADMIN
+-- -------------------------------------------------------
+RSGCore.Commands.Add('cleardrunk', 'Remove toda a embriaguez', {}, false, function(source, args)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        Player.Functions.SetMetaData("alcohol", 0)
+        TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'drunkenness', value = 0 })
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Curado', description = 'Seu álcool foi zerado pelo admin.', type = 'success'})
+    end
+end, 'admin')
