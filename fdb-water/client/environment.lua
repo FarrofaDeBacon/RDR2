@@ -14,6 +14,7 @@ local function StartDryingTimer()
         timeOutWater = timeOutWater + TICK_RATE
         if timeOutWater >= DRYING_TIME_MS then
             TriggerServerEvent('fdb-water:server:dryPlayer')
+            lib.notify({title = 'Seco', description = 'O vento e o tempo secaram suas roupas.', type = 'success'})
             timeOutWater = 0
         end
     else
@@ -51,6 +52,7 @@ CreateThread(function()
                 -- Anti-spam for isWet
                 if not LocalPlayer.state.isWet then
                     TriggerServerEvent('fdb-water:server:makeWet')
+                    lib.notify({title = 'Encharcado', description = 'Você entrou na água e suas roupas estão completamente molhadas!', type = 'inform'})
                 end
             else
                 StartDryingTimer()

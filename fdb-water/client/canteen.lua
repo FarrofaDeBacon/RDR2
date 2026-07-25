@@ -64,8 +64,9 @@ RegisterNetEvent('fdb-water:client:drink', function(amount, item)
 
         if isValidWater and refillable and IsPedOnFoot(cache.ped) and IsEntityInWater(cache.ped) then
             TaskStartScenarioInPlace(cache.ped, joaat('WORLD_HUMAN_CROUCH_INSPECT'), -1, true, false, false, false)
-            Wait(8000)
+            Wait(3000) -- Enche o cantil mais rápido
             ClearPedTasks(cache.ped)
+            Wait(500) -- Pausa para transição
         end
 
         RequestAnimDict(dict)
