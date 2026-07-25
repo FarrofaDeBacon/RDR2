@@ -33,12 +33,12 @@ export const comms = writable({
 });
 
 export const survivalEngines = writable({
-    urine: 0, // Bladder
+    bladder: 0, // Bladder
     temp: 20, // Body/Environment Temperature
     poison: 0, // Snake poison severity
     illness: 0, // Sickness severity (cold/flu)
     drunkenness: 0, // Alcohol level
-    hygiene: 100, // Cleanliness
+    cleanliness: 100, // Cleanliness
 });
 
 export const activeBuffs = writable({
@@ -58,10 +58,10 @@ export const extras = writable({
 
 // Editor de UI, totalmente isolado com suporte a configurações ricas e retrocompatibilidade
 const defaultElements = [
-    'health', 'stamina', 'food', 'water', 'urine', 'stress', 'temperature', 'voice',
+    'health', 'stamina', 'food', 'water', 'bladder', 'stress', 'temperature', 'voice',
     'horseHealth', 'horseStamina', 'population', 'telegram', 'primaryAmmo', 'secondaryAmmo',
     'logo', 'money', 'gold', 'job', 'id', 'time', 'pvp',
-    'hygiene', 'poison', 'illness', 'drunkenness', 'armor', 'oxygen', 'coldResistance', 'heatResistance'
+    'cleanliness', 'poison', 'illness', 'drunkenness', 'armor', 'oxygen', 'coldResistance', 'heatResistance'
 ];
 
 export const createDefaultConfigs = () => {
@@ -74,8 +74,8 @@ export const createDefaultConfigs = () => {
         else if (id === 'food') outerColor = '#ffa500';
         else if (id === 'water') outerColor = '#00bfff';
         else if (id === 'stress') outerColor = '#ff4500';
-        else if (id === 'urine') outerColor = '#ffff00';
-        else if (id === 'hygiene') { outerColor = '#ffffff'; trackColor = '#8b4513'; } // Branca por cima, Marrom no fundo
+        else if (id === 'bladder') outerColor = '#ffff00';
+        else if (id === 'cleanliness') { outerColor = '#ffffff'; trackColor = '#8b4513'; } // Branca por cima, Marrom no fundo
         else if (id === 'poison') outerColor = '#32cd32';
         else if (id === 'illness') outerColor = '#808000';
         else if (id === 'drunkenness') outerColor = '#ff69b4';
@@ -209,8 +209,8 @@ window.addEventListener('message', (event) => {
             break;
 
         // --- SURVIVAL ENGINES ---
-        case 'urine':
-        case 'hygiene':
+        case 'bladder':
+        case 'cleanliness':
         case 'temp':
         case 'poison':
         case 'illness':
@@ -247,7 +247,7 @@ window.addEventListener('message', (event) => {
             
             const legacyGroupMapping = {
                 PlayerCores: ['health', 'stamina', 'food', 'water', 'stress'],
-                SurvivalCores: ['urine', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature'],
+                SurvivalCores: ['bladder', 'cleanliness', 'poison', 'illness', 'drunkenness', 'temperature'],
                 HorseCores: ['horseHealth', 'horseStamina'],
                 Buffs: ['coldResistance', 'heatResistance'],
                 Voice: ['voice'],

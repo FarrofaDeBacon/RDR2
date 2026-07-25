@@ -203,16 +203,7 @@ end)
 -- -------------------------------------------------------
 RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     if not nuiReady then return end
-    local actionMap = {
-        cleanliness = 'hygiene',
-        bladder = 'urine',
-        poison = 'poison',
-        illness = 'illness',
-        coldResistance = 'coldResistance',
-        heatResistance = 'heatResistance'
-    }
-    local nuiAction = actionMap[data.field] or data.field
-    SendNUIMessage({ action = nuiAction, value = data.value })
+    SendNUIMessage({ action = data.field, value = data.value })
 end)
 
 -- -------------------------------------------------------

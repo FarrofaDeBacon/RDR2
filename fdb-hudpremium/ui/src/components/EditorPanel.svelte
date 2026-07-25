@@ -53,8 +53,8 @@
     // Categories mapping
     const categories = [
         { id: 'GlobalSettings', name: 'Global Settings', type: 'global' },
-        { id: 'PlayerCores', name: 'Player Cores', type: 'elements', items: ['health', 'stamina', 'food', 'water', 'stress', 'hygiene', 'poison', 'illness', 'drunkenness', 'temperature', 'armor', 'oxygen'] },
-        { id: 'HorseCores', name: 'Horse Cores', type: 'elements', items: ['horseHealth', 'horseStamina'] },
+        { id: 'PlayerCores', name: 'Player Cores', type: 'elements', items: ['health', 'stamina', 'food', 'water', 'bladder', 'stress', 'cleanliness', 'poison', 'illness', 'drunkenness', 'temperature', 'armor', 'oxygen'] },
+        { id: 'HorseCores', name: 'Horse Cores', type: 'elements', items: ['horseHealth', 'horseStamina', 'horseAgitation', 'horseBonding', 'horseFood', 'horseWater'] },
         { id: 'OtherCores', name: 'Other Cores', type: 'elements', items: ['population', 'telegram', 'voice', 'primaryAmmo', 'secondaryAmmo'] },
         { id: 'Buffs', name: 'Buffs', type: 'elements', items: ['coldResistance', 'heatResistance'] },
         { id: 'Extras', name: 'Extras', type: 'elements', items: ['logo', 'money', 'gold', 'job', 'id', 'time', 'pvp'] },

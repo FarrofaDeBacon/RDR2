@@ -16,8 +16,8 @@
     $: horseStamina = $horseStatus.horseStamina;
 
     // Novos Survival Engines
-    $: urine = $survivalEngines.urine;
-    $: hygiene = $survivalEngines.hygiene;
+    $: bladder = $survivalEngines.bladder;
+    $: cleanliness = $survivalEngines.cleanliness;
     $: temp = $survivalEngines.temp;
     $: poison = $survivalEngines.poison;
     $: illness = $survivalEngines.illness;
@@ -46,10 +46,10 @@
     $: showOxygen = isEditing || oxygen < 100;
     $: showHorse = isEditing || (horseHealth > 0 && horseHealth <= 100);
 
-    // Condicionais Survival Engines
-    $: showUrine = isEditing || urine > 50;
-    $: showHygiene = isEditing || hygiene < 100;
-    $: showTemp = isEditing || temp < 15 || temp > 35;
+    // Regras de Exibição Dinâmica para Survival
+    $: showBladder = isEditing || bladder > 50;
+    $: showCleanliness = isEditing || cleanliness < 100;
+    $: showTemp = isEditing || temp < 15 || temp > 28; // Tremos frio/calor
     $: showPoison = isEditing || poison > 0;
     $: showIllness = isEditing || illness > 0;
     $: showDrunkenness = isEditing || drunkenness > 0;
@@ -185,30 +185,32 @@
     {/if}
 
     <!-- Sobrevivência Hardcore -->
-    {#if showUrine}
-        <DraggableModule id="urine" defaultX={-60} defaultY={-60}>
+    <!-- Bladder (Bexiga) -->
+    {#if showBladder}
+        <DraggableModule id="bladder" defaultX={-60} defaultY={-60}>
             <HUDItem 
-                itemId="urine"
-                value={getOuter(urine)} 
-                innerValue={getInner(urine)} 
+                itemId="bladder"
+                value={getOuter(bladder)} 
+                innerValue={getInner(bladder)} 
                 icon="./assets/urine.svg" 
                 outerColor="#ffff00" 
-                innerColor={getInnerColorReverse(urine, '#ffffff', '#ff0000', 80)}
-                isFlashing={urine >= 90}
+                innerColor={getInnerColorReverse(bladder, '#ffffff', '#ff0000', 80)}
+                isFlashing={bladder >= 90}
             />
         </DraggableModule>
     {/if}
 
-    {#if showHygiene}
-        <DraggableModule id="hygiene" defaultX={0} defaultY={-60}>
+    <!-- Cleanliness (Higiene) -->
+    {#if showCleanliness}
+        <DraggableModule id="cleanliness" defaultX={0} defaultY={-60}>
             <HUDItem 
-                itemId="hygiene"
-                value={getOuter(hygiene)} 
-                innerValue={getInner(hygiene)} 
+                itemId="cleanliness"
+                value={getOuter(cleanliness)} 
+                innerValue={getInner(cleanliness)} 
                 icon="./assets/hygiene.svg" 
                 outerColor="#ffffff" 
                 trackColor="#8b4513"
-                innerColor={getInnerColor(hygiene, '#ffffff', '#ff0000')}
+                innerColor={getInnerColor(cleanliness, '#ffffff', '#ff0000')}
             />
         </DraggableModule>
     {/if}
