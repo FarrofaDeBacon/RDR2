@@ -62,17 +62,27 @@ CreateThread(function()
 end)
 
 local DrinkPrompt
+local FillPrompt
 local function SetupDrinkPrompt()
-    local str = 'Beber Água'
+    local str1 = 'Beber Água'
     DrinkPrompt = PromptRegisterBegin()
     PromptSetControlAction(DrinkPrompt, 0xCEFD9220) -- E key
-    str = CreateVarString(10, 'LITERAL_STRING', str)
-    PromptSetText(DrinkPrompt, str)
+    PromptSetText(DrinkPrompt, CreateVarString(10, 'LITERAL_STRING', str1))
     PromptSetEnabled(DrinkPrompt, true)
     PromptSetVisible(DrinkPrompt, true)
     PromptSetStandardMode(DrinkPrompt, true)
     PromptSetHoldMode(DrinkPrompt, 1000)
     PromptRegisterEnd(DrinkPrompt)
+
+    local str2 = 'Encher Cantil/Garrafa'
+    FillPrompt = PromptRegisterBegin()
+    PromptSetControlAction(FillPrompt, 0x760A9C6F) -- G key
+    PromptSetText(FillPrompt, CreateVarString(10, 'LITERAL_STRING', str2))
+    PromptSetEnabled(FillPrompt, true)
+    PromptSetVisible(FillPrompt, true)
+    PromptSetStandardMode(FillPrompt, true)
+    PromptSetHoldMode(FillPrompt, 1000)
+    PromptRegisterEnd(FillPrompt)
 end
 
 CreateThread(function()
@@ -92,11 +102,15 @@ CreateThread(function()
                     wait = 0
                     PromptSetVisible(DrinkPrompt, true)
                     PromptSetEnabled(DrinkPrompt, true)
+                    PromptSetVisible(FillPrompt, true)
+                    PromptSetEnabled(FillPrompt, true)
                     
                     if PromptHasHoldModeCompleted(DrinkPrompt) then
                         isDrinking = true
                         PromptSetVisible(DrinkPrompt, false)
                         PromptSetEnabled(DrinkPrompt, false)
+                        PromptSetVisible(FillPrompt, false)
+                        PromptSetEnabled(FillPrompt, false)
                         
                         TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_CROUCH_INSPECT'), -1, true, false, false, false)
                         Wait(4000)
@@ -108,14 +122,30 @@ CreateThread(function()
                         Wait(3000) -- anti-spam cooldown
                         isDrinking = false
                     end
+
+                    if PromptHasHoldModeCompleted(FillPrompt) then
+                        isDrinking = true
+                        PromptSetVisible(DrinkPrompt, false)
+                        PromptSetEnabled(DrinkPrompt, false)
+                        PromptSetVisible(FillPrompt, false)
+                        PromptSetEnabled(FillPrompt, false)
+                        
+                        TriggerServerEvent('fdb-water:server:FillContainerFromPrompt')
+                        Wait(5000)
+                        isDrinking = false
+                    end
                 else
                     PromptSetVisible(DrinkPrompt, false)
                     PromptSetEnabled(DrinkPrompt, false)
+                    PromptSetVisible(FillPrompt, false)
+                    PromptSetEnabled(FillPrompt, false)
                 end
             else
                 if DrinkPrompt then
                     PromptSetVisible(DrinkPrompt, false)
                     PromptSetEnabled(DrinkPrompt, false)
+                    PromptSetVisible(FillPrompt, false)
+                    PromptSetEnabled(FillPrompt, false)
                 end
             end
         end

@@ -36,7 +36,6 @@ RSGCore.Functions.CreateUseableItem('canteen0', function(source, item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-	TriggerClientEvent('fdb-water:client:fillupcanteen', src)
     TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'canteen0')
 end)
 
@@ -44,7 +43,6 @@ RSGCore.Functions.CreateUseableItem('empty_bottle', function(source, item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-	TriggerClientEvent('fdb-water:client:fillupcanteen', src)
     TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'empty_bottle')
 end)
 
@@ -250,6 +248,23 @@ RegisterNetEvent('fdb-water:server:dryPlayer', function()
     if not Player then return end
     
     exports['fdb-survival']:SetWet(src, false)
+end)
+
+RegisterNetEvent('fdb-water:server:FillContainerFromPrompt', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local canteenItem = Player.Functions.GetItemByName('canteen0')
+    local bottleItem = Player.Functions.GetItemByName('empty_bottle')
+
+    if canteenItem and canteenItem.amount > 0 then
+        TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'canteen0')
+    elseif bottleItem and bottleItem.amount > 0 then
+        TriggerClientEvent('fdb-water:client:drink', src, Config.DrinkAmount, 'empty_bottle')
+    else
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Aviso', description = 'Você não tem cantis ou garrafas vazias.', type = 'error'})
+    end
 end)
 
 RegisterNetEvent('fdb-water:server:WashInRiver', function()
