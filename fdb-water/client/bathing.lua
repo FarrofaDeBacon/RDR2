@@ -1,5 +1,6 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 BathingPed = nil
+BathingRag = nil
 local currentAnimScene = nil
 local currentCam = nil
 local currentTown = nil
@@ -63,8 +64,8 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
         LoadAllStreamings()
 
         LoadModel(`P_CS_RAG02X`)
-        local rag = CreateObject(`P_CS_RAG02X`, GetEntityCoords(cache.ped), false, false, false, false, true)
-        table.insert(Config.CreatedEntries, { type = "PED", handle = rag })
+        BathingRag = CreateObject(`P_CS_RAG02X`, GetEntityCoords(cache.ped), false, false, false, false, true)
+        table.insert(Config.CreatedEntries, { type = "PED", handle = BathingRag })
         SetModelAsNoLongerNeeded(`P_CS_RAG02X`)
 
         SetPedCanLegIk(cache.ped, false)
@@ -99,9 +100,9 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
         TogglePrompts({ "STOP_BATHING", "REQUEST_DELUXE_BATHING", "SCRUB" }, true)
 
         TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { cache.ped, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@ARTHUR`, `DEFAULT`, "BATHING" })
-        TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { rag, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@RAG`, `DEFAULT`, "BATHING" })
+        TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingRag, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@RAG`, `DEFAULT`, "BATHING" })
 
-        ForceEntityAiAndAnimationUpdate(rag, true);
+        ForceEntityAiAndAnimationUpdate(BathingRag, true);
         Citizen.InvokeNative(0x55546004A244302A, cache.ped)
 
         local holdTime, bathMode = 0, 1
@@ -124,7 +125,7 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
 
                 while GetTaskMoveNetworkState(cache.ped) ~= "Scrub_Idle" do
                     RequestTaskMoveNetworkStateTransition(cache.ped, "Scrub_Idle");
-                    RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, "Scrub_Idle");
+                    RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or BathingRag, "Scrub_Idle");
                     Wait(200)
                 end
 
@@ -139,16 +140,16 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
                         holdTime = holdTime + (Config.BathingModes[bathMode].hold_power or 0.05)
 
                         if GetTaskMoveNetworkState(cache.ped) ~= Config.BathingModes[bathMode].transition then
-                            SetCurrentCleaniest(rag, 0.0)
+                            SetCurrentCleaniest(BathingRag, 0.0)
 
                             RequestTaskMoveNetworkStateTransition(cache.ped, Config.BathingModes[bathMode].transition);
-                            RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, Config.BathingModes[bathMode].transition);
+                            RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or BathingRag, Config.BathingModes[bathMode].transition);
                         end
 
                         SetTaskMoveNetworkSignalFloat(cache.ped, "scrub_freq", Config.BathingModes[bathMode].scrub_freq);
-                        SetTaskMoveNetworkSignalFloat((DoesEntityExist(BathingPed) and BathingPed) or rag, "scrub_freq", Config.BathingModes[bathMode].scrub_freq);
+                        SetTaskMoveNetworkSignalFloat((DoesEntityExist(BathingPed) and BathingPed) or BathingRag, "scrub_freq", Config.BathingModes[bathMode].scrub_freq);
 
-                        SetCurrentCleaniest(rag, holdTime)
+                        SetCurrentCleaniest(BathingRag, holdTime)
 
                         if holdTime >= 1.0 then
                             holdTime = 0.0
@@ -187,17 +188,17 @@ AddEventHandler('fdb-water:client:StartBath', function(town)
 
                 local resetTo = (((bathMode == #Config.BathingModes+1) or DoesEntityExist(BathingPed)) and "Bathing" or "Scrub_Idle")
                 while GetTaskMoveNetworkState(cache.ped) ~= resetTo do
-                    SetCurrentCleaniest(rag, 1.0)
+                    SetCurrentCleaniest(BathingRag, 1.0)
 
                     while GetTaskMoveNetworkState(cache.ped) ~= "Scrub_Idle" do
                         RequestTaskMoveNetworkStateTransition(cache.ped, "Scrub_Idle");
-                        RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, "Scrub_Idle");
+                        RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or BathingRag, "Scrub_Idle");
                         Wait(200)
                     end
 
                     if resetTo ~= "Scrub_Idle" and (DoesEntityExist(BathingPed) and not IsControlPressed(0, `INPUT_CONTEXT_X`) or not DoesEntityExist(BathingPed)) then
                         RequestTaskMoveNetworkStateTransition(cache.ped, "Bathing");
-                        RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or rag, "Bathing");
+                        RequestTaskMoveNetworkStateTransition((DoesEntityExist(BathingPed) and BathingPed) or BathingRag, "Bathing");
                     elseif resetTo ~= "Scrub_Idle" and DoesEntityExist(BathingPed) and IsControlPressed(0, `INPUT_CONTEXT_X`) then
                         resetTo = "Scrub_Idle"
                     end
@@ -328,7 +329,7 @@ ExitPremiumBath = function(disableScrub)
     end
 
     TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { cache.ped, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@ARTHUR`, `DEFAULT`, "BATHING" })
-    TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingPed, "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@REGULAR@MAID`, `DEFAULT`, "BATHING" })
+    TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingRag, "Script_Mini_Game_Bathing_Regular", `CLIPSET@MINI_GAMES@BATHING@REGULAR@RAG`, `DEFAULT`, "BATHING" })
 
     TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
     if IsPromptEnabled("SCRUB") and disableScrub then TogglePrompts({ "SCRUB" }, false) end
