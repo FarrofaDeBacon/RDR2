@@ -10,6 +10,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/structs.js',
     'client/canteen.lua',
     'client/bathing.lua',
     'client/items.lua',
