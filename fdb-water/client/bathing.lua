@@ -287,8 +287,6 @@ AddEventHandler('fdb-water:client:StartDeluxeBath', function(town)
     Wait(1000)
     StartAnimScene(currentAnimScene)
 
-    RenderScriptCams(false, false, 0, true, false, 0)
-
     while not Citizen.InvokeNative(0xD8254CB2C586412B, currentAnimScene, true) do Wait(10) end
 
     if Citizen.InvokeNative(0x25557E324489393C, currentAnimScene) then
@@ -299,8 +297,6 @@ AddEventHandler('fdb-water:client:StartDeluxeBath', function(town)
     TriggerEvent("fdb-water:TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS", { BathingPed, "Script_Mini_Game_Bathing_Deluxe", `CLIPSET@MINI_GAMES@BATHING@DELUXE@MAID`, `DEFAULT`, "BATHING" })
 
     TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
-
-    RenderScriptCams(true, true, 0, true, false, 0)
 end)
 
 RegisterNetEvent('fdb-water:client:HideDeluxePrompt')
@@ -320,8 +316,6 @@ ExitPremiumBath = function(disableScrub)
     while not Citizen.InvokeNative(0x477122B8D05E7968, outroScene, 1, 0) do Wait(10) end
     StartAnimScene(outroScene)
 
-    RenderScriptCams(false, false, 0, true, false, 0)
-
     while not Citizen.InvokeNative(0xD8254CB2C586412B, outroScene, true) do Wait(10) end
 
     if Citizen.InvokeNative(0x25557E324489393C, outroScene) then
@@ -334,7 +328,6 @@ ExitPremiumBath = function(disableScrub)
     TogglePrompts({ "STOP_BATHING", "SCRUB" }, true)
     if IsPromptEnabled("SCRUB") and disableScrub then TogglePrompts({ "SCRUB" }, false) end
 
-    RenderScriptCams(true, true, 0, true, false, 0)
     DeletePed(BathingPed)
     BathingPed = nil
 end

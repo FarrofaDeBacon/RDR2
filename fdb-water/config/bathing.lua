@@ -78,22 +78,26 @@ Config.BathingModes = {
     {
         transition = "Scrub_Left_Arm",
         scrub_freq = 0.7,
-        deluxe = true
+        deluxe = true,
+        hold_power = 0.015
     },
     {
         transition = "Scrub_Right_Arm",
         scrub_freq = 0.5,
-        deluxe = true
+        deluxe = true,
+        hold_power = 0.015
     },
     {
         transition = "Scrub_Right_Leg",
         scrub_freq = 0.6,
-        deluxe = true
+        deluxe = true,
+        hold_power = 0.015
     },
     {
         transition = "Scrub_Left_Leg",
         scrub_freq = 0.7,
-        deluxe = true
+        deluxe = true,
+        hold_power = 0.015
     }
 }
 
