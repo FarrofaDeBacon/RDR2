@@ -106,7 +106,6 @@ Config.DressElements = {}
 Config.Prompts = {
     { label = locale('prompt_bath', Config.NormalBathPrice), id = "START_BATHING" },
     { label = locale('prompt_scrub'), id = "SCRUB", control = `INPUT_CONTEXT_X`, time = 2000 },
-    { label = locale('prompt_luxury_bath', Config.DeluxeBathPrice), id = "REQUEST_DELUXE_BATHING" },
     { label = locale('prompt_leave'), id = "STOP_BATHING", control = `INPUT_INTERACT_NEG` }
 }
 

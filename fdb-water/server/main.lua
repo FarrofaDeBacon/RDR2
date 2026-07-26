@@ -158,21 +158,8 @@ end)
 RegisterServerEvent('fdb-water:server:canEnterDeluxeBath')
 AddEventHandler('fdb-water:server:canEnterDeluxeBath', function(town)
     local src = source
-    if not Config.BathingZones[town] then return end
-    if BathingSessions[town] == src then
-
-        local Player = RSGCore.Functions.GetPlayer(src)
-        if not Player then return end
-        local currentMoney = Player.PlayerData.money['cash']
-
-        if currentMoney >= Config.DeluxeBathPrice then
-            Player.Functions.RemoveMoney('cash', Config.DeluxeBathPrice)
-            TriggerClientEvent('fdb-water:client:StartDeluxeBath', src, town)
-        else
-            TriggerClientEvent('ox_lib:notify', src, { title = locale('notify_not_enough_money'), type = 'error', duration = 5000 })
-            TriggerClientEvent('fdb-water:client:HideDeluxePrompt', src)
-        end
-    end
+    TriggerClientEvent('ox_lib:notify', src, { title = 'Banho de luxo temporariamente indisponível', type = 'error', duration = 5000 })
+    TriggerClientEvent('fdb-water:client:HideDeluxePrompt', src)
 end)
 
 RegisterServerEvent('fdb-water:server:setBathAsFree')
