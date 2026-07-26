@@ -46,7 +46,7 @@ CreateThread(function()
                         SetPedMovementClipset(ped, targetClipset, true)
                     end
                 else
-                    ResetPedMovementClipset(ped, 0.0)
+                    Citizen.InvokeNative(0x58F7DB5BD8FA2288, ped) -- ClearPedMovementClipset
                 end
                 currentClipset = targetClipset
             end
