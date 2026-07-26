@@ -217,6 +217,15 @@ exports('AddIllness', function(src, amount)
     TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'illness', value = newIllness })
 end)
 
+exports('AddPoison', function(src, amount)
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local current = Player.PlayerData.metadata["poison"] or 0
+    local newPoison = math.max(0, math.min(100, current + amount))
+    Player.Functions.SetMetaData("poison", newPoison)
+    TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'poison', value = newPoison })
+end)
+
 exports('AddColdResistance', function(src, seconds)
     TriggerClientEvent('fdb-survival:client:EatThermalItem', src, 'cold', seconds)
 end)
@@ -252,12 +261,17 @@ CreateThread(function()
                 local currentHunger = Player.PlayerData.metadata['hunger'] or 100
                 local currentThirst = Player.PlayerData.metadata['thirst'] or 100
                 local illness = Player.PlayerData.metadata['illness'] or 0
+                local currentPoison = Player.PlayerData.metadata['poison'] or 0
                 
                 local illnessMultiplier = (illness > 0) and 2.0 or 1.0
                 
                 if currentHunger > 0 or currentThirst > 0 then
                     exports['fdb-survival']:AddHunger(player, -(Config.Metabolism.HungerDrain * illnessMultiplier))
                     exports['fdb-survival']:AddThirst(player, -(Config.Metabolism.ThirstDrain * illnessMultiplier))
+                end
+                
+                if currentPoison > 0 then
+                    exports['fdb-survival']:AddPoison(player, -2)
                 end
             end
         end
@@ -273,5 +287,38 @@ RSGCore.Commands.Add('cleardrunk', 'Remove toda a embriaguez', {}, false, functi
     if Player then
         exports['fdb-survival']:AddAlcohol(src, -100)
         TriggerClientEvent('ox_lib:notify', src, {title = 'Curado', description = 'Seu álcool foi zerado pelo admin.', type = 'success'})
+    end
+end, 'admin')
+
+RSGCore.Commands.Add('dirtyme', 'Debug de Sujeira', {{name = 'nivel', help = '0 a 100'}}, false, function(source, args)
+    local src = source
+    local val = tonumber(args[1]) or 5
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        Player.Functions.SetMetaData("cleanliness", val)
+        TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'cleanliness', value = val })
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Teste de Sujeira', description = 'Higiene forçada para '..val, type = 'inform'})
+    end
+end, 'admin')
+
+RSGCore.Commands.Add('sickme', 'Debug de Doença', {{name = 'nivel', help = '0 a 100'}}, false, function(source, args)
+    local src = source
+    local val = tonumber(args[1]) or 80
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        Player.Functions.SetMetaData("illness", val)
+        TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'illness', value = val })
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Teste de Doença', description = 'Doença forçada para '..val, type = 'error'})
+    end
+end, 'admin')
+
+RSGCore.Commands.Add('poisonme', 'Debug de Veneno', {{name = 'nivel', help = '0 a 100'}}, false, function(source, args)
+    local src = source
+    local val = tonumber(args[1]) or 60
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        Player.Functions.SetMetaData("poison", val)
+        TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'poison', value = val })
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Teste de Veneno', description = 'Envenenamento forçado para '..val, type = 'warning'})
     end
 end, 'admin')

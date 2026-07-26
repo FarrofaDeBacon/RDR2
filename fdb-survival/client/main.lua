@@ -16,6 +16,12 @@ function FDB.BroadcastState(field, value)
     TriggerEvent('fdb-survival:client:stateChanged', { field = field, value = value })
 end
 
+RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
+    if data and data.field and FDB.Survival[data.field] ~= nil then
+        FDB.Survival[data.field] = data.value
+    end
+end)
+
 local function SyncLocalMetadata(isInit)
     local PlayerData = RSGCore.Functions.GetPlayerData()
     if PlayerData and PlayerData.metadata then
@@ -26,30 +32,7 @@ local function SyncLocalMetadata(isInit)
             FDB.Survival.illness = PlayerData.metadata["illness"] or 0
         else
             -- Durante o jogo, não deixamos o server sobrescrever o progresso local (que pode estar até 16s na frente)
-            -- Exceto se o server mandar um valor de RESET absoluto (ex: script de banho mandou 100)
-            local sClean = PlayerData.metadata["cleanliness"] or 100
-            if sClean == 100 and FDB.Survival.cleanliness < 99 then
-                FDB.Survival.cleanliness = 100
-                FDB.BroadcastState('cleanliness', 100)
-            end
-            
-            local sBladder = PlayerData.metadata["bladder"] or 0
-            if sBladder == 0 and FDB.Survival.bladder > 1 then
-                FDB.Survival.bladder = 0
-                FDB.BroadcastState('bladder', 0)
-            end
-            
-            local sPoison = PlayerData.metadata["poison"] or 0
-            if sPoison == 0 and FDB.Survival.poison > 1 then
-                FDB.Survival.poison = 0
-                FDB.BroadcastState('poison', 0)
-            end
-            
-            local sIllness = PlayerData.metadata["illness"] or 0
-            if sIllness == 0 and FDB.Survival.illness > 1 then
-                FDB.Survival.illness = 0
-                FDB.BroadcastState('illness', 0)
-            end
+            -- Qualquer alteração forçada pelo servidor (ex: comandos de admin) deve usar o evento explícito 'stateChanged'
         end
     end
 end
@@ -117,12 +100,12 @@ CreateThread(function()
             if not FDB.Survival.lastHealth then FDB.Survival.lastHealth = currentHealth end
             
             if currentHealth < FDB.Survival.lastHealth then
-                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.DirtinessActions.BloodDamage
+                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.HygieneEvents.BloodDamage
             end
             FDB.Survival.lastHealth = currentHealth
             
             if IsPedRagdoll(ped) or IsPedFalling(ped) then
-                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.DirtinessActions.FallMud
+                cleanlinessDrain = cleanlinessDrain + Config.DrainRates.HygieneEvents.FallMud
             end
             
             
@@ -141,19 +124,12 @@ CreateThread(function()
                 FDB.BroadcastState('bladder', math.floor(FDB.Survival.bladder))
             end
 
-            -- Dano por Veneno de Cobra Contínuo
+            -- Dano por Veneno de Cobra Contínuo (Nativo)
             local isPoisoned = Citizen.InvokeNative(0x137772C61AEC7E11, ped)
-            local oldPoison = FDB.Survival.poison
             if isPoisoned then
-                FDB.Survival.poison = 100
                 if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
                     SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - Config.Hazards.PoisonDamage))
                 end
-            else
-                FDB.Survival.poison = 0
-            end
-            if FDB.Survival.poison ~= oldPoison then
-                FDB.BroadcastState('poison', FDB.Survival.poison)
             end
 
             -- Termorregulação (Dano em Temperatura Extrema)
@@ -187,12 +163,7 @@ CreateThread(function()
                 end
             end
             
-            -- Doença (Illness)
-            if FDB.Survival.illness > Config.Hazards.IllnessSymptomThreshold then
-                if math.random(1, 100) <= Config.Hazards.CoughChancePercent then
-                    TaskStartScenarioInPlace(ped, joaat('WORLD_HUMAN_COUGH'), 3000, true, false, false, false)
-                end
-            end
+            -- Efeitos de doença agora são processados exclusivamente pelo fdb-survival/client/illness.lua
 
             -- Salvar no banco a cada 16s (4 ticks)
             syncTimer = syncTimer + (Config.DrainRates.TickRate / 1000)

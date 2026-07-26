@@ -19,7 +19,6 @@ end
 RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     if data.field ~= 'drunkenness' then return end
     local alcoholLevel = data.value
-    FDB.Survival.drunkenness = alcoholLevel
     local ped = PlayerPedId()
     
     if alcoholLevel > Config.Alcohol.PassOutThreshold then

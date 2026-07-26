@@ -11,12 +11,20 @@ local baseClipset = nil
 local function ResolveClipset()
     local drunkenness = FDB.Survival.drunkenness or 0
     local bladder = FDB.Survival.bladder or 0
+    local illness = FDB.Survival.illness or 0
+    local poison = FDB.Survival.poison or 0
     if drunkenness >= 80 then
         return 'move_m@drunk@verydrunk'
     elseif drunkenness >= 50 then
         return 'move_m@drunk@moderatedrunk'
     elseif drunkenness >= Config.Alcohol.DrunkThreshold then
         return 'move_m@drunk@a'
+    elseif poison >= Config.Biological.ModerateThreshold then
+        return 'move_m@drunk@moderatedrunk'
+    elseif illness >= Config.Biological.SevereThreshold then
+        return 'move_m@fatigue'
+    elseif illness >= Config.Biological.ModerateThreshold then
+        return 'move_m@drunk@slightlydrunk'
     elseif bladder >= 80 then
         return 'war_veteran'
     elseif FDB.Survival.inMud then
@@ -133,11 +141,23 @@ CreateThread(function()
                 disableJumpBladder = true
             end
             
+            -- 3.5 DOENÇA E VENENO
+            local illness = FDB.Survival.illness or 0
+            local poison = FDB.Survival.poison or 0
+            local disableSprintIllness = false
+            local disableRunIllness = false
+            if illness >= Config.Biological.SevereThreshold or poison >= Config.Biological.SevereThreshold then
+                disableSprintIllness = true
+                disableRunIllness = true
+            elseif poison >= Config.Biological.ModerateThreshold or illness >= Config.Biological.ModerateThreshold then
+                disableSprintIllness = true
+            end
+            
             -- 4. RESOLVER CONTROLES
-            if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk then
+            if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk or disableSprintIllness then
                 DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
             end
-            if disableRunStamina or disableRunBackpack or disableRunDrunk then
+            if disableRunStamina or disableRunBackpack or disableRunDrunk or disableRunIllness then
                 DisableControlAction(0, 0xE30CD707, true) -- INPUT_RUN
             end
             if disableJumpBladder then

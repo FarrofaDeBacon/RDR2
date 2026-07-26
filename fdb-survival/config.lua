@@ -32,8 +32,8 @@ Config.DrainRates = {
         Rain = 2.0             -- Mais sujeira se estiver chovendo (GetRainLevel > 0.1)
     },
     
-    -- Ganhos de Sujeira Imediata
-    DirtinessActions = {
+    -- Ganhos de sujeira/limpeza por evento imediato (não é decaimento passivo)
+    HygieneEvents = {
         BloodDamage = 15.0,     -- Sujeira ganha ao tomar dano na vida (Sangue)
         FallMud = 10.0,         -- Sujeira ganha ao cair no chão/rolar (Lama)
         WashInWater = 25.0      -- Quantidade limpa por tick ao entrar na água
@@ -52,11 +52,27 @@ Config.Hazards = {
 
     -- Chance de contrair doença (Illness) no frio extremo
     IllnessChancePercent = 8,  -- 8% de chance a cada tick de frio
-    IllnessGain = 10,          -- Quanto de Illness ganha quando a chance acerta
+    IllnessGain = 10           -- Quanto de Illness ganha quando a chance acerta
+}
 
-    -- Efeitos da Doença
-    IllnessSymptomThreshold = 5, -- A partir de quanto de Illness o jogador tosse
-    CoughChancePercent = 12      -- 12% de chance de tossir por tick
+-- ==========================================
+-- EFEITOS BIOLÓGICOS (Doença e Veneno Avançados)
+-- ==========================================
+Config.Biological = {
+    -- Níveis Críticos
+    SymptomThreshold = 10,  -- Nível para começar sintomas leves (tosse e náusea visual)
+    ModerateThreshold = 50, -- Nível a partir do qual perde sprint
+    SevereThreshold = 80,   -- Nível a partir do qual perde run e os efeitos ficam agressivos
+
+    -- Vômito (Veneno)
+    VomitChanceModerate = 5,  -- 5% de chance por tick de 3s
+    VomitChanceSevere = 15,   -- 15% de chance por tick de 3s
+    VomitDuration = 7000,     -- Tempo preso na animação (ms)
+    VomitCooldown = 5000,     -- Janela de imunidade após o vômito (ms)
+    
+    -- Dano Físico (HP Drain no Nível Severo)
+    IllnessHPDrain = 1,       -- Dreno de HP por tick na doença severa
+    PoisonHPDrain = 3         -- Dreno de HP por tick no veneno severo
 }
 
 -- ==========================================
