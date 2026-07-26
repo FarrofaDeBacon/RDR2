@@ -251,10 +251,13 @@ CreateThread(function()
             if Player then
                 local currentHunger = Player.PlayerData.metadata['hunger'] or 100
                 local currentThirst = Player.PlayerData.metadata['thirst'] or 100
+                local illness = Player.PlayerData.metadata['illness'] or 0
+                
+                local illnessMultiplier = (illness > 0) and 2.0 or 1.0
                 
                 if currentHunger > 0 or currentThirst > 0 then
-                    exports['fdb-survival']:AddHunger(player, -Config.Metabolism.HungerDrain)
-                    exports['fdb-survival']:AddThirst(player, -Config.Metabolism.ThirstDrain)
+                    exports['fdb-survival']:AddHunger(player, -(Config.Metabolism.HungerDrain * illnessMultiplier))
+                    exports['fdb-survival']:AddThirst(player, -(Config.Metabolism.ThirstDrain * illnessMultiplier))
                 end
             end
         end
