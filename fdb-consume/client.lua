@@ -17,7 +17,7 @@ end)
 -- Evento de Consumir
 RegisterNetEvent('fdb-consume:client:playAnim', function(itemName)
     if isBusy then 
-        lib.notify({ title = 'Aviso', description = 'Você já está fazendo algo!', type = 'error' })
+        lib.notify({ title = locale('notify_busy'), type = 'error' })
         return 
     end
     

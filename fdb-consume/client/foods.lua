@@ -11,7 +11,7 @@ local function CreateFoodPrompts()
 
         consumePrompt = PromptRegisterBegin()
         PromptSetControlAction(consumePrompt, Config.Prompts.SmokeKey) -- Botão Esquerdo
-        PromptSetText(consumePrompt, CreateVarString(10, 'LITERAL_STRING', "Dar Mordida"))
+        PromptSetText(consumePrompt, CreateVarString(10, 'LITERAL_STRING', locale('prompt_bite')))
         PromptSetEnabled(consumePrompt, true)
         PromptSetVisible(consumePrompt, true)
         PromptSetHoldMode(consumePrompt, false)
@@ -19,7 +19,7 @@ local function CreateFoodPrompts()
 
         dropPrompt = PromptRegisterBegin()
         PromptSetControlAction(dropPrompt, Config.Prompts.DropKey) -- R
-        PromptSetText(dropPrompt, CreateVarString(10, 'LITERAL_STRING', "Jogar Fora"))
+        PromptSetText(dropPrompt, CreateVarString(10, 'LITERAL_STRING', locale('prompt_drop')))
         PromptSetEnabled(dropPrompt, true)
         PromptSetVisible(dropPrompt, true)
         PromptSetHoldMode(dropPrompt, false)

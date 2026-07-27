@@ -1,10 +1,10 @@
 Config = {}
+lib.locale()
 
-
-Config.Drop = "Jogar Fora"
-Config.Smoke = "Dar Gole / Mordida"
-Config.Chug = "Beber Tudo de uma Vez"
-Config.Change = "Mudar Pose"
+Config.Drop = locale('prompt_drop')
+Config.Smoke = locale('prompt_bite')
+Config.Chug = locale('prompt_chug')
+Config.Change = locale('prompt_change_pose')
 
 Config.Prompts = {
     DropKey = 0x27D1C284, -- R

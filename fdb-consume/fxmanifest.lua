@@ -32,6 +32,10 @@ server_scripts {
     'server.lua'
 }
 
+files {
+    'locales/*.json'
+}
+
 dependencies {
     'rsg-core'
 }
