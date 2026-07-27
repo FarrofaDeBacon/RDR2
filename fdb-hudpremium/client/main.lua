@@ -177,6 +177,9 @@ CreateThread(function()
             local isMounted = false
             local horseHealth = 0
             local horseStamina = 0
+            local horseDirtTier = 'clean'
+            local horseAgitationTier = 'calm'
+            local horseIsExhausted = false
             
             if mount and mount ~= 0 then
                 isMounted = true
@@ -192,6 +195,12 @@ CreateThread(function()
                 if not tonumber(hStaminaCore) then hStaminaCore = 0 end
                 hStaminaCore = (hStaminaCore <= 1.0) and (hStaminaCore * 100) or hStaminaCore
                 horseStamina = math.floor((hStaminaTank / 2) + (hStaminaCore / 2))
+
+                -- Leitura das Statebags do Servidor (Fase C)
+                local mState = Entity(mount).state
+                horseDirtTier = mState.dirtTier or 'clean'
+                horseAgitationTier = mState.agitationTier or 'calm'
+                horseIsExhausted = mState.isExhausted or false
             end
             
             -- Envia apenas atualizações reativas de alta prioridade se algum valor mudou
@@ -221,18 +230,46 @@ CreateThread(function()
             end
             
             -- Sincronização da Montaria (Reset Explícito ao desmontar)
-            if isMounted ~= lastStatus.isMounted or horseHealth ~= lastStatus.horseHealth or horseStamina ~= lastStatus.horseStamina then
+            if isMounted ~= lastStatus.isMounted 
+               or horseHealth ~= lastStatus.horseHealth 
+               or horseStamina ~= lastStatus.horseStamina 
+               or horseDirtTier ~= lastStatus.horseDirtTier 
+               or horseAgitationTier ~= lastStatus.horseAgitationTier 
+               or horseIsExhausted ~= lastStatus.horseIsExhausted then
+
                 lastStatus.isMounted = isMounted
                 lastStatus.horseHealth = horseHealth
                 lastStatus.horseStamina = horseStamina
+                lastStatus.horseDirtTier = horseDirtTier
+                lastStatus.horseAgitationTier = horseAgitationTier
+                lastStatus.horseIsExhausted = horseIsExhausted
                 
                 if isMounted then
-                    SendNUIMessage({ action = 'horseHealth', value = horseHealth })
-                    SendNUIMessage({ action = 'horseStamina', value = horseStamina })
+                    SendNUIMessage({ 
+                        action = 'horseHealth', 
+                        value = horseHealth,
+                        dirtTier = horseDirtTier,
+                        agitationTier = horseAgitationTier,
+                        isExhausted = horseIsExhausted
+                    })
+                    SendNUIMessage({ 
+                        action = 'horseStamina', 
+                        value = horseStamina,
+                        dirtTier = horseDirtTier,
+                        agitationTier = horseAgitationTier,
+                        isExhausted = horseIsExhausted
+                    })
+                    SendNUIMessage({
+                        action = 'horseState',
+                        dirtTier = horseDirtTier,
+                        agitationTier = horseAgitationTier,
+                        isExhausted = horseIsExhausted
+                    })
                 else
                     -- Reset explícito a 0 para esconder da UI
                     SendNUIMessage({ action = 'horseHealth', value = 0 })
                     SendNUIMessage({ action = 'horseStamina', value = 0 })
+                    SendNUIMessage({ action = 'horseState', dirtTier = 'clean', agitationTier = 'calm', isExhausted = false })
                 end
             end
         end

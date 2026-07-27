@@ -63,6 +63,22 @@
     // Ícone Interno (Inner): Representa os 50% inferiores (0-50). Drena depois.
     $: getOuter = (val) => Math.max(0, (val - 50) * 2);
     $: getInner = (val) => Math.min(100, val * 2);
+
+    $: horseDirtTier = $horseStatus.dirtTier || 'clean';
+    $: horseAgitationTier = $horseStatus.agitationTier || 'calm';
+    $: horseIsExhausted = $horseStatus.isExhausted || false;
+
+    $: getHorseHealthColor = (health, dirtTier) => {
+        if (health <= 20) return '#ff0000';
+        if (dirtTier === 'filthy') return '#8b5a2b';
+        return '#ffffff';
+    };
+    $: getHorseStaminaColor = (agitationTier, isExhausted) => {
+        if (isExhausted) return '#ff4500';
+        if (agitationTier === 'agitated') return '#ff0000';
+        if (agitationTier === 'nervous') return '#ffa500';
+        return '#ffffff';
+    };
 </script>
 
 <div class="status-cores-container">
@@ -169,7 +185,7 @@
                 innerValue={getInner(horseHealth)} 
                 icon="./assets/horse_health.svg" 
                 outerColor="#ffffff"
-                innerColor={getInnerColor(horseHealth, '#ffffff', '#ff0000')}
+                innerColor={getHorseHealthColor(horseHealth, horseDirtTier)}
             />
         </DraggableModule>
         <DraggableModule id="horseStamina" defaultX={-120} defaultY={-60}>
@@ -179,7 +195,7 @@
                 innerValue={getInner(horseStamina)} 
                 icon="./assets/horse_stamina.svg" 
                 outerColor="#ffd700"
-                innerColor={getInnerColor(horseStamina, '#ffffff', '#ff0000')}
+                innerColor={getHorseStaminaColor(horseAgitationTier, horseIsExhausted)}
             />
         </DraggableModule>
     {/if}

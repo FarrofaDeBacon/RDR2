@@ -17,6 +17,9 @@ export const coreStatus = writable({
 export const horseStatus = writable({
     horseHealth: 100,
     horseStamina: 100,
+    dirtTier: 'clean',
+    agitationTier: 'calm',
+    isExhausted: false,
 });
 
 export const combat = writable({
@@ -194,7 +197,22 @@ window.addEventListener('message', (event) => {
         // --- HORSE STATUS ---
         case 'horseHealth':
         case 'horseStamina':
-            horseStatus.update(s => ({ ...s, [data.action]: data.value }));
+            horseStatus.update(s => ({
+                ...s,
+                [data.action]: data.value,
+                dirtTier: data.dirtTier || s.dirtTier || 'clean',
+                agitationTier: data.agitationTier || s.agitationTier || 'calm',
+                isExhausted: data.isExhausted !== undefined ? data.isExhausted : (s.isExhausted || false)
+            }));
+            break;
+
+        case 'horseState':
+            horseStatus.update(s => ({
+                ...s,
+                dirtTier: data.dirtTier || 'clean',
+                agitationTier: data.agitationTier || 'calm',
+                isExhausted: data.isExhausted || false
+            }));
             break;
 
         // --- COMBAT ---
