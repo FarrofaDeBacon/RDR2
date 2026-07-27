@@ -73,8 +73,13 @@ RegisterNetEvent('fdb-consume:server:takeBite', function()
     exports['fdb-survival']:AddStress(src, consume.stats.stress)
     exports['fdb-survival']:AddAlcohol(src, consume.stats.alcohol)
 
-    if consume.stats.health ~= 0 or consume.stats.stamina ~= 0 then
-        TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, consume.stats.health, consume.stats.stamina)
+    if consume.stats.health ~= 0 then
+        -- Envia para o fdb-medical no servidor (valor negativo = cura/recuperação)
+        exports['fdb-medical']:ApplyDamage(src, 'Generic', nil, -consume.stats.health)
+    end
+
+    if consume.stats.stamina ~= 0 then
+        TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, 0, consume.stats.stamina)
     end
 
     if consume.cures.illness then

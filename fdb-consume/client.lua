@@ -68,15 +68,6 @@ end)
 RegisterNetEvent('fdb-consume:client:applyHealthStamina', function(healthDelta, staminaDelta)
     local ped = PlayerPedId()
 
-    if healthDelta ~= 0 then
-        local maxHp = GetEntityMaxHealth(ped)
-        local currentHp = GetEntityHealth(ped)
-        -- GetEntityHealth em RDR2 usa escala 0-maxHp; 100 = morto, maxHp = cheio
-        local delta = math.floor((healthDelta / 100) * (maxHp - 100))
-        local newHp = math.max(101, math.min(maxHp, currentHp + delta))
-        SetEntityHealth(ped, newHp)
-    end
-
     if staminaDelta ~= 0 then
         local currentStamina = GetPlayerStamina(PlayerId())
         local targetPct = math.max(0, math.min(100, currentStamina + staminaDelta))
