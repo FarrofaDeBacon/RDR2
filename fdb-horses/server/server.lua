@@ -467,13 +467,14 @@ end)
 lib.callback.register('fdb-horses:server:GetHorse', function(source, stable)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
-    local horses = {}
-    local Result = MySQL.query.await('SELECT * FROM fdb_horses WHERE citizenid=@citizenid AND stable=@stable', { ['@citizenid'] = Player.PlayerData.citizenid, ['@stable'] = stable })
-    for i = 1, #Result do
-        horses[#horses + 1] = Result[i]
+    if not Player then return {} end
+    local Result = {}
+    if stable and stable ~= '' then
+        Result = MySQL.query.await('SELECT * FROM fdb_horses WHERE citizenid = ? AND stable = ?', { Player.PlayerData.citizenid, stable })
+    else
+        Result = MySQL.query.await('SELECT * FROM fdb_horses WHERE citizenid = ?', { Player.PlayerData.citizenid })
     end
-    return horses
+    return Result or {}
 end)
 
 -----------------------------------

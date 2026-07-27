@@ -1026,7 +1026,8 @@ end
 
 -- horse menu
 RegisterNetEvent('fdb-horses:client:menu', function(data)
-    local horses = lib.callback.await('fdb-horses:server:GetHorse', false, data.stableid)
+    local stableid = type(data) == 'table' and (data.stableid or data[1]) or data
+    local horses = lib.callback.await('fdb-horses:server:GetHorse', false, stableid)
 
     if #horses <= 0 then
         lib.notify({ title = locale('cl_error_no_horses'), type = 'error', duration = 7000 })
