@@ -79,8 +79,7 @@ CreateThread(function()
                     AnimpostfxPlay("PlayerHealthPoor")
                 end
                 isIllnessScreenActive = true
-                local currentHealth = GetEntityHealth(ped)
-                SetEntityHealth(ped, math.max(0, currentHealth - Config.Biological.IllnessHPDrain))
+                TriggerServerEvent('fdb-survival:server:reportHazardDamage', 'Illness', Config.Biological.IllnessHPDrain)
             else
                 if isIllnessScreenActive then
                     AnimpostfxStop("PlayerHealthPoor")
@@ -125,8 +124,7 @@ CreateThread(function()
             
             -- Nível 3: Dreno Acelerado de Vida
             if poison >= Config.Biological.SevereThreshold then
-                local currentHealth = GetEntityHealth(ped)
-                SetEntityHealth(ped, math.max(0, currentHealth - Config.Biological.PoisonHPDrain))
+                TriggerServerEvent('fdb-survival:server:reportHazardDamage', 'Poison', Config.Biological.PoisonHPDrain)
             end
             
         end

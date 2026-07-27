@@ -128,7 +128,7 @@ CreateThread(function()
             local isPoisoned = Citizen.InvokeNative(0x137772C61AEC7E11, ped)
             if isPoisoned then
                 if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
-                    SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - Config.Hazards.PoisonDamage))
+                    TriggerServerEvent('fdb-survival:server:reportHazardDamage', 'Poison', Config.Hazards.PoisonDamage)
                 end
             end
 
@@ -150,7 +150,8 @@ CreateThread(function()
             if (temp < Config.Hazards.ExtremeColdThreshold or temp > Config.Hazards.ExtremeHeatThreshold) and not hasThermalProtection then
                 -- No health damage purely for being wet, only temperature damage
                 if GetEntityHealth(ped) > 0 and not IsEntityDead(ped) then
-                    SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - Config.Hazards.TemperatureDamage))
+                    local damageType = (temp < Config.Hazards.ExtremeColdThreshold) and 'Cold' or 'Heat'
+                    TriggerServerEvent('fdb-survival:server:reportHazardDamage', damageType, Config.Hazards.TemperatureDamage)
                 end
                 
                 local illnessMultiplier = LocalPlayer.state.isWet and 3 or 1
