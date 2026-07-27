@@ -320,22 +320,34 @@ RegisterNetEvent('fdb-horses:client:custShop', function(data)
         lib.notify({ title = locale('cl_error_no_horse_out'), type = 'error', duration = 7000 })
         return
     end
-    local horsesdata = data.player
+    local horsesdata = type(data) == 'table' and (data.player or data) or {}
     local horseped = horsesdata.horse
+    if not horseped then return end
+
+    local matched = false
     for k, v in pairs(Config.StableSettings) do
-        if horsesdata.stable == v.stableid then
-            DoScreenFadeOut(0)
-            repeat Wait(0) until IsScreenFadedOut()
+        if horsesdata.stable == v.stableid or (horsesdata.stable and string.find(v.stableid, horsesdata.stable)) then
+            matched = true
+            DoScreenFadeOut(500)
+            Wait(500)
             local ped = SpawnHorses(horseped, v.horsecustom, v.horsecustom.w)
-            DeleteEntity(horsePed)
+            if horsePed ~= 0 and DoesEntityExist(horsePed) then
+                DeleteEntity(horsePed)
+            end
             horsePed = 0
-                            TriggerEvent('fdb-horses:client:ClearSurvivalData')
+            TriggerEvent('fdb-horses:client:ClearSurvivalData')
             HorseCalled = false
             TriggerServerEvent('fdb-horses:server:SetPlayerBucket', true, ped)
             createCamera(ped, horsesdata)
             DoScreenFadeIn(1000)
-            repeat Wait(0) until IsScreenFadedIn()
             entities[k] = { ped = ped }
+            break
+        end
+    end
+
+    if not matched then
+        if IsScreenFadedOut() then
+            DoScreenFadeIn(1000)
         end
     end
 end)
