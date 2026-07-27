@@ -1,4 +1,4 @@
-﻿local spawnedHorses = {}
+local spawnedHorses = {}
 local HorseSettings = lib.load('shared.horse_settings')
 lib.locale()
 

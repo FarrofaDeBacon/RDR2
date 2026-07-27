@@ -1,4 +1,4 @@
-﻿local objectInteract = false
+local objectInteract = false
 lib.locale()
 
 local ActionHorseDrink

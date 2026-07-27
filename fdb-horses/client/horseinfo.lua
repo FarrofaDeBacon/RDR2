@@ -1,4 +1,4 @@
-﻿-- Dataview dependency and lua 5.4 is required.
+-- Dataview dependency and lua 5.4 is required.
 -- Implements pressing Q to show animal information.
 -- Example on how to use is at the bottom of the file.
 

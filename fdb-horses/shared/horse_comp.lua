@@ -1,4 +1,4 @@
-﻿local Components = {
+local Components = {
     Blankets = {
         {
             hashid = 1,

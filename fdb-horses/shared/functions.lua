@@ -1,4 +1,4 @@
-﻿function CalculatePrice(comp, initial)
+function CalculatePrice(comp, initial)
     local price = 0
 
     for category, value in pairs(comp) do

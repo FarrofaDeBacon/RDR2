@@ -1,4 +1,4 @@
-﻿--[[
+--[[
     Default, and assumed, LUAI_MAXSHORTLEN is 40. To create a non internalized
     string always force the buffer to be greater than that value.
 --]]
