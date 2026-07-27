@@ -1002,6 +1002,45 @@ SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepInterval)
 
 
 -- ============================================================
+-- FASE C — Registro de NetworkId de cavalos ativos
+-- Client envia o netId ao spawnar/despawnar.
+-- Servidor usa isso para escrever statebags na entidade.
+-- NENHUM client escreve dirtTier/agitationTier/isExhausted.
+-- ============================================================
+local activeHorseNetIds = {}  -- [citizenid] = networkId
+
+RegisterNetEvent('fdb-horses:server:RegisterHorseNet', function(netId)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    if type(netId) ~= 'number' then return end
+    activeHorseNetIds[Player.PlayerData.citizenid] = netId
+end)
+
+RegisterNetEvent('fdb-horses:server:UnregisterHorseNet', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    activeHorseNetIds[Player.PlayerData.citizenid] = nil
+end)
+
+-- Helper: converte valor numérico em categoria (nunca exposto ao client como número bruto)
+local function GetDirtTier(dirt)
+    if dirt >= 90 then return 'filthy'
+    elseif dirt >= 61 then return 'dirty'
+    elseif dirt >= 26 then return 'dusty'
+    else return 'clean'
+    end
+end
+
+local function GetAgitationTier(agitation)
+    if agitation >= 66 then return 'agitated'
+    elseif agitation >= 31 then return 'nervous'
+    else return 'calm'
+    end
+end
+
+-- ============================================================
 -- LOOP DE METABOLISMO SERVER-SIDE (espelho exato do fdb-survival)
 -- O servidor é o único que calcula e persiste dreno de fome/sede/sujeira/doença.
 -- O client só recebe o resultado via stateChanged e aplica efeitos visuais.
@@ -1074,13 +1113,29 @@ CreateThread(function()
                         agitation = meta.agitation
                     })
 
-                    -- Notifica se ficou doente neste tick
+            -- Notifica se ficou doente neste tick
                     if newIllness > illness then
                         TriggerClientEvent('ox_lib:notify', src, {
                             title = 'Seu cavalo parece doente por falta de higiene.',
                             type = 'error', duration = 5000
                         })
                     end
+
+                    -- ============================================================
+                    -- FASE C: Statebags do cavalo (escritas só pelo servidor)
+                    -- dirtTier, agitationTier, isExhausted são categorias/booleano
+                    -- — nunca número bruto, nunca escritas pelo client
+                    -- ============================================================
+                    local netId = activeHorseNetIds[citizenid]
+                    if netId then
+                        local entity = NetworkGetEntityFromNetworkId(netId)
+                        if entity and entity ~= 0 and DoesEntityExist(entity) then
+                            Entity(entity).state:set('dirtTier',      GetDirtTier(meta.dirt),          true)
+                            Entity(entity).state:set('agitationTier', GetAgitationTier(meta.agitation), true)
+                            Entity(entity).state:set('isExhausted',   meta.hunger < 10 or meta.thirst < 10, true)
+                        end
+                    end
+
                     break
                 end
             end

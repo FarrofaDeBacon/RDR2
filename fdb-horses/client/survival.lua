@@ -44,10 +44,14 @@ RegisterNetEvent('fdb-horses:client:ApplySurvivalData', function(horse, metadata
     if activeHorsePed and activeHorsePed ~= 0 then
         Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, math.floor(FDB.HorseSurvival.dirt))
     end
+    -- Informa ao servidor o networkId do ped para que ele possa escrever statebags
+    local netId = NetworkGetNetworkIdFromEntity(horse)
+    TriggerServerEvent('fdb-horses:server:RegisterHorseNet', netId)
 end)
 
 RegisterNetEvent('fdb-horses:client:ClearSurvivalData', function()
     activeHorsePed = 0
+    TriggerServerEvent('fdb-horses:server:UnregisterHorseNet')
 end)
 
 -- ============================================================
