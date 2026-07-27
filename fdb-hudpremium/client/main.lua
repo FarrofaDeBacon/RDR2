@@ -163,8 +163,13 @@ CreateThread(function()
                 oxygen = GetNormalized(rawOxygen, Config.Vitals.MaxOxygen)
             end
             
-            -- Sistema de Voz (pma-voice)
-            local isTalking = NetworkIsPlayerTalking(PlayerId())
+            -- Sistema de Voz (pma-voice / RedM)
+            local isTalking = false
+            if MumbleIsPlayerTalking then
+                isTalking = MumbleIsPlayerTalking(PlayerId())
+            elseif NetworkIsPlayerTalking then
+                isTalking = NetworkIsPlayerTalking(PlayerId())
+            end
             local voiceRange = LocalPlayer.state.proximity and LocalPlayer.state.proximity.distance or 2.5
             
             -- Cavalo (Mount)
