@@ -13,7 +13,8 @@ files {
 shared_scripts {
     '@ox_lib/init.lua',
     'shared/enums.lua',
-    'shared/config.lua'
+    'shared/config.lua',
+    'shared/config_wounds.lua'
 }
 
 client_scripts {
@@ -22,6 +23,7 @@ client_scripts {
 
 server_scripts {
     'server/vitals.lua',
+    'server/wounds.lua',
     'server/damage.lua',
     'server/api.lua'
 }

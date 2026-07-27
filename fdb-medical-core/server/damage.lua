@@ -44,6 +44,7 @@ function ProcessDamage(src, damageType, bodyPart, amount, originResource)
         vitals.pulse = math.min(Config.Vitals.MaxPulse, vitals.pulse + math.floor(amount * 0.3))
         if damageType == DamageType.Gunshot or damageType == DamageType.Melee or damageType == DamageType.Animal then
             vitals.bleeding = math.min(100, vitals.bleeding + math.floor(amount * 0.4))
+            RegisterWound(src, bodyPart, damageType, amount)
         end
     else
         -- Cura reduz dor
