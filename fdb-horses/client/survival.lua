@@ -14,8 +14,9 @@ local activeHorsePed = 0
 
 -- ============================================================
 -- ÚNICO LISTENER QUE ESCREVE EM FDB.HorseSurvival
--- Disparado exclusivamente pelo servidor via TriggerClientEvent
--- Nenhum outro arquivo escreve aqui.
+-- Disparado exclusivamente pelo servidor via TriggerClientEvent.
+-- Nenhum outro bloco neste arquivo (e em nenhum outro arquivo client/)
+-- escreve nesta tabela. O loop local só lê para aplicar efeitos visuais.
 -- ============================================================
 RegisterNetEvent('fdb-horses:client:stateChanged', function(data)
     if not data then return end
@@ -28,6 +29,7 @@ end)
 
 -- ============================================================
 -- Vincula / desvincula o cavalo ativo ao receber spawn/despawn
+-- Ambos disparados pelo client.lua (SpawnHorse / horsePed = 0)
 -- ============================================================
 RegisterNetEvent('fdb-horses:client:ApplySurvivalData', function(horse, metadata)
     activeHorsePed = horse
@@ -62,43 +64,29 @@ function GetActiveHorsePed()
 end
 
 -- ============================================================
--- Loop mestre de metabolismo (Dono Único — só esse loop drena)
+-- Loop de EFEITOS VISUAIS (só lê FDB.HorseSurvival, nunca escreve)
+-- O servidor envia stateChanged → o único listener atualiza a tabela
+-- Este loop aplica as consequências visuais desses valores no ped
 -- ============================================================
 CreateThread(function()
     while true do
         Wait(Config.Metabolism.DrainInterval)
         if activeHorsePed ~= 0 and DoesEntityExist(activeHorsePed) and not IsEntityDead(activeHorsePed) then
 
-            -- Dreno passivo de fome e sede (client calcula, servidor persiste)
-            local hungerDelta = -Config.Metabolism.HungerDrain
-            local thirstDelta = -Config.Metabolism.ThirstDrain
-
-            local newHunger = math.max(0, FDB.HorseSurvival.hunger + hungerDelta)
-            local newThirst = math.max(0, FDB.HorseSurvival.thirst + thirstDelta)
-
-            FDB.HorseSurvival.hunger = newHunger
-            FDB.HorseSurvival.thirst = newThirst
-
-            -- Sujeira nativa + acúmulo passivo
-            local nativeDirt = tonumber(Citizen.InvokeNative(0x147149F2E909323C, activeHorsePed, 16, Citizen.ResultAsInteger())) or FDB.HorseSurvival.dirt
-            local newDirt = math.min(100, nativeDirt + Config.Metabolism.DirtAccumulation)
-            if newDirt ~= FDB.HorseSurvival.dirt then
-                Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, math.floor(newDirt))
-                FDB.HorseSurvival.dirt = math.floor(newDirt)
+            -- Aplica sujeira visual conforme o valor recebido do servidor
+            local currentDirt = FDB.HorseSurvival.dirt
+            local nativeDirt = tonumber(Citizen.InvokeNative(0x147149F2E909323C, activeHorsePed, 16, Citizen.ResultAsInteger())) or currentDirt
+            if math.floor(nativeDirt) ~= math.floor(currentDirt) then
+                Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, math.floor(currentDirt))
             end
 
-            -- Doença por sujeira extrema: chance aleatória server-side
-            -- (dispara evento pro servidor decidir; o client não escreve illness diretamente)
-            if FDB.HorseSurvival.dirt >= 90 and FDB.HorseSurvival.illness == 0 then
-                TriggerServerEvent('fdb-horses:server:CheckDirtIllness')
-            end
-
-            -- Efeitos físicos (cliente aplica consequências visuais, não valores numéricos)
+            -- Efeitos físicos de fome/sede zeradas (visual apenas — valor vem do servidor)
             if FDB.HorseSurvival.hunger == 0 or FDB.HorseSurvival.thirst == 0 then
                 local health = GetEntityHealth(activeHorsePed)
                 if health > 0 then SetEntityHealth(activeHorsePed, health - 1) end
             end
 
+            -- Efeito de doença: dreno de stamina core visual
             if FDB.HorseSurvival.illness > 0 then
                 local stamina = tonumber(Citizen.InvokeNative(0x36731AC041289BB1, activeHorsePed, 1)) or 0
                 if stamina > 5.0 then
@@ -110,14 +98,11 @@ CreateThread(function()
 end)
 
 -- ============================================================
--- Sincronização periódica com o servidor (a cada 30s)
--- O servidor persiste o snapshot atual no metadata do banco
+-- Notifica o servidor que o cavalo está ativo (heartbeat)
+-- Servidor usa isso pra saber qual jogador tem cavalo no mundo
+-- e incluir no loop de metabolismo server-side
 -- ============================================================
-CreateThread(function()
-    while true do
-        Wait(30000)
-        if activeHorsePed ~= 0 then
-            TriggerServerEvent('fdb-horses:server:PersistMetadata', FDB.HorseSurvival)
-        end
-    end
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then return end
+    -- Nada aqui — o ApplySurvivalData já notifica o servidor via SpawnHorse
 end)

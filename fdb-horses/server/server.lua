@@ -1002,52 +1002,90 @@ SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepInterval)
 
 
 -- ============================================================
--- PersistMetadata: snapshot do metabolismo mandado pelo client a cada 30s
--- O client manda a tabela FDB.HorseSurvival completa; o servidor
--- só aceita campos conhecidos (whitelist) e persiste no banco.
+-- LOOP DE METABOLISMO SERVER-SIDE (espelho exato do fdb-survival)
+-- O servidor é o único que calcula e persiste dreno de fome/sede/sujeira/doença.
+-- O client só recebe o resultado via stateChanged e aplica efeitos visuais.
 -- ============================================================
-RegisterNetEvent('fdb-horses:server:PersistMetadata', function(survivalData)
-    local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
+CreateThread(function()
+    while true do
+        Wait(Config.Metabolism.DrainInterval)
 
-    -- Whitelist de campos aceitos (nunca persiste campo arbitrário do client)
-    local allowed = { hunger = true, thirst = true, dirt = true, illness = true, poison = true, agitation = true }
-    local sanitized = {}
-    for k, v in pairs(survivalData or {}) do
-        if allowed[k] and type(v) == 'number' then
-            sanitized[k] = math.max(0, math.min(100, v))
+        -- Busca todos os cavalos ativos no momento
+        local activeHorses = MySQL.query.await(
+            'SELECT id, citizenid, metadata, dirt FROM fdb_horses WHERE active = 1'
+        )
+        if not activeHorses or #activeHorses == 0 then goto continue_metabolism end
+
+        for _, horse in ipairs(activeHorses) do
+            local horseId   = horse.id
+            local citizenid = horse.citizenid
+            local meta      = (horse.metadata and horse.metadata ~= '' and json.decode(horse.metadata)) or {}
+
+            -- Lê valores atuais com defaults seguros
+            local hunger    = math.max(0, math.min(100, tonumber(meta.hunger)    or 100))
+            local thirst    = math.max(0, math.min(100, tonumber(meta.thirst)    or 100))
+            local dirt      = math.max(0, math.min(100, tonumber(meta.dirt)      or (horse.dirt or 0)))
+            local illness   = math.max(0, math.min(100, tonumber(meta.illness)   or 0))
+            local poison    = math.max(0, math.min(100, tonumber(meta.poison)    or 0))
+            local agitation = math.max(0, math.min(100, tonumber(meta.agitation) or 0))
+
+            -- Multiplicador de doença (igual ao player: dobra o dreno)
+            local illnessMult = (illness > 0) and 2.0 or 1.0
+
+            -- Calcula novos valores — SERVIDOR é o único que faz isso
+            local newHunger    = math.max(0, hunger - (Config.Metabolism.HungerDrain * illnessMult))
+            local newThirst    = math.max(0, thirst - (Config.Metabolism.ThirstDrain * illnessMult))
+            local newDirt      = math.min(100, dirt + Config.Metabolism.DirtAccumulation)
+            local newAgitation = math.max(0, agitation - Config.Metabolism.AgitationDecay)
+
+            -- Doença por sujeira extrema (2% de chance por tick, igual ao padrão definido)
+            local newIllness = illness
+            if newDirt >= 90 and illness < 100 then
+                if math.random(1, 100) <= 2 then
+                    newIllness = math.min(100, illness + 10)
+                end
+            end
+
+            -- Persiste no banco
+            meta.hunger    = math.floor(newHunger)
+            meta.thirst    = math.floor(newThirst)
+            meta.dirt      = math.floor(newDirt)
+            meta.illness   = math.floor(newIllness)
+            meta.poison    = math.floor(poison)
+            meta.agitation = math.floor(newAgitation)
+
+            MySQL.update(
+                'UPDATE fdb_horses SET metadata = ?, dirt = ? WHERE id = ?',
+                { json.encode(meta), math.floor(newDirt), horseId }
+            )
+
+            -- Encontra o src do dono do cavalo (se estiver online)
+            local players = RSGCore.Functions.GetPlayers()
+            for _, src in ipairs(players) do
+                local Player = RSGCore.Functions.GetPlayer(src)
+                if Player and Player.PlayerData.citizenid == citizenid then
+                    -- Envia campos atualizados ao client — client só lê, nunca calcula dreno
+                    TriggerClientEvent('fdb-horses:client:stateChanged', src, {
+                        hunger    = meta.hunger,
+                        thirst    = meta.thirst,
+                        dirt      = meta.dirt,
+                        illness   = meta.illness,
+                        poison    = meta.poison,
+                        agitation = meta.agitation
+                    })
+
+                    -- Notifica se ficou doente neste tick
+                    if newIllness > illness then
+                        TriggerClientEvent('ox_lib:notify', src, {
+                            title = 'Seu cavalo parece doente por falta de higiene.',
+                            type = 'error', duration = 5000
+                        })
+                    end
+                    break
+                end
+            end
         end
-    end
 
-    local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', { Player.PlayerData.citizenid, true })
-    if activehorse then
-        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(sanitized), activehorse })
-    end
-end)
-
--- ============================================================
--- CheckDirtIllness: client dispara quando dirt >= 90
--- Servidor decide com chance aleatória (2%) e é o único a escrever illness
--- ============================================================
-RegisterNetEvent('fdb-horses:server:CheckDirtIllness', function()
-    local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
-
-    local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', { Player.PlayerData.citizenid, true })
-    if not activehorse then return end
-
-    if math.random(1, 100) <= 2 then
-        local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', { activehorse })
-        local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
-        local newIllness = math.min(100, (meta.illness or 0) + 10)
-        meta.illness = newIllness
-
-        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
-
-        -- Servidor envia o novo valor calculado ao client
-        TriggerClientEvent('fdb-horses:client:stateChanged', src, { illness = newIllness })
-        TriggerClientEvent('ox_lib:notify', src, { title = 'Seu cavalo parece doente por falta de higiene.', type = 'error', duration = 5000 })
+        ::continue_metabolism::
     end
 end)
