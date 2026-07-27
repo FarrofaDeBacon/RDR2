@@ -871,13 +871,24 @@ end)
 -- register shop
 --------------------------------------
 CreateThread(function()
-    exports['rsg-inventory']:CreateShop({
+    Wait(2000) -- Aguarda carregamento do inventário
+    local shopData = {
         name = 'horse',
         label = locale('cl_horse_shop'),
         slots = #Config.horsesShopItems,
         items = Config.horsesShopItems,
         persistentStock = Config.PersistStock,
-    })
+    }
+    local success, err = pcall(function()
+        if GetResourceState('fdb-inventory') == 'started' then
+            return exports['fdb-inventory']:CreateShop(shopData)
+        elseif GetResourceState('rsg-inventory') == 'started' then
+            return exports['rsg-inventory']:CreateShop(shopData)
+        end
+    end)
+    if not success then
+        print(('[fdb-horses] Erro ao criar loja de cavalos no inventario: %s'):format(tostring(err)))
+    end
 end)
 
 --------------------------------------
@@ -901,7 +912,17 @@ RegisterNetEvent('fdb-horses:server:openShop', function()
 
     if not nearStable then return end
 
-    exports['rsg-inventory']:OpenShop(src, 'horse')
+    local success, err = pcall(function()
+        if GetResourceState('fdb-inventory') == 'started' then
+            return exports['fdb-inventory']:OpenShop(src, 'horse')
+        elseif GetResourceState('rsg-inventory') == 'started' then
+            return exports['rsg-inventory']:OpenShop(src, 'horse')
+        end
+    end)
+    if not success then
+        print(('[fdb-horses] Erro ao abrir loja de cavalos para src %s: %s'):format(src, tostring(err)))
+        TriggerClientEvent('ox_lib:notify', src, { title = 'Erro ao abrir loja de itens.', type = 'error', duration = 5000 })
+    end
 end)
 
 ----------------------------------
