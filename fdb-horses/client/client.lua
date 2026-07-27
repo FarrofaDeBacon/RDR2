@@ -364,6 +364,17 @@ end, false)
 -- stables
 ------------------------------------
 RegisterNetEvent('fdb-horses:client:stablemenu', function(stableid)
+    if type(stableid) == 'table' then
+        stableid = stableid[1] or stableid.stableid or stableid.args
+        if type(stableid) == 'table' then
+            stableid = stableid[1] or stableid.stableid
+        end
+    end
+    if not stableid or type(stableid) ~= 'string' then
+        print(('[fdb-horses] stablemenu: stableid invalido (tipo: %s, valor: %s)'):format(type(stableid), json.encode(stableid)))
+        return
+    end
+
     lib.registerContext({
         id = 'stable_menu',
         title = locale('cl_menu_stable_menu'),

@@ -8,7 +8,7 @@ CreateThread(function()
             exports['rsg-core']:createPrompt(v.stableid, v.coords, RSGCore.Shared.Keybinds[Config.KeyBind], locale('cl_menu'), {
                 type = 'client',
                 event = 'fdb-horses:client:stablemenu',
-                args = {v.stableid}
+                args = v.stableid
             })
         end
         if v.showblip == true then
