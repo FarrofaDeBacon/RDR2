@@ -31,17 +31,22 @@ local function setNestedValue(t, path, value)
     for i = 1, #keys - 1 do
         local k = keys[i]
         if tonumber(k) then k = tonumber(k) end
-        if not current[k] then current[k] = {} end
+        if type(current[k]) ~= 'table' then return false end
         current = current[k]
     end
 
     local lastKey = keys[#keys]
     if tonumber(lastKey) then lastKey = tonumber(lastKey) end
+    
+    if current[lastKey] == nil then return false end
+    if type(value) ~= type(current[lastKey]) then return false end
+
     current[lastKey] = value
+    return true
 end
 
 local function SetRuntimeConfig(path, value)
-    setNestedValue(RuntimeConfig, path, value)
+    if not setNestedValue(RuntimeConfig, path, value) then return false end
     SetResourceKvp("fdb_medical_runtime_config", json.encode(RuntimeConfig))
     return true
 end
