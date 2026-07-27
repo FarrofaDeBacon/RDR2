@@ -1225,12 +1225,16 @@ CreateThread(function()
             local healthPercent = (horseHealth / maxHealth) * 100
             
             if healthPercent < 20 and healthPercent > 0 and not IsBeingRevived then
-                lib.notify({
-                    title = locale('cl_warning_title'),
-                    description = locale('cl_warning_horse_critical'),
-                    type = 'warning',
-                    duration = 7000
-                })
+                local now = GetGameTimer()
+                if not lastCriticalWarning or (now - lastCriticalWarning) > 30000 then
+                    lastCriticalWarning = now
+                    lib.notify({
+                        title = locale('cl_warning_title'),
+                        description = locale('cl_warning_horse_critical'),
+                        type = 'warning',
+                        duration = 7000
+                    })
+                end
             end
             
             if IsEntityDead(horsePed) and not IsBeingRevived then
