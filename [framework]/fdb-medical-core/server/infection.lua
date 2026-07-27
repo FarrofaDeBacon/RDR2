@@ -6,7 +6,8 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
 local function GetCleanlinessMultiplier(cleanliness)
-    for _, range in ipairs(Config.Wounds.Infection.CleanlinessModifier) do
+    local runtimeConfig = exports[GetCurrentResourceName()]:GetRuntimeConfig()
+    for _, range in ipairs(runtimeConfig.Wounds.Infection.CleanlinessModifier) do
         if cleanliness >= range.min and cleanliness <= range.max then
             return range.multiplier
         end
@@ -16,7 +17,8 @@ end
 
 CreateThread(function()
     while true do
-        Wait(Config.Wounds.Infection.TickInterval)
+        local runtimeConfig = exports[GetCurrentResourceName()]:GetRuntimeConfig()
+        Wait(runtimeConfig.Wounds.Infection.TickInterval)
         for src, vitals in pairs(PlayerVitals) do
             if vitals.wounds then
                 local Player = RSGCore.Functions.GetPlayer(src)
@@ -25,9 +27,9 @@ CreateThread(function()
 
                 for bodyPart, wound in pairs(vitals.wounds) do
                     local tier = GetWoundTier(src, bodyPart)
-                    if tier and Config.Wounds.Infection.Eligible[tier.id] and not wound.treated then
+                    if tier and runtimeConfig.Wounds.Infection.Eligible[tier.id] and not wound.treated then
                         wound.infected = true
-                        local growth = Config.Wounds.Infection.BaseRatePerMinute * modifier
+                        local growth = runtimeConfig.Wounds.Infection.BaseRatePerMinute * modifier
                         wound.infectionStage = math.min(100, (wound.infectionStage or 0) + growth)
 
                         -- Infecção sistêmica/grave gera dano por febre

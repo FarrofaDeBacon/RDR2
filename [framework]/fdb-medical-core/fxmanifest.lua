@@ -22,6 +22,7 @@ client_scripts {
 }
 
 server_scripts {
+    'server/runtime_config.lua',
     'server/vitals.lua',
     'server/wounds.lua',
     'server/bleedout.lua',

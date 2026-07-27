@@ -4,7 +4,7 @@
 -- ============================================================
 
 local function GetSeverityTier(value)
-    local tiers = Config.Wounds.Severity
+    local tiers = exports[GetCurrentResourceName()]:GetRuntimeConfig().Wounds.Severity
     for _, tier in ipairs(tiers) do
         if value >= tier.min and value <= tier.max then
             return tier
@@ -20,7 +20,7 @@ end
 --- @param damageType string Enum DamageType
 --- @param amount number Intensidade do golpe
 function RegisterWound(src, bodyPart, damageType, amount)
-    local causesWound = Config.Wounds.WoundCausingTypes[damageType]
+    local causesWound = exports[GetCurrentResourceName()]:GetRuntimeConfig().Wounds.WoundCausingTypes[damageType]
     if not causesWound or amount <= 0 then return end
 
     local vitals = GetPlayerVitals(src)
