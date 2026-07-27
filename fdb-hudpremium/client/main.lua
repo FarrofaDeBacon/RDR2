@@ -12,6 +12,7 @@ local KVP_KEY = "fdb-hudpremium:settings"
 -- Cache de status para otimização e redução de spam de tráfego NUI
 local lastStatus = {
     health = -1, stamina = -1,
+    armor = -1, oxygen = -1, isTalking = false, voiceRange = -1,
     isMounted = false, horseHealth = -1, horseStamina = -1
 }
 
@@ -151,6 +152,21 @@ CreateThread(function()
             staminaCore = (staminaCore <= 1.0) and (staminaCore * 100) or staminaCore
             local stamina = math.floor((staminaTank / 2) + (staminaCore / 2))
             
+            -- Armadura
+            local rawArmor = GetPedArmour(ped)
+            local armor = GetNormalized(rawArmor, Config.Vitals.MaxArmor)
+            
+            -- Oxigênio
+            local oxygen = 100
+            if IsPedSwimmingUnderWater(ped) then
+                local rawOxygen = Citizen.InvokeNative(0x7E3F55ED251B76D3, PlayerId(), Citizen.ResultAsFloat())
+                oxygen = GetNormalized(rawOxygen, Config.Vitals.MaxOxygen)
+            end
+            
+            -- Sistema de Voz (pma-voice)
+            local isTalking = NetworkIsPlayerTalking(PlayerId())
+            local voiceRange = LocalPlayer.state.proximity and LocalPlayer.state.proximity.distance or 2.5
+            
             -- Cavalo (Mount)
             local mount = GetMount(ped)
             local isMounted = false
@@ -181,6 +197,22 @@ CreateThread(function()
             if stamina ~= lastStatus.stamina then
                 lastStatus.stamina = stamina
                 SendNUIMessage({ action = 'stamina', value = stamina })
+            end
+            if armor ~= lastStatus.armor then
+                lastStatus.armor = armor
+                SendNUIMessage({ action = 'armor', value = armor })
+            end
+            if oxygen ~= lastStatus.oxygen then
+                lastStatus.oxygen = oxygen
+                SendNUIMessage({ action = 'oxygen', value = oxygen })
+            end
+            if isTalking ~= lastStatus.isTalking then
+                lastStatus.isTalking = isTalking
+                SendNUIMessage({ action = 'isTalking', value = isTalking })
+            end
+            if voiceRange ~= lastStatus.voiceRange then
+                lastStatus.voiceRange = voiceRange
+                SendNUIMessage({ action = 'voice', value = voiceRange })
             end
             
             -- Sincronização da Montaria (Reset Explícito ao desmontar)

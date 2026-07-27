@@ -9,6 +9,10 @@ files {
     'ui/dist/assets/*'
 }
 
+shared_scripts {
+    'config.lua'
+}
+
 client_scripts {
     'client/main.lua'
 }

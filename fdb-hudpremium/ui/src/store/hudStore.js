@@ -183,6 +183,8 @@ window.addEventListener('message', (event) => {
         case 'food':
         case 'water':
         case 'stress':
+        case 'armor':
+        case 'oxygen':
             pendingCoreUpdates = { ...pendingCoreUpdates, [data.action]: data.value };
             if (!rafId) {
                 rafId = requestAnimationFrame(applyBatchedUpdates);
@@ -203,6 +205,7 @@ window.addEventListener('message', (event) => {
 
         // --- COMMS ---
         case 'voice':
+        case 'isTalking':
         case 'telegram':
         case 'population':
             comms.update(s => ({ ...s, [data.action]: data.value }));
@@ -309,9 +312,6 @@ window.addEventListener('message', (event) => {
         case 'thirst':
         case 'isWet':
         case 'hunger':
-        case 'cleanliness':
-        case 'drunkenness':
-        case 'bladder':
             // Silently ignore state updates that the HUD doesn't explicitly process via specific actions.
             // The HUD likely handles these via direct statebag updates elsewhere or they are visual-only.
             break;
