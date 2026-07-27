@@ -1208,7 +1208,7 @@ RSGCore.Commands.Add('testhorse', 'Fase D: testa natives de agitação do cavalo
 
         local action = args[1] and string.lower(args[1]) or 'rear'
 
-        if action == 'rear' or action == 'eject' then
+        if action == 'rear' or action == 'rear1' or action == 'rear2' or action == 'rear3' or action == 'eject' or action == 'flee' then
             -- Client executa a native e responde com resultado via callback
             TriggerClientEvent('fdb-horses:client:debug:TestAgitation', src, action)
 

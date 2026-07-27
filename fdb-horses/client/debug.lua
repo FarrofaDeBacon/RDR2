@@ -45,6 +45,24 @@ RegisterNetEvent('fdb-horses:client:debug:TestAgitation', function(action)
         lib.notify({ title = '[Fase D] rear3 concluído.', type = 'success', duration = 5000 })
 
     -- --------------------------------------------------------
+    -- TESTE DE FLEE (FUGA DO CAVALO)
+    -- Native: TaskAnimalFlee(horsePed, cache.ped, -1)
+    -- --------------------------------------------------------
+    elseif action == 'flee' then
+        lib.notify({ title = '[Fase D] Testando: flee (TaskAnimalFlee)', description = 'Simulando agitationTier = agitated...', type = 'inform', duration = 4000 })
+        
+        -- Aplica a TaskAnimalFlee que já existe no Flee() do fdb-horses
+        TaskAnimalFlee(horsePed, cache.ped, -1)
+
+        Wait(3000)
+        local stillMounted = IsPedOnMount(cache.ped)
+        lib.notify({
+            title = stillMounted and '[Fase D] flee: Cavalo em fuga (montado)' or '[Fase D] flee: Cavalo em fuga (desmontou)',
+            description = 'Observe se o cavalo para sozinho ou se o controle é recuperável.',
+            type = 'warning',
+            duration = 7000
+        })
+    -- --------------------------------------------------------
     -- TESTE DE EJECT (DERRUBAR JOGADOR)
     -- --------------------------------------------------------
     elseif action == 'eject' then
