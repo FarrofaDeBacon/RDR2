@@ -24,7 +24,7 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
     if alcoholLevel > Config.Alcohol.PassOutThreshold then
         if not IsPassedOut then
             IsPassedOut = true
-            lib.notify({title = '💥 Coma Alcoólico', description = 'Você bebeu demais e apagou!', type = 'error'})
+            lib.notify({title = locale('notify_blackout_title'), description = locale('notify_blackout_desc'), type = 'error'})
             
             Citizen.CreateThread(function()
                 local lastCheck = 0
@@ -48,12 +48,12 @@ RegisterNetEvent('fdb-survival:client:stateChanged', function(data)
         if IsPassedOut then
             IsPassedOut = false
             ClearPedTasks(ped)
-            lib.notify({title = '🤕 Ressaca', description = 'Você acordou, mas ainda está muito bêbado.', type = 'inform'})
+            lib.notify({title = locale('notify_hangover_title'), description = locale('notify_hangover_desc'), type = 'inform'})
         end
 
         if not IsDrunk then
             IsDrunk = true
-            lib.notify({title = '🍻 Bêbado', description = 'Você está começando a ver as coisas girando...', type = 'inform'})
+            lib.notify({title = locale('notify_drunk_title'), description = locale('notify_drunk_desc'), type = 'inform'})
             
             ShakeGameplayCam("DRUNK_SHAKE", 0.5)
             Citizen.InvokeNative(0x406CCF555B04FAD3, ped, true, 1.0) 

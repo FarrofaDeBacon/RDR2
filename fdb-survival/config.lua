@@ -1,4 +1,5 @@
 Config = {}
+lib.locale()
 
 -- Configurações Globais do Álcool
 Config.Alcohol = {

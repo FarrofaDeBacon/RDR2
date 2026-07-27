@@ -7,8 +7,8 @@ CreateThread(function()
             if FDB.Survival.bladder >= 80 and not isHoldingPee then
                 isHoldingPee = true
                 exports['ox_lib']:notify({
-                    title = 'Bexiga Cheia!',
-                    description = 'Você precisa se aliviar urgente (/mijar).',
+                    title = locale('notify_bladder_full_title'),
+                    description = locale('notify_bladder_full_desc'),
                     type = 'warning',
                     duration = 5000
                 })
@@ -24,7 +24,7 @@ end)
 RegisterCommand("mijar", function()
     local ped = PlayerPedId()
     if IsPedOnMount(ped) or IsPedInAnyVehicle(ped, false) then
-        exports['ox_lib']:notify({ title = 'Erro', description = 'Desça antes de se aliviar!', type = 'error' })
+        exports['ox_lib']:notify({ title = locale('notify_pee_error_title'), description = locale('notify_pee_mount_error'), type = 'error' })
         return
     end
     
