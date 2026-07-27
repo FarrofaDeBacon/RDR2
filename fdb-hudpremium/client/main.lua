@@ -55,7 +55,7 @@ local function LoadSettings()
                 colors = decoded.colors, -- Fallback legado
                 scales = decoded.scales   -- Fallback legado
             })
-            print("[fdb-hudpremium] Configurações de layout carregadas.")
+            print(locale('hud_settings_loaded'))
         end
     end
 end

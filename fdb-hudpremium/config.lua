@@ -4,6 +4,7 @@
 -- ============================================================
 
 Config = {}
+lib.locale()
 
 Config.Vitals = {
     MaxArmor = 100,      -- Valor máximo do Colete/Armadura nativo (0 a 100)

@@ -6,10 +6,12 @@ ui_page 'ui/dist/index.html'
 
 files {
     'ui/dist/index.html',
-    'ui/dist/assets/*'
+    'ui/dist/assets/*',
+    'locales/*.json'
 }
 
 shared_scripts {
+    '@ox_lib/init.lua',
     'config.lua'
 }
 
