@@ -1505,9 +1505,6 @@ AddEventHandler('fdb-horses:client:playerfeedhorse', function(itemName)
                 end
             end)
         end
-        else
-            lib.notify({ title = locale('cl_error_feed')..' ' .. itemName .. ' '..locale('cl_error_feed_no_med'), type = 'error', duration = 7000 })
-        end
     else
         lib.notify({ title = locale('cl_error_feed')..' ' .. itemName .. ' '.. locale('cl_error_feed_no_exist'), type = 'error', duration = 7000 })
     end
