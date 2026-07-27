@@ -1014,6 +1014,26 @@ RegisterNetEvent('fdb-horses:server:RegisterHorseNet', function(netId)
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     if type(netId) ~= 'number' then return end
+
+    -- Valida que a entidade existe e é um ped
+    local entity = NetworkGetEntityFromNetworkId(netId)
+    if not entity or entity == 0 or not DoesEntityExist(entity) then return end
+    if GetEntityType(entity) ~= 3 then return end  -- 3 = ped
+
+    -- Cruza com o banco: confirma que o modelo da entidade bate com o cavalo
+    -- ativo deste jogador. Impede que client registre netId de entidade arbitrária.
+    local row = MySQL.query.await(
+        'SELECT horse FROM fdb_horses WHERE citizenid = ? AND active = 1',
+        { Player.PlayerData.citizenid }
+    )
+    if not row or not row[1] or not row[1].horse then return end
+
+    local expectedModel = GetHashKey(row[1].horse)
+    if GetEntityModel(entity) ~= expectedModel then
+        print(('[fdb-horses] RegisterHorseNet rejeitado: modelo inesperado de src %s (cidadao: %s)'):format(src, Player.PlayerData.citizenid))
+        return
+    end
+
     activeHorseNetIds[Player.PlayerData.citizenid] = netId
 end)
 
