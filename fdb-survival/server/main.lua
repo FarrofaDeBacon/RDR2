@@ -126,11 +126,6 @@ RegisterNetEvent('fdb-survival:server:ForceClean', function()
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
     Player.Functions.SetMetaData("cleanliness", 100)
-    TriggerClientEvent('fdb-survival:client:ForceClean', src)
-end)
-
-RegisterNetEvent('fdb-survival:server:AddThirst', function(amount)
-    exports['fdb-survival']:AddThirst(source, amount)
 end)
 
 exports('AddHunger', function(src, amount)
@@ -327,6 +322,8 @@ end, 'admin')
 RegisterNetEvent('fdb-survival:server:reportHazardDamage', function(damageType, amount)
     local src = source
     if not amount or amount <= 0 then return end
+    -- Cap de segurança de dano ambiental por tick
+    local cappedAmount = math.min(math.abs(amount), 5.0)
     -- Invoca a fonte única de dano no fdb-medical-core
-    exports['fdb-medical-core']:ApplyDamage(src, damageType or 'Generic', nil, amount)
+    exports['fdb-medical-core']:ApplyDamage(src, damageType or 'Generic', nil, cappedAmount)
 end)
