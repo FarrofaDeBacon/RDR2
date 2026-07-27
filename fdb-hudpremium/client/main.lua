@@ -152,9 +152,9 @@ CreateThread(function()
             staminaCore = (staminaCore <= 1.0) and (staminaCore * 100) or staminaCore
             local stamina = math.floor((staminaTank / 2) + (staminaCore / 2))
             
-            -- Armadura
-            local rawArmor = GetPedArmour(ped)
-            local armor = GetNormalized(rawArmor, Config.Vitals.MaxArmor)
+            -- Armadura (RedM não usa colete GTA)
+            local rawArmor = 0
+            local armor = 0
             
             -- Oxigênio
             local oxygen = 100
