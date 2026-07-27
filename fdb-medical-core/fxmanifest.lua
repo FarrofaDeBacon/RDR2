@@ -24,6 +24,8 @@ client_scripts {
 server_scripts {
     'server/vitals.lua',
     'server/wounds.lua',
+    'server/bleedout.lua',
+    'server/infection.lua',
     'server/damage.lua',
     'server/api.lua'
 }
