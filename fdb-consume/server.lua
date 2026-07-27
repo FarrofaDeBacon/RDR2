@@ -79,7 +79,7 @@ RegisterNetEvent('fdb-consume:server:takeBite', function()
     end
 
     if consume.stats.stamina ~= 0 then
-        TriggerClientEvent('fdb-consume:client:applyHealthStamina', src, 0, consume.stats.stamina)
+        TriggerClientEvent('fdb-consume:client:applyStamina', src, consume.stats.stamina)
     end
 
     if consume.cures.illness then

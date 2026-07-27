@@ -65,9 +65,7 @@ end)
 -- Aplicar Health e Stamina do item consumível
 -- health: valor relativo (-100 a +100) — soma sobre a saúde atual do ped
 -- stamina: valor relativo — restaura fôlego do jogador (0 a 100)
-RegisterNetEvent('fdb-consume:client:applyHealthStamina', function(healthDelta, staminaDelta)
-    local ped = PlayerPedId()
-
+RegisterNetEvent('fdb-consume:client:applyStamina', function(staminaDelta)
     if staminaDelta ~= 0 then
         local currentStamina = GetPlayerStamina(PlayerId())
         local targetPct = math.max(0, math.min(100, currentStamina + staminaDelta))
