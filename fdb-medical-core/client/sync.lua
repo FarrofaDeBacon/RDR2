@@ -14,13 +14,13 @@ AddStateBagChangeHandler('medical', nil, function(bagName, key, value, _unused, 
 
     if entity == playerPed then
         -- Repassa o evento localmente para listeners como o HUD (fdb-hudpremium)
-        TriggerEvent('fdb-medical:client:vitalsUpdated', value)
+        TriggerEvent('fdb-medical-core:client:vitalsUpdated', value)
     end
 end)
 
 -- Limpeza e encerramento de threads ao parar o recurso
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() == resourceName then
-        print("[fdb-medical] Recurso finalizado de forma limpa.")
+        print("[fdb-medical-core] Recurso finalizado de forma limpa.")
     end
 end)

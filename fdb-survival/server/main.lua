@@ -323,10 +323,10 @@ RSGCore.Commands.Add('poisonme', 'Debug de Veneno', {{name = 'nivel', help = '0 
     end
 end, 'admin')
 
--- Routeador de Dano Ambiental/Biológico para o fdb-medical
+-- Routeador de Dano Ambiental/Biológico para o fdb-medical-core
 RegisterNetEvent('fdb-survival:server:reportHazardDamage', function(damageType, amount)
     local src = source
     if not amount or amount <= 0 then return end
-    -- Invoca a fonte única de dano no fdb-medical
-    exports['fdb-medical']:ApplyDamage(src, damageType or 'Generic', nil, amount)
+    -- Invoca a fonte única de dano no fdb-medical-core
+    exports['fdb-medical-core']:ApplyDamage(src, damageType or 'Generic', nil, amount)
 end)

@@ -137,7 +137,7 @@ CreateThread(function()
             
             -- Saúde do jogador (Tank + Core combinados em 0-100 para a UI)
             local currentHealth = GetEntityHealth(ped)
-            -- Saúde do jogador (Fisiologia fdb-medical + Fallback de ped)
+            -- Saúde do jogador (Fisiologia fdb-medical-core + Fallback de ped)
             local medState = Entity(ped).state.medical
             local health = 0
             if medState and medState.health ~= nil then
