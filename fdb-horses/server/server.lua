@@ -1164,3 +1164,58 @@ CreateThread(function()
         ::continue_metabolism::
     end
 end)
+
+-- ============================================================
+-- FASE D — Comandos de teste ISOLADOS para natives de agitação
+-- Padrão idêntico ao /sickme e /poisonme do fdb-survival:
+--   servidor valida admin, dispara evento pro client
+--   client executa a native e reporta resultado
+-- NÃO conectado ao loop de agitação — só para validar a native em jogo
+-- ============================================================
+
+-- /testhorse rear   → cavalo empina (native TASK_PLAY_ANIM_ON_MOUNT)
+-- /testhorse eject  → jogador é ejetado do cavalo
+-- /testhorse agit   → força agitação máxima no metadata (sem native, valida o loop)
+RSGCore.Commands.Add('testhorse', 'Fase D: testa natives de agitação do cavalo (admin)',
+    {{ name = 'acao', help = 'rear | eject | agit' }},
+    false,
+    function(source, args)
+        local src = source
+        local Player = RSGCore.Functions.GetPlayer(src)
+        if not Player then return end
+
+        local action = args[1] and string.lower(args[1]) or 'rear'
+
+        if action == 'rear' or action == 'eject' then
+            -- Client executa a native e responde com resultado via callback
+            TriggerClientEvent('fdb-horses:client:debug:TestAgitation', src, action)
+
+        elseif action == 'agit' then
+            -- Força agitação máxima no banco — valida o loop de broadcast sem native
+            local activehorse = MySQL.scalar.await(
+                'SELECT id FROM fdb_horses WHERE citizenid = ? AND active = 1',
+                { Player.PlayerData.citizenid }
+            )
+            if not activehorse then
+                TriggerClientEvent('ox_lib:notify', src, { title = '[D] Nenhum cavalo ativo.', type = 'error', duration = 4000 })
+                return
+            end
+            local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', { activehorse })
+            local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+            meta.agitation = 100
+            MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+            TriggerClientEvent('fdb-horses:client:stateChanged', src, { agitation = 100 })
+            TriggerClientEvent('ox_lib:notify', src, {
+                title = '[Fase D] Agitação forçada para 100',
+                description = 'Aguarde o próximo tick do loop para ver agitationTier = agitated',
+                type = 'inform', duration = 6000
+            })
+
+        else
+            TriggerClientEvent('ox_lib:notify', src, {
+                title = '[Fase D] Ação inválida. Use: rear | eject | agit',
+                type = 'error', duration = 4000
+            })
+        end
+    end,
+'admin')
