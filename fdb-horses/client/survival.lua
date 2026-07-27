@@ -1,168 +1,123 @@
-﻿local RSGCore = exports['rsg-core']:GetCoreObject()
+local RSGCore = exports['rsg-core']:GetCoreObject()
 
 FDB = FDB or {}
 FDB.HorseSurvival = {
-    hunger = 100,
-    thirst = 100,
-    dirt = 0,
-    illness = 0,
-    poison = 0,
-    agitation = 0
+    hunger     = 100,
+    thirst     = 100,
+    dirt       = 0,
+    illness    = 0,
+    poison     = 0,
+    agitation  = 0
 }
 
 local activeHorsePed = 0
 
--- Inicializa/Sincroniza do banco de dados (metadata) quando um cavalo Ã© spawnado
-RegisterNetEvent('fdb-horses:client:ApplySurvivalData', function(horse, metadata)
-    activeHorsePed = horse
-    if metadata then
-        FDB.HorseSurvival.hunger = metadata.hunger or 100
-        FDB.HorseSurvival.thirst = metadata.thirst or 100
-        FDB.HorseSurvival.dirt = metadata.dirt or 0
-        FDB.HorseSurvival.illness = metadata.illness or 0
-        FDB.HorseSurvival.poison = metadata.poison or 0
-        FDB.HorseSurvival.agitation = metadata.agitation or 0
-    else
-        -- Defaults
-        FDB.HorseSurvival = { hunger = 100, thirst = 100, dirt = 0, illness = 0, poison = 0, agitation = 0 }
-    end
-    
-    -- Inicializa o visual de sujeira baseado no salvo
-    if activeHorsePed and activeHorsePed ~= 0 then
-        Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, FDB.HorseSurvival.dirt)
-        Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
+-- ============================================================
+-- ÚNICO LISTENER QUE ESCREVE EM FDB.HorseSurvival
+-- Disparado exclusivamente pelo servidor via TriggerClientEvent
+-- Nenhum outro arquivo escreve aqui.
+-- ============================================================
+RegisterNetEvent('fdb-horses:client:stateChanged', function(data)
+    if not data then return end
+    for field, value in pairs(data) do
+        if FDB.HorseSurvival[field] ~= nil then
+            FDB.HorseSurvival[field] = value
+        end
     end
 end)
 
--- Desvincula o cavalo quando estabulado/morto
+-- ============================================================
+-- Vincula / desvincula o cavalo ativo ao receber spawn/despawn
+-- ============================================================
+RegisterNetEvent('fdb-horses:client:ApplySurvivalData', function(horse, metadata)
+    activeHorsePed = horse
+    if metadata then
+        for field, _ in pairs(FDB.HorseSurvival) do
+            FDB.HorseSurvival[field] = metadata[field] or FDB.HorseSurvival[field]
+        end
+    else
+        FDB.HorseSurvival = { hunger = 100, thirst = 100, dirt = 0, illness = 0, poison = 0, agitation = 0 }
+    end
+    -- Aplica sujeira visual do valor salvo
+    if activeHorsePed and activeHorsePed ~= 0 then
+        Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, math.floor(FDB.HorseSurvival.dirt))
+    end
+end)
+
 RegisterNetEvent('fdb-horses:client:ClearSurvivalData', function()
     activeHorsePed = 0
 end)
 
--- Loop Mestre de Metabolismo (Dono Ãšnico)
+-- ============================================================
+-- Funções de leitura pública (somente leitura — sem escrita)
+-- Outros arquivos chamam isso em vez de acessar FDB.HorseSurvival diretamente
+-- ============================================================
+function GetHorseSurvival(field)
+    if field then return FDB.HorseSurvival[field] end
+    return FDB.HorseSurvival
+end
+
+function GetActiveHorsePed()
+    return activeHorsePed
+end
+
+-- ============================================================
+-- Loop mestre de metabolismo (Dono Único — só esse loop drena)
+-- ============================================================
 CreateThread(function()
     while true do
         Wait(Config.Metabolism.DrainInterval)
-        
         if activeHorsePed ~= 0 and DoesEntityExist(activeHorsePed) and not IsEntityDead(activeHorsePed) then
-            local changed = false
-            
-            -- Dreno de Fome e Sede
-            if FDB.HorseSurvival.hunger > 0 then
-                FDB.HorseSurvival.hunger = FDB.HorseSurvival.hunger - Config.Metabolism.HungerDrain
-                if FDB.HorseSurvival.hunger < 0 then FDB.HorseSurvival.hunger = 0 end
-                changed = true
-            end
-            
-            if FDB.HorseSurvival.thirst > 0 then
-                FDB.HorseSurvival.thirst = FDB.HorseSurvival.thirst - Config.Metabolism.ThirstDrain
-                if FDB.HorseSurvival.thirst < 0 then FDB.HorseSurvival.thirst = 0 end
-                changed = true
-            end
-            
-            -- Sujeira (Dirt) Nativa
-            local nativeDirt = Citizen.InvokeNative(0x147149F2E909323C, activeHorsePed, 16, Citizen.ResultAsInteger())
-            if not nativeDirt then nativeDirt = 0 end
-            
-            -- Sujeira passiva
+
+            -- Dreno passivo de fome e sede (client calcula, servidor persiste)
+            local hungerDelta = -Config.Metabolism.HungerDrain
+            local thirstDelta = -Config.Metabolism.ThirstDrain
+
+            local newHunger = math.max(0, FDB.HorseSurvival.hunger + hungerDelta)
+            local newThirst = math.max(0, FDB.HorseSurvival.thirst + thirstDelta)
+
+            FDB.HorseSurvival.hunger = newHunger
+            FDB.HorseSurvival.thirst = newThirst
+
+            -- Sujeira nativa + acúmulo passivo
+            local nativeDirt = tonumber(Citizen.InvokeNative(0x147149F2E909323C, activeHorsePed, 16, Citizen.ResultAsInteger())) or FDB.HorseSurvival.dirt
             local newDirt = math.min(100, nativeDirt + Config.Metabolism.DirtAccumulation)
-            if newDirt ~= nativeDirt then
+            if newDirt ~= FDB.HorseSurvival.dirt then
                 Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, math.floor(newDirt))
-            end
-            
-            if FDB.HorseSurvival.dirt ~= math.floor(newDirt) then
                 FDB.HorseSurvival.dirt = math.floor(newDirt)
-                changed = true
             end
-            
-            -- LÃ³gica de DoenÃ§a por Sujeira Extrema
-            if FDB.HorseSurvival.dirt >= 90 then
-                if math.random(1, 100) <= 2 then -- 2% de chance a cada tick de pegar doenÃ§a se muito sujo
-                    if FDB.HorseSurvival.illness < 100 then
-                        FDB.HorseSurvival.illness = FDB.HorseSurvival.illness + 10
-                        changed = true
-                        RSGCore.Functions.Notify("Seu cavalo parece doente por falta de higiene.", "error")
-                    end
-                end
+
+            -- Doença por sujeira extrema: chance aleatória server-side
+            -- (dispara evento pro servidor decidir; o client não escreve illness diretamente)
+            if FDB.HorseSurvival.dirt >= 90 and FDB.HorseSurvival.illness == 0 then
+                TriggerServerEvent('fdb-horses:server:CheckDirtIllness')
             end
-            
-            -- Decaimento de AgitaÃ§Ã£o
-            if FDB.HorseSurvival.agitation > 0 then
-                FDB.HorseSurvival.agitation = math.max(0, FDB.HorseSurvival.agitation - Config.Metabolism.AgitationDecay)
-                changed = true
+
+            -- Efeitos físicos (cliente aplica consequências visuais, não valores numéricos)
+            if FDB.HorseSurvival.hunger == 0 or FDB.HorseSurvival.thirst == 0 then
+                local health = GetEntityHealth(activeHorsePed)
+                if health > 0 then SetEntityHealth(activeHorsePed, health - 1) end
             end
-            
-            -- Atualiza Statebag
-            if changed then
-                Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
-            end
-            
-            -- Efeitos FÃ­sicos da Fome/Sede/DoenÃ§a/Veneno
-            local health = GetEntityHealth(activeHorsePed)
-            local maxHealth = GetEntityMaxHealth(activeHorsePed)
-            
-            if FDB.HorseSurvival.hunger == 0 or FDB.HorseSurvival.thirst == 0 or FDB.HorseSurvival.poison > 0 then
-                -- Dreno de vida
-                if health > 0 then
-                    SetEntityHealth(activeHorsePed, health - 1)
-                end
-            end
-            
+
             if FDB.HorseSurvival.illness > 0 then
-                -- Dreno de Stamina Core (aqui consumimos o core nativamente se ele estiver doente)
-                local currentStaminaCore = Citizen.InvokeNative(0x36731AC041289BB1, activeHorsePed, 1)
-                if tonumber(currentStaminaCore) and currentStaminaCore > 5.0 then
-                    Citizen.InvokeNative(0xC6258F41D86676E0, activeHorsePed, 1, currentStaminaCore - 5.0)
+                local stamina = tonumber(Citizen.InvokeNative(0x36731AC041289BB1, activeHorsePed, 1)) or 0
+                if stamina > 5.0 then
+                    Citizen.InvokeNative(0xC6258F41D86676E0, activeHorsePed, 1, stamina - 5.0)
                 end
             end
         end
     end
 end)
 
--- FunÃ§Ãµes Auxiliares para Consumo de Itens
-RegisterNetEvent('fdb-horses:client:Feed', function(amount)
-    if activeHorsePed == 0 then return end
-    FDB.HorseSurvival.hunger = math.min(100, FDB.HorseSurvival.hunger + amount)
-    FDB.HorseSurvival.agitation = math.max(0, FDB.HorseSurvival.agitation - 20)
-    Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
-    RSGCore.Functions.Notify("O cavalo parece mais satisfeito.", "success")
-end)
-
-RegisterNetEvent('fdb-horses:client:Drink', function(amount)
-    if activeHorsePed == 0 then return end
-    FDB.HorseSurvival.thirst = math.min(100, FDB.HorseSurvival.thirst + amount)
-    FDB.HorseSurvival.agitation = math.max(0, FDB.HorseSurvival.agitation - 20)
-    Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
-    RSGCore.Functions.Notify("O cavalo bebeu Ã¡gua.", "success")
-end)
-
-RegisterNetEvent('fdb-horses:client:Cure', function(type)
-    if activeHorsePed == 0 then return end
-    if type == "illness" then
-        FDB.HorseSurvival.illness = 0
-        RSGCore.Functions.Notify("O cavalo se recuperou da doenÃ§a.", "success")
-    elseif type == "poison" then
-        FDB.HorseSurvival.poison = 0
-        RSGCore.Functions.Notify("O veneno foi neutralizado.", "success")
-    end
-    Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
-end)
-
-RegisterNetEvent('fdb-horses:client:Clean', function()
-    if activeHorsePed == 0 then return end
-    FDB.HorseSurvival.dirt = 0
-    Citizen.InvokeNative(0x5DA12E025D47D4E5, activeHorsePed, 16, 0)
-    ClearPedEnvDirt(activeHorsePed)
-    Entity(activeHorsePed).state:set('survivalData', FDB.HorseSurvival, true)
-    RSGCore.Functions.Notify("O cavalo estÃ¡ limpo.", "success")
-end)
-
--- Sincroniza periodicamente com o Servidor (a cada 30 segundos)
+-- ============================================================
+-- Sincronização periódica com o servidor (a cada 30s)
+-- O servidor persiste o snapshot atual no metadata do banco
+-- ============================================================
 CreateThread(function()
     while true do
         Wait(30000)
         if activeHorsePed ~= 0 then
-            TriggerServerEvent('fdb-horses:server:UpdateMetadata', FDB.HorseSurvival)
+            TriggerServerEvent('fdb-horses:server:PersistMetadata', FDB.HorseSurvival)
         end
     end
 end)

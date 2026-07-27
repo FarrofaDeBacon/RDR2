@@ -1,4 +1,4 @@
-﻿local RSGCore = exports['rsg-core']:GetCoreObject()
+local RSGCore = exports['rsg-core']:GetCoreObject()
 local HorseSettings = lib.load('shared.horse_settings')
 local HorseComp = lib.load('shared.horse_comp')
 lib.locale()
@@ -68,10 +68,32 @@ end)
 ----------------------------------
 -- horse use items
 ----------------------------------
--- brush horse
+-- brush horse: servidor remove item, calcula limpeza, persiste, notifica client
 RSGCore.Functions.CreateUseableItem('horse_brush', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
-    TriggerClientEvent('fdb-horses:client:playerbrushhorse', source, item.name)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], 'remove', 1)
+
+        local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+        if not activehorse then
+            TriggerClientEvent('ox_lib:notify', src, { title = locale('cl_error_no_horse_out'), type = 'error', duration = 5000 })
+            return
+        end
+
+        -- Lê metadata atual, aplica limpeza, persiste
+        local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', {activehorse})
+        local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+        meta.dirt = 0
+
+        MySQL.update('UPDATE fdb_horses SET dirt = 0, metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+
+        -- Notifica client com o campo calculado pelo servidor
+        TriggerClientEvent('fdb-horses:client:stateChanged', src, { dirt = 0 })
+        TriggerClientEvent('fdb-horses:client:playerbrushhorse', src, item.name)
+    end
 end)
 
 -- player horselantern
@@ -81,26 +103,93 @@ RSGCore.Functions.CreateUseableItem('horse_lantern', function(source, item)
 end)
 
  -- horse stimulant
- RSGCore.Functions.CreateUseableItem('horse_stimulant', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
+RSGCore.Functions.CreateUseableItem('horse_stimulant', function(source, item)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent('fdb-horses:client:playerfeedhorse', source, item.name)
+        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], 'remove', 1)
+        -- Estimulante restaura vida/stamina core nativos; não altera metadata de sobrevivência
+        TriggerClientEvent('fdb-horses:client:playerfeedhorse', src, item.name)
     end
 end)
 
--- feed horse carrot
+-- horse medicine (cura illness + poison): registrar item antes de usar
+if RSGCore.Shared.Items['horse_medicine'] then
+    RSGCore.Functions.CreateUseableItem('horse_medicine', function(source, item)
+        local src = source
+        local Player = RSGCore.Functions.GetPlayer(src)
+        if not Player then return end
+        if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+            TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], 'remove', 1)
+
+            local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+            if not activehorse then return end
+
+            local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', {activehorse})
+            local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+            local feedData = Config.HorseFeed[item.name]
+            meta.illness = 0
+            meta.poison  = 0
+
+            MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+
+            -- Envia de volta ao client apenas os campos alterados
+            TriggerClientEvent('fdb-horses:client:stateChanged', src, { illness = 0, poison = 0 })
+            TriggerClientEvent('fdb-horses:client:playerfeedhorse', src, item.name)
+        end
+    end)
+end
+
+-- carrot: servidor lê Config.HorseFeed, calcula, persiste, envia ao client
 RSGCore.Functions.CreateUseableItem('horse_carrot', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent('fdb-horses:client:playerfeedhorse', source, item.name)
+        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], 'remove', 1)
+
+        local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+        if not activehorse then return end
+
+        local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', {activehorse})
+        local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+        local feedData = Config.HorseFeed[item.name]
+
+        meta.hunger = math.min(100, (meta.hunger or 100) + (feedData.hunger or 0))
+        meta.thirst = math.min(100, (meta.thirst or 100) + (feedData.thirst or 0))
+        meta.agitation = math.max(0, (meta.agitation or 0) - 20)
+
+        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+
+        TriggerClientEvent('fdb-horses:client:stateChanged', src, { hunger = meta.hunger, thirst = meta.thirst, agitation = meta.agitation })
+        TriggerClientEvent('fdb-horses:client:playerfeedhorse', src, item.name)
     end
 end)
 
- -- feed apple
- RSGCore.Functions.CreateUseableItem('horse_apple', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
+-- apple: mesmo padrão que carrot
+RSGCore.Functions.CreateUseableItem('horse_apple', function(source, item)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent('fdb-horses:client:playerfeedhorse', source, item.name)
+        TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item.name], 'remove', 1)
+
+        local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+        if not activehorse then return end
+
+        local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', {activehorse})
+        local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+        local feedData = Config.HorseFeed[item.name]
+
+        meta.hunger = math.min(100, (meta.hunger or 100) + (feedData.hunger or 0))
+        meta.thirst = math.min(100, (meta.thirst or 100) + (feedData.thirst or 0))
+        meta.agitation = math.max(0, (meta.agitation or 0) - 20)
+
+        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+
+        TriggerClientEvent('fdb-horses:client:stateChanged', src, { hunger = meta.hunger, thirst = meta.thirst, agitation = meta.agitation })
+        TriggerClientEvent('fdb-horses:client:playerfeedhorse', src, item.name)
     end
 end)
 
@@ -912,12 +1001,53 @@ end
 SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepInterval)
 
 
-RegisterNetEvent('fdb-horses:server:UpdateMetadata', function(survivalData)
+-- ============================================================
+-- PersistMetadata: snapshot do metabolismo mandado pelo client a cada 30s
+-- O client manda a tabela FDB.HorseSurvival completa; o servidor
+-- só aceita campos conhecidos (whitelist) e persiste no banco.
+-- ============================================================
+RegisterNetEvent('fdb-horses:server:PersistMetadata', function(survivalData)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
-    local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+
+    -- Whitelist de campos aceitos (nunca persiste campo arbitrário do client)
+    local allowed = { hunger = true, thirst = true, dirt = true, illness = true, poison = true, agitation = true }
+    local sanitized = {}
+    for k, v in pairs(survivalData or {}) do
+        if allowed[k] and type(v) == 'number' then
+            sanitized[k] = math.max(0, math.min(100, v))
+        end
+    end
+
+    local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', { Player.PlayerData.citizenid, true })
     if activehorse then
-        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', {json.encode(survivalData), activehorse})
+        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(sanitized), activehorse })
+    end
+end)
+
+-- ============================================================
+-- CheckDirtIllness: client dispara quando dirt >= 90
+-- Servidor decide com chance aleatória (2%) e é o único a escrever illness
+-- ============================================================
+RegisterNetEvent('fdb-horses:server:CheckDirtIllness', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local activehorse = MySQL.scalar.await('SELECT id FROM fdb_horses WHERE citizenid = ? AND active = ?', { Player.PlayerData.citizenid, true })
+    if not activehorse then return end
+
+    if math.random(1, 100) <= 2 then
+        local row = MySQL.query.await('SELECT metadata FROM fdb_horses WHERE id = ?', { activehorse })
+        local meta = (row and row[1] and row[1].metadata and json.decode(row[1].metadata)) or {}
+        local newIllness = math.min(100, (meta.illness or 0) + 10)
+        meta.illness = newIllness
+
+        MySQL.update('UPDATE fdb_horses SET metadata = ? WHERE id = ?', { json.encode(meta), activehorse })
+
+        -- Servidor envia o novo valor calculado ao client
+        TriggerClientEvent('fdb-horses:client:stateChanged', src, { illness = newIllness })
+        TriggerClientEvent('ox_lib:notify', src, { title = 'Seu cavalo parece doente por falta de higiene.', type = 'error', duration = 5000 })
     end
 end)
