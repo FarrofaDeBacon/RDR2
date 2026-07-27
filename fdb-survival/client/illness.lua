@@ -11,7 +11,7 @@ CreateThread(function()
         Wait(3000)
         local illness = FDB.Survival.illness or 0
         local poison = FDB.Survival.poison or 0
-        print(string.format("[DEBUG FDB] loop illness rodando | IsLoggedIn: %s | illness: %s | poison: %s", tostring(FDB.IsLoggedIn), tostring(illness), tostring(poison)))
+        -- print(string.format("[DEBUG FDB] loop illness rodando | IsLoggedIn: %s | illness: %s | poison: %s", tostring(FDB.IsLoggedIn), tostring(illness), tostring(poison)))
         
         if FDB.IsLoggedIn then
             local ped = PlayerPedId()
