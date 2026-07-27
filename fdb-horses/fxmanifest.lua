@@ -19,7 +19,7 @@ client_scripts {
     'client/horseinfo.lua',
     'client/dataview.lua',
     'client/survival.lua',
-    'client/debug.lua',
+    'client/debug.lua'
 }
 
 files {

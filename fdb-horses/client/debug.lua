@@ -1,79 +1,71 @@
 -- ============================================================
--- FASE D — Handler client de teste isolado de natives
+-- FASE D (PROVA PRÁTICA) — Teste de Nativas do Adestrador
 -- ============================================================
 
-RegisterNetEvent('fdb-horses:client:debug:TestAgitation', function(action)
-    local horsePed = GetActiveHorsePed()
+RegisterNetEvent('fdb-horses:client:debug:TestTrainerNative', function(action)
+    local horsePed = GetActiveHorsePed and GetActiveHorsePed() or 0
+
+    if horsePed == 0 or not DoesEntityExist(horsePed) then
+        local playerPed = cache.ped
+        if IsPedOnMount(playerPed) then
+            horsePed = GetMount(playerPed)
+        end
+    end
 
     if not horsePed or horsePed == 0 or not DoesEntityExist(horsePed) then
-        lib.notify({ title = '[Fase D] Nenhum cavalo ativo no client.', type = 'error', duration = 5000 })
-        return
-    end
-
-    if not IsPedOnMount(cache.ped) then
-        lib.notify({ title = '[Fase D] Jogador não está montado.', description = 'Monte no cavalo antes de testar.', type = 'error', duration = 5000 })
+        lib.notify({ title = '[PROVA] Nenhum cavalo ativo encontrado.', type = 'error', duration = 5000 })
         return
     end
 
     -- --------------------------------------------------------
-    -- MÉTODOS DE TESTE PARA EMPINAR (REAR)
+    -- 1. TASK_HORSE_ACTION (Action 1 = Rear Up / Empinar)
     -- --------------------------------------------------------
-
-    if action == 'rear' or action == 'rear1' then
-        -- Método 1: TASK_HORSE_ACTION (Action 1 / 7 = REAR)
-        lib.notify({ title = '[Fase D] Testando rear1: TaskHorseAction', type = 'inform', duration = 4000 })
-        Citizen.InvokeNative(0xAE2BBE83822640B6, horsePed, 1, 0, 0) -- TASK_HORSE_ACTION rear
-        Wait(2500)
-        lib.notify({ title = '[Fase D] rear1 concluído. Empinou?', type = 'success', duration = 5000 })
-
-    elseif action == 'rear2' then
-        -- Método 2: TaskPlayAnim direta no cavalo
-        lib.notify({ title = '[Fase D] Testando rear2: TaskPlayAnim', type = 'inform', duration = 4000 })
-        local dict = "amb_creature_mammal@horse@agitated@base"
-        local anim = "rearing_b"
-        lib.requestAnimDict(dict, 5000)
-        TaskPlayAnim(horsePed, dict, anim, 8.0, -8.0, 3000, 31, 0, false, false, false)
-        Wait(3000)
-        RemoveAnimDict(dict)
-        lib.notify({ title = '[Fase D] rear2 concluído. Empinou?', type = 'success', duration = 5000 })
-
-    elseif action == 'rear3' then
-        -- Método 3: TaskSmartFleePed / Agitação Nativa
-        lib.notify({ title = '[Fase D] Testando rear3: TaskAgitated', type = 'inform', duration = 4000 })
-        Citizen.InvokeNative(0x028F76B6E78246E9, horsePed, cache.ped, 1, 1)
-        Wait(2000)
-        lib.notify({ title = '[Fase D] rear3 concluído.', type = 'success', duration = 5000 })
-
-    -- --------------------------------------------------------
-    -- TESTE DE FLEE (FUGA DO CAVALO)
-    -- Native: TaskAnimalFlee(horsePed, cache.ped, -1)
-    -- --------------------------------------------------------
-    elseif action == 'flee' then
-        lib.notify({ title = '[Fase D] Testando: flee (TaskAnimalFlee)', description = 'Simulando agitationTier = agitated...', type = 'inform', duration = 4000 })
-        
-        -- Aplica a TaskAnimalFlee que já existe no Flee() do fdb-horses
-        TaskAnimalFlee(horsePed, cache.ped, -1)
-
-        Wait(3000)
-        local stillMounted = IsPedOnMount(cache.ped)
-        lib.notify({
-            title = stillMounted and '[Fase D] flee: Cavalo em fuga (montado)' or '[Fase D] flee: Cavalo em fuga (desmontou)',
-            description = 'Observe se o cavalo para sozinho ou se o controle é recuperável.',
-            type = 'warning',
-            duration = 7000
-        })
-    -- --------------------------------------------------------
-    -- TESTE DE EJECT (DERRUBAR JOGADOR)
-    -- --------------------------------------------------------
-    elseif action == 'eject' then
-        lib.notify({ title = '[Fase D] Testando: eject (Derrubar jogador)', type = 'inform', duration = 4000 })
-        -- Eject / Ragdoll no player ped enquanto montado
-        SetPedToRagdoll(cache.ped, 3000, 3000, 0, true, true, false)
-        Wait(2000)
+    if action == 'empinar' then
         if not IsPedOnMount(cache.ped) then
-            lib.notify({ title = '[Fase D] eject: OK — jogador ejetado com sucesso!', type = 'success', duration = 5000 })
-        else
-            lib.notify({ title = '[Fase D] eject: falhou.', type = 'error', duration = 5000 })
+            lib.notify({ title = '[PROVA] Monte no cavalo para testar empinar!', type = 'warning', duration = 5000 })
+            return
         end
+
+        lib.notify({ title = '[PROVA] Disparando TaskHorseAction(horse, 1, 0, 0)', description = 'Executando empinada nativa...', type = 'inform', duration = 4000 })
+        
+        -- Chamada nativa de empinar
+        TaskHorseAction(horsePed, 1, 0, 0)
+        Wait(3000)
+
+        lib.notify({ title = '[PROVA] Teste empinar concluído. O cavalo empinou?', type = 'success', duration = 6000 })
+
+    -- --------------------------------------------------------
+    -- 2. TASK_HORSE_ACTION (Action 3 = Side-Pass / Passo Lateral)
+    -- --------------------------------------------------------
+    elseif action == 'passolateral' then
+        if not IsPedOnMount(cache.ped) then
+            lib.notify({ title = '[PROVA] Monte no cavalo para testar passo lateral!', type = 'warning', duration = 5000 })
+            return
+        end
+
+        lib.notify({ title = '[PROVA] Disparando TaskHorseAction(horse, 3, 0, 0)', description = 'Executando passo lateral...', type = 'inform', duration = 4000 })
+        
+        -- Chamada nativa de passo lateral
+        TaskHorseAction(horsePed, 3, 0, 0)
+        Wait(3000)
+
+        lib.notify({ title = '[PROVA] Teste passo lateral concluído. O cavalo andou de lado?', type = 'success', duration = 6000 })
+
+    -- --------------------------------------------------------
+    -- 3. TASK_LEAD_HORSE (Conduzir Rédea a pé)
+    -- --------------------------------------------------------
+    elseif action == 'conduzir' then
+        if IsPedOnMount(cache.ped) then
+            lib.notify({ title = '[PROVA] Desmonte do cavalo para testar conduzir!', type = 'warning', duration = 5000 })
+            return
+        end
+
+        lib.notify({ title = '[PROVA] Disparando TaskLeadHorse(player, horse, true)', description = 'Puxando pela rédea...', type = 'inform', duration = 4000 })
+        
+        -- Chamada nativa de conduzir rédea
+        TaskLeadHorse(cache.ped, horsePed, true)
+        Wait(4000)
+
+        lib.notify({ title = '[PROVA] Teste conduzir concluído. O personagem segurou a rédea?', type = 'success', duration = 6000 })
     end
 end)
