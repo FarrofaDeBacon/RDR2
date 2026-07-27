@@ -137,12 +137,20 @@ CreateThread(function()
             
             -- Saúde do jogador (Tank + Core combinados em 0-100 para a UI)
             local currentHealth = GetEntityHealth(ped)
-            local maxHealth = GetEntityMaxHealth(ped)
-            local healthTank = GetNormalized(currentHealth - 100, maxHealth - 100)
-            local healthCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 0)
-            if not tonumber(healthCore) then healthCore = 0 end
-            healthCore = (healthCore <= 1.0) and (healthCore * 100) or healthCore
-            local health = math.floor((healthTank / 2) + (healthCore / 2))
+            -- Saúde do jogador (Fisiologia fdb-medical + Fallback de ped)
+            local medState = Entity(ped).state.medical
+            local health = 0
+            if medState and medState.health ~= nil then
+                local maxHp = GetEntityMaxHealth(ped)
+                health = GetNormalized(medState.health - 100, maxHp - 100)
+            else
+                local maxHealth = GetEntityMaxHealth(ped)
+                local healthTank = GetNormalized(currentHealth - 100, maxHealth - 100)
+                local healthCore = Citizen.InvokeNative(0x36731AC041289BB1, ped, 0)
+                if not tonumber(healthCore) then healthCore = 0 end
+                healthCore = (healthCore <= 1.0) and (healthCore * 100) or healthCore
+                health = math.floor((healthTank / 2) + (healthCore / 2))
+            end
             
             -- Fôlego (Stamina) do jogador
             local rawStamina = GetPlayerStamina(PlayerId())
