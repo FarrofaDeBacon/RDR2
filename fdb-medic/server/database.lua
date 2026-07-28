@@ -311,8 +311,8 @@ local function SaveInfectionData(citizenid, infectionData)
         
         MySQL.Async.execute([[
             INSERT INTO player_infections 
-            (citizenid, body_part, infection_type, category, stage, start_time, last_progress_check, metadata)
-            VALUES (?, ?, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?)
+            (citizenid, body_part, stage, start_time, last_progress_check, metadata)
+            VALUES (?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?)
             ON DUPLICATE KEY UPDATE
                 stage = VALUES(stage),
                 last_progress_check = VALUES(last_progress_check),
@@ -320,11 +320,9 @@ local function SaveInfectionData(citizenid, infectionData)
         ]], {
             citizenid,
             bodyPart,
-            'bandage_infection',  -- Always bandage infection in simplified system
-            'dirtyBandage',       -- Always dirty bandage category
             infection.stage,
-            math.floor(infection.startTime / 1000), -- Convert from GetGameTimer() to unix timestamp
-            math.floor(infection.lastProgressCheck / 1000),
+            math.floor((infection.startTime or GetGameTimer()) / 1000),
+            math.floor((infection.lastProgressCheck or GetGameTimer()) / 1000),
             metadata
         })
         
@@ -558,7 +556,7 @@ end)
 local function CleanupExpiredData()
     -- This calls the stored procedure created in schema.sql
     MySQL.Async.execute('CALL CleanupExpiredMedicalData()')
-    print('[QC-AdvancedMedic] Database cleanup completed')
+    print('[fdb-medic] Database cleanup completed')
 end
 
 -- Auto cleanup every hour
@@ -596,9 +594,9 @@ local function InitializeFracturesTable()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ]], {}, function(result)
         if result then
-            print('[QC-AdvancedMedic] player_fractures table initialized successfully')
+            print('[fdb-medic] player_fractures table initialized successfully')
         else
-            print('[QC-AdvancedMedic] Failed to initialize player_fractures table')
+            print('[fdb-medic] Failed to initialize player_fractures table')
         end
     end)
 end
@@ -606,7 +604,7 @@ end
 -- Save fracture to database
 function SaveFracture(citizenid, bodyPart, fractureData)
     if not citizenid or not bodyPart or not fractureData then 
-        print('[QC-AdvancedMedic] SaveFracture: Missing required parameters')
+        print('[fdb-medic] SaveFracture: Missing required parameters')
         return false 
     end
     

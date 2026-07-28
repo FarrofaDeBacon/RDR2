@@ -58,7 +58,7 @@ local function IsPlayerMedic()
 end
 
 -- Toggle On-Duty
-AddEventHandler('QC-AdvancedMedic:client:ToggleDuty', function()
+AddEventHandler('fdb-medic:client:ToggleDuty', function()
     RSGCore.Functions.GetPlayerData(function(PlayerData)
         if not IsPlayerMedic() then
             lib.notify({ title = locale('cl_not_medic'), type = 'error', icon = 'fa-solid fa-kit-medical', iconAnimation = 'shake', duration = 7000 })
@@ -70,7 +70,7 @@ AddEventHandler('QC-AdvancedMedic:client:ToggleDuty', function()
 end)
 
 -- Medic Revive Player
-AddEventHandler('QC-AdvancedMedic:client:RevivePlayer', function()
+AddEventHandler('fdb-medic:client:RevivePlayer', function()
     local hasItem = RSGCore.Functions.HasItem('firstaid', 1)
     local ped = PlayerPedId()
     if not hasItem then
@@ -116,14 +116,14 @@ AddEventHandler('QC-AdvancedMedic:client:RevivePlayer', function()
     })
     ClearPedTasks(cache.ped)
     FreezeEntityPosition(cache.ped, false)
-    TriggerServerEvent('QC-AdvancedMedic:server:RevivePlayer', playerId)
+    TriggerServerEvent('fdb-medic:server:RevivePlayer', playerId)
     -- NOTE: Wounds persist through medic revive - use treat wounds or /clearwounds to clear them
     transG = 0
 
 end)
 
 -- Medic Treat Wounds
-AddEventHandler('QC-AdvancedMedic:client:TreatWounds', function()
+AddEventHandler('fdb-medic:client:TreatWounds', function()
     local hasItem = RSGCore.Functions.HasItem('bandage', 1)
     if not hasItem then
         lib.notify({ title = locale('cl_need_bandage'), type = 'error', icon = 'fa-solid fa-kit-medical', iconAnimation = 'shake', duration = 7000 })
@@ -166,14 +166,14 @@ AddEventHandler('QC-AdvancedMedic:client:TreatWounds', function()
 
     ClearPedTasks(cache.ped)
     FreezeEntityPosition(cache.ped, false)
-    TriggerServerEvent('QC-AdvancedMedic:server:TreatWounds', playerId)
-    TriggerEvent('QC-AdvancedMedic:ResetLimbs', playerId)
+    TriggerServerEvent('fdb-medic:server:TreatWounds', playerId)
+    TriggerEvent('fdb-medic:ResetLimbs', playerId)
     transG = 0
 
 end)
 
 -- Medic Treat Wounds
-RegisterNetEvent('QC-AdvancedMedic:client:HealInjuries', function()
+RegisterNetEvent('fdb-medic:client:HealInjuries', function()
     SetAttributeCoreValue(cache.ped, 0, 100)
     SetAttributeCoreValue(cache.ped, 1, 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", RSGCore.Functions.GetPlayerData().metadata["hunger"] + 100)
@@ -182,7 +182,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:HealInjuries', function()
 end)
 
 -- Medic Alert
-RegisterNetEvent('QC-AdvancedMedic:client:medicAlert', function(coords, text)
+RegisterNetEvent('fdb-medic:client:medicAlert', function(coords, text)
     lib.notify({ title = locale('cl_info'), description = text, type = 'info', duration = 7000 })
 
     local blip = BlipAddForCoords(1664425300, coords.x, coords.y, coords.z)
@@ -263,7 +263,7 @@ local missionStepData = {}
 local transportVehicle = nil
 
 -- Miss from the menu
-RegisterNetEvent('QC-AdvancedMedic:client:startMission', function()
+RegisterNetEvent('fdb-medic:client:startMission', function()
 
     if medicMissionActive then
         lib.notify({ title = locale('cl_mission_active'), type = 'error', duration = 5000 })
@@ -398,7 +398,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:startMission', function()
                 return distance < 2.0 and medicMissionActive
             end,
             onSelect = function()
-                TriggerEvent('QC-AdvancedMedic:client:inspectMissionPed')
+                TriggerEvent('fdb-medic:client:inspectMissionPed')
             end
         }
     })
@@ -406,7 +406,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:startMission', function()
 end)
 
 -- New mission inspection system that shows medical data
-RegisterNetEvent('QC-AdvancedMedic:client:inspectMissionPed', function()
+RegisterNetEvent('fdb-medic:client:inspectMissionPed', function()
     if not medicMissionActive or not medicMissionPed or not medicMissionData then return end
     
     -- Use the new patientData structure (same format as player inspections)
@@ -428,14 +428,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:inspectMissionPed', function()
     
     -- Use NUI inspection panel instead of ox_lib menu
     -- This integrates perfectly with the existing player inspection system
-    TriggerEvent('QC-AdvancedMedic:client:ShowInspectionPanel', inspectionData)
+    TriggerEvent('fdb-medic:client:ShowInspectionPanel', inspectionData)
 end)
 
 -- Mission inspection now uses the NUI system instead of ox_lib menus
 -- This provides the same interface as player-to-player inspections for training consistency
 
 -- Refresh NUI with updated mission wound data after treatments
-RegisterNetEvent('QC-AdvancedMedic:client:RefreshMissionNUI', function()
+RegisterNetEvent('fdb-medic:client:RefreshMissionNUI', function()
     if not medicMissionActive or not medicMissionData then return end
     
     -- Send updated wound data to NUI
@@ -470,14 +470,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:RefreshMissionNUI', function()
 end)
 
 -- Handle medicine application to mission NPCs
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyMissionMedicine', function(medicineType)
+RegisterNetEvent('fdb-medic:client:ApplyMissionMedicine', function(medicineType)
     if not medicMissionActive or not medicMissionData then return end
     
     local medicineConfig = Config.MedicineTypes[medicineType]
     if not medicineConfig then return end
     
     -- Consume the medicine item from inventory
-    TriggerServerEvent('QC-AdvancedMedic:server:removeitem', medicineConfig.itemName, 1)
+    TriggerServerEvent('fdb-medic:server:removeitem', medicineConfig.itemName, 1)
     
     -- Mark only PAIN conditions as treated with medicine (not bleeding)
     local treatedParts = {}
@@ -531,14 +531,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:ApplyMissionMedicine', function(medici
 end)
 
 -- Handle bandage application to mission NPCs
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyMissionBandage', function(bodyPart, bandageType)
+RegisterNetEvent('fdb-medic:client:ApplyMissionBandage', function(bodyPart, bandageType)
     if not medicMissionActive or not medicMissionData then return end
     
     local bandageConfig = Config.BandageTypes[bandageType]
     if not bandageConfig then return end
     
     -- Consume the bandage item from inventory
-    TriggerServerEvent('QC-AdvancedMedic:server:removeitem', bandageConfig.itemName, 1)
+    TriggerServerEvent('fdb-medic:server:removeitem', bandageConfig.itemName, 1)
     
     -- Find the wound for this body part
     local woundData = medicMissionData.patientData.wounds[bodyPart]
@@ -594,14 +594,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:ApplyMissionBandage', function(bodyPar
 end)
 
 -- Handle tourniquet application to mission NPCs
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyMissionTourniquet', function(bodyPart, tourniquetType)
+RegisterNetEvent('fdb-medic:client:ApplyMissionTourniquet', function(bodyPart, tourniquetType)
     if not medicMissionActive or not medicMissionData then return end
     
     local tourniquetConfig = Config.TourniquetTypes[tourniquetType]
     if not tourniquetConfig then return end
     
     -- Consume the tourniquet item from inventory
-    TriggerServerEvent('QC-AdvancedMedic:server:removeitem', tourniquetConfig.itemName, 1)
+    TriggerServerEvent('fdb-medic:server:removeitem', tourniquetConfig.itemName, 1)
     
     -- Find the wound for this body part
     local woundData = medicMissionData.patientData.wounds[bodyPart]
@@ -1200,7 +1200,7 @@ function performSurgicalProcedure(procedure, procedureIndex)
         -- Consume required items
         for _, item in ipairs(procedureData.requiredItems) do
             if ConfigMissions.MedicalEquipment[item] and ConfigMissions.MedicalEquipment[item].consumable then
-                TriggerServerEvent('QC-AdvancedMedic:server:removeitem', item, 1)
+                TriggerServerEvent('fdb-medic:server:removeitem', item, 1)
             end
         end
         
@@ -1304,7 +1304,7 @@ function completeMissionTreatment()
     
     -- Determine reward based on mission type
     local missionType = medicMissionData and medicMissionData.missionType or 'field'
-    TriggerServerEvent('QC-AdvancedMedic:server:MissionReward', missionType)
+    TriggerServerEvent('fdb-medic:server:MissionReward', missionType)
     
     -- Reset mission variables
     medicMissionActive = false

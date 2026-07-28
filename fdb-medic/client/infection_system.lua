@@ -84,7 +84,7 @@ local function CreateInfection(bodyPart)
     ShowInfectionSymptom(bodyPart, 1)
     
     -- Update server
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateInfectionData', PlayerInfections)
+    TriggerServerEvent('fdb-medic:server:UpdateInfectionData', PlayerInfections)
     
     if Config.InfectionSystem.debugging.enabled then
         print(string.format("^1[INFECTION] Created on %s^7", bodyPart))
@@ -329,10 +329,10 @@ local function TreatInfection(bodyPart, treatmentItem)
         })
         
         -- Update server
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateInfectionData', PlayerInfections)
+        TriggerServerEvent('fdb-medic:server:UpdateInfectionData', PlayerInfections)
         
         -- Log cure event
-        TriggerServerEvent('QC-AdvancedMedic:server:LogInfectionCure', bodyPart, treatmentItem)
+        TriggerServerEvent('fdb-medic:server:LogInfectionCure', bodyPart, treatmentItem)
         
         return true
     else
@@ -455,7 +455,7 @@ exports('CreateForceInfection', function(bodyPart, stage)
     ShowInfectionSymptom(bodyPart, stage)
     
     -- Update server
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateInfectionData', PlayerInfections)
+    TriggerServerEvent('fdb-medic:server:UpdateInfectionData', PlayerInfections)
     
     if Config.InfectionSystem.debugging.enabled then
         print(string.format("[INFECTION] Force created infection on %s at stage %d", bodyPart, stage))
@@ -467,18 +467,18 @@ end)
 --=========================================================
 -- NETWORK EVENTS
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:client:SyncInfectionData')
-AddEventHandler('QC-AdvancedMedic:client:SyncInfectionData', function(infectionData)
+RegisterNetEvent('fdb-medic:client:SyncInfectionData')
+AddEventHandler('fdb-medic:client:SyncInfectionData', function(infectionData)
     PlayerInfections = infectionData or {}
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:TreatInfection')
-AddEventHandler('QC-AdvancedMedic:client:TreatInfection', function(bodyPart, treatmentItem)
+RegisterNetEvent('fdb-medic:client:TreatInfection')
+AddEventHandler('fdb-medic:client:TreatInfection', function(bodyPart, treatmentItem)
     TreatInfection(bodyPart, treatmentItem)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyBandage')
-AddEventHandler('QC-AdvancedMedic:client:ApplyBandage', function(bodyPart, bandageType)
+RegisterNetEvent('fdb-medic:client:ApplyBandage')
+AddEventHandler('fdb-medic:client:ApplyBandage', function(bodyPart, bandageType)
     AddBandage(bodyPart, bandageType)
 end)
 
@@ -519,8 +519,8 @@ function CreateForceInfection(bodyPart, stage)
     return true
 end
 
-RegisterNetEvent('QC-AdvancedMedic:client:LoadInfections')
-AddEventHandler('QC-AdvancedMedic:client:LoadInfections', function(infectionData)
+RegisterNetEvent('fdb-medic:client:LoadInfections')
+AddEventHandler('fdb-medic:client:LoadInfections', function(infectionData)
     if not infectionData then return end
     
     PlayerInfections = infectionData
@@ -539,8 +539,8 @@ AddEventHandler('QC-AdvancedMedic:client:LoadInfections', function(infectionData
     end
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:UseCureItem')
-AddEventHandler('QC-AdvancedMedic:client:UseCureItem', function(cureType)
+RegisterNetEvent('fdb-medic:client:UseCureItem')
+AddEventHandler('fdb-medic:client:UseCureItem', function(cureType)
     local ped = PlayerPedId()
     local cureConfig = Config.InfectionSystem.cureItems[cureType]
     

@@ -37,7 +37,26 @@ interface AppState {
   };
 }
 
+function useWindowRatioScale() {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    function handleResize() {
+      const ratio = window.innerWidth / window.innerHeight;
+      if (ratio > 1.78) {
+        setScale((window.innerHeight * 1.777) / window.innerWidth);
+      } else {
+        setScale(1);
+      }
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return scale;
+}
+
 function App() {
+  const scale = useWindowRatioScale();
   const [state, setState] = useState<AppState>({
     currentView: 'hidden',
     deathScreenData: { message: '', seconds: 0, canRespawn: false, medicsOnDuty: 0, translations: {} },
@@ -137,13 +156,23 @@ function App() {
 
 
   return (
-    <div className="App" style={{ width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0 }}>
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ position: 'fixed', top: 0, left: 0, background: 'rgba(0,0,0,0.8)', color: 'white', padding: '5px', zIndex: 9999, fontSize: '12px' }}>
-          Current View: {state.currentView}
-        </div>
-      )}
+    <div className="App" style={{ 
+      width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0,
+      display: 'flex', justifyContent: 'center', alignItems: 'center'
+    }}>
+      <div style={{
+        width: '100vw', 
+        height: '100vh',
+        transform: `scale(${scale})`,
+        transformOrigin: 'center center',
+        position: 'relative'
+      }}>
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{ position: 'fixed', top: 0, left: 0, background: 'rgba(0,0,0,0.8)', color: 'white', padding: '5px', zIndex: 9999, fontSize: '12px' }}>
+            Current View: {state.currentView}
+          </div>
+        )}
       
       {state.currentView === 'death-screen' && (
         <DeathScreen
@@ -180,6 +209,7 @@ function App() {
           onClose={hideAll}
         />
       )}
+      </div>
     </div>
   );
 }

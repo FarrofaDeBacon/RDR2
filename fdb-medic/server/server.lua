@@ -31,7 +31,7 @@ for bandageType, bandageConfig in pairs(Config.BandageTypes) do
     
     RSGCore.Functions.CreateUseableItem(itemName, function(source, item)
         local src = source
-        TriggerClientEvent('QC-AdvancedMedic:client:usebandage', src, bandageType)
+        TriggerClientEvent('fdb-medic:client:usebandage', src, bandageType)
     end)
     
     if Config.WoundSystem.debugging.enabled then
@@ -49,7 +49,7 @@ for cureType, cureConfig in pairs(Config.InfectionSystem.cureItems) do
         if not Player then return end
         
         -- Trigger client-side infection treatment
-        TriggerClientEvent('QC-AdvancedMedic:client:UseCureItem', src, cureType)
+        TriggerClientEvent('fdb-medic:client:UseCureItem', src, cureType)
         
         -- Remove item from inventory
         Player.Functions.RemoveItem(itemName, 1)
@@ -67,7 +67,7 @@ for tourniquetType, tourniquetConfig in pairs(Config.TourniquetTypes or {}) do
 
     RSGCore.Functions.CreateUseableItem(itemName, function(source, item)
         local src = source
-        TriggerClientEvent('QC-AdvancedMedic:client:usetourniquet', src, tourniquetType)
+        TriggerClientEvent('fdb-medic:client:usetourniquet', src, tourniquetType)
     end)
 
     if Config.WoundSystem.debugging.enabled then
@@ -81,7 +81,7 @@ for injectionType, injectionConfig in pairs(Config.InjectionTypes or {}) do
 
     RSGCore.Functions.CreateUseableItem(itemName, function(source, item)
         local src = source
-        TriggerClientEvent('QC-AdvancedMedic:client:useinjection', src, injectionType)
+        TriggerClientEvent('fdb-medic:client:useinjection', src, injectionType)
     end)
 
     if Config.WoundSystem.debugging.enabled then
@@ -92,7 +92,7 @@ end
 ---------------------------------
 -- medic storage
 ---------------------------------
-RegisterNetEvent('QC-AdvancedMedic:server:openstash', function(location)
+RegisterNetEvent('fdb-medic:server:openstash', function(location)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -111,8 +111,8 @@ RSGCore.Commands.Add('revive', locale('sv_revive'), {{name = 'id', help = locale
         -- Revive self and clear all wounds
         local Player = RSGCore.Functions.GetPlayer(src)
         if Player then
-            TriggerClientEvent('QC-AdvancedMedic:client:adminRevive', src)
-            TriggerClientEvent('QC-AdvancedMedic:client:ClearAllWounds', src)
+            TriggerClientEvent('fdb-medic:client:adminRevive', src)
+            TriggerClientEvent('fdb-medic:client:ClearAllWounds', src)
 
             -- Clear from database
             local citizenid = Player.PlayerData.citizenid
@@ -133,8 +133,8 @@ RSGCore.Commands.Add('revive', locale('sv_revive'), {{name = 'id', help = locale
     end
 
     -- Revive target player and clear all wounds
-    TriggerClientEvent('QC-AdvancedMedic:client:adminRevive', Player.PlayerData.source)
-    TriggerClientEvent('QC-AdvancedMedic:client:ClearAllWounds', Player.PlayerData.source)
+    TriggerClientEvent('fdb-medic:client:adminRevive', Player.PlayerData.source)
+    TriggerClientEvent('fdb-medic:client:ClearAllWounds', Player.PlayerData.source)
 
     -- Clear from database
     local citizenid = Player.PlayerData.citizenid
@@ -154,7 +154,7 @@ RSGCore.Commands.Add('clearwounds', 'Clear all wounds and fractures from a playe
         -- Clear wounds from self
         local Player = RSGCore.Functions.GetPlayer(src)
         if Player then
-            TriggerClientEvent('QC-AdvancedMedic:client:ClearAllWounds', src)
+            TriggerClientEvent('fdb-medic:client:ClearAllWounds', src)
             
             -- Clear from database for self (optimized 3-table schema)
             local citizenid = Player.PlayerData.citizenid
@@ -189,7 +189,7 @@ RSGCore.Commands.Add('clearwounds', 'Clear all wounds and fractures from a playe
     end
     
     -- Clear wounds from target player
-    TriggerClientEvent('QC-AdvancedMedic:client:ClearAllWounds', Player.PlayerData.source)
+    TriggerClientEvent('fdb-medic:client:ClearAllWounds', Player.PlayerData.source)
     
     -- Also clear from database (optimized 3-table schema)
     local citizenid = Player.PlayerData.citizenid
@@ -224,8 +224,21 @@ RSGCore.Commands.Add('kill', locale('sv_kill'), {{name = 'id', help = locale('sv
         return
     end
 
-    TriggerClientEvent('QC-AdvancedMedic:client:KillPlayer', Player.PlayerData.source)
+    TriggerClientEvent('fdb-medic:client:KillPlayer', Player.PlayerData.source)
 end, 'admin')
+
+-- Medic Duty Command
+RSGCore.Commands.Add('duty', 'Entrar ou Sair de Servico (Medicos)', {}, false, function(source, args)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    if IsMedicJob(Player.PlayerData.job.name) then
+        TriggerClientEvent('fdb-medic:client:ToggleDutyStatus', src)
+    else
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Acesso Negado', description = 'Voce nao e um medico.', type = 'error', duration = 7000 })
+    end
+end)
 
 -- /heal command removed - use /clearwounds and /revive instead
 
@@ -233,7 +246,7 @@ end, 'admin')
 -- EVENTS 
 -----------------------
 -- Death Actions: Remove Inventory / Cash
-RegisterNetEvent('QC-AdvancedMedic:server:deathactions', function()
+RegisterNetEvent('fdb-medic:server:deathactions', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 
@@ -254,7 +267,7 @@ RegisterNetEvent('QC-AdvancedMedic:server:deathactions', function()
 end)
 
 -- Get Players Health
-RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:getplayerhealth', function(source, cb)
+RSGCore.Functions.CreateCallback('fdb-medic:server:getplayerhealth', function(source, cb)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local health = Player.PlayerData.metadata['health']
@@ -262,7 +275,7 @@ RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:getplayerhealth', func
 end)
 
 -- Set Player Health
-RegisterNetEvent('QC-AdvancedMedic:server:SetHealth', function(amount)
+RegisterNetEvent('fdb-medic:server:SetHealth', function(amount)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 
@@ -278,7 +291,7 @@ RegisterNetEvent('QC-AdvancedMedic:server:SetHealth', function(amount)
 end)
 
 -- Medic Revive Player
-RegisterNetEvent('QC-AdvancedMedic:server:RevivePlayer', function(playerId)
+RegisterNetEvent('fdb-medic:server:RevivePlayer', function(playerId)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(playerId)
@@ -292,12 +305,12 @@ RegisterNetEvent('QC-AdvancedMedic:server:RevivePlayer', function(playerId)
 
     if Player.Functions.RemoveItem('firstaid', 1) then
         TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['firstaid'], 'remove')
-        TriggerClientEvent('QC-AdvancedMedic:client:playerRevive', Patient.PlayerData.source)
+        TriggerClientEvent('fdb-medic:client:playerRevive', Patient.PlayerData.source)
     end
 end)
 
 -- Medic Treat Wounds
-RegisterNetEvent('QC-AdvancedMedic:server:TreatWounds', function(playerId)
+RegisterNetEvent('fdb-medic:server:TreatWounds', function(playerId)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(playerId)
@@ -311,12 +324,12 @@ RegisterNetEvent('QC-AdvancedMedic:server:TreatWounds', function(playerId)
 
     if Player.Functions.RemoveItem('bandage', 1) then
         TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['bandage'], 'remove')
-        TriggerClientEvent('QC-AdvancedMedic:client:HealInjuries', Patient.PlayerData.source, 'full')
+        TriggerClientEvent('fdb-medic:client:HealInjuries', Patient.PlayerData.source, 'full')
     end
 end)
 
 -- Medic Alert
-RegisterNetEvent('QC-AdvancedMedic:server:medicAlert', function(text)
+RegisterNetEvent('fdb-medic:server:medicAlert', function(text)
     local src = source
     local ped = GetPlayerPed(src)
     local coords = GetEntityCoords(ped)
@@ -324,13 +337,13 @@ RegisterNetEvent('QC-AdvancedMedic:server:medicAlert', function(text)
 
     for _, v in pairs(players) do
         if IsMedicJob(v.PlayerData.job.name) and v.PlayerData.job.onduty then
-            TriggerClientEvent('QC-AdvancedMedic:client:medicAlert', v.PlayerData.source, coords, text)
+            TriggerClientEvent('fdb-medic:client:medicAlert', v.PlayerData.source, coords, text)
         end
     end
 end)
 
 -- Emergency Call (from death screen "Call Medic" button)
-RegisterNetEvent('QC-AdvancedMedic:server:EmergencyCall', function(coords)
+RegisterNetEvent('fdb-medic:server:EmergencyCall', function(coords)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -341,7 +354,7 @@ RegisterNetEvent('QC-AdvancedMedic:server:EmergencyCall', function(coords)
     for _, v in pairs(players) do
         if IsMedicJob(v.PlayerData.job.name) and v.PlayerData.job.onduty then
             -- Fixed: Changed to EmergencyAlert to match client handler
-            TriggerClientEvent('QC-AdvancedMedic:client:EmergencyAlert', v.PlayerData.source, {
+            TriggerClientEvent('fdb-medic:client:EmergencyAlert', v.PlayerData.source, {
                 caller = playerName,
                 location = coords
             })
@@ -352,7 +365,7 @@ end)
 --------------------------
 -- Medics On-Duty Callback
 -------------------------
-RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:getmedics', function(source, cb)
+RSGCore.Functions.CreateCallback('fdb-medic:server:getmedics', function(source, cb)
     local amount = 0
     local players = RSGCore.Functions.GetRSGPlayers()
     for k, v in pairs(players) do
@@ -366,7 +379,7 @@ end)
 ---------------------------------
 -- remove item
 ---------------------------------
-RegisterServerEvent('QC-AdvancedMedic:server:removeitem', function(item, amount)
+RegisterServerEvent('fdb-medic:server:removeitem', function(item, amount)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -374,8 +387,8 @@ RegisterServerEvent('QC-AdvancedMedic:server:removeitem', function(item, amount)
     TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[item], 'remove', amount)
 end)
 
-RegisterServerEvent('QC-AdvancedMedic:SyncWounds')
-AddEventHandler('QC-AdvancedMedic:SyncWounds', function(data)
+RegisterServerEvent('fdb-medic:SyncWounds')
+AddEventHandler('fdb-medic:SyncWounds', function(data)
     playerInjury[source] = data
 end)
 
@@ -411,8 +424,8 @@ local function IsMedicJob(jobName)
 end
 
 -- Start duty pay timer (every 10 minutes)
-RegisterNetEvent('QC-AdvancedMedic:server:StartDutyPayTimer')
-AddEventHandler('QC-AdvancedMedic:server:StartDutyPayTimer', function()
+RegisterNetEvent('fdb-medic:server:StartDutyPayTimer')
+AddEventHandler('fdb-medic:server:StartDutyPayTimer', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     
@@ -473,8 +486,8 @@ AddEventHandler('QC-AdvancedMedic:server:StartDutyPayTimer', function()
 end)
 
 -- Process final duty pay when going off duty
-RegisterNetEvent('QC-AdvancedMedic:server:ProcessDutyPay')
-AddEventHandler('QC-AdvancedMedic:server:ProcessDutyPay', function(sessionTimeSeconds)
+RegisterNetEvent('fdb-medic:server:ProcessDutyPay')
+AddEventHandler('fdb-medic:server:ProcessDutyPay', function(sessionTimeSeconds)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     
@@ -528,8 +541,8 @@ end)
 --=========================================================
 
 -- Purchase pharmaceutical items
-RegisterNetEvent('QC-AdvancedMedic:server:PurchasePharmaceutical')
-AddEventHandler('QC-AdvancedMedic:server:PurchasePharmaceutical', function(data)
+RegisterNetEvent('fdb-medic:server:PurchasePharmaceutical')
+AddEventHandler('fdb-medic:server:PurchasePharmaceutical', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     

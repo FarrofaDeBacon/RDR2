@@ -27,6 +27,7 @@ Config.DrainRates = {
     TickRate = 4000,           -- Frequência do loop de sobrevivência em milissegundos
     Cleanliness = 0.1,         -- Higiene perdida por tick (clima limpo)
     Bladder = 0.2,             -- Aumento da vontade de urinar por tick
+    BladderAccidentTime = 60,  -- Segundos segurando a bexiga em 100% antes de mijar nas calças
     
     -- Multiplicadores de Clima (aplicados sobre Cleanliness)
     WeatherMultipliers = {

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to QC-AdvancedMedic.
+All notable changes to FDB-MEDIC.
 
 ## [Unreleased]
 
@@ -199,5 +199,5 @@ All notable changes to QC-AdvancedMedic.
 
 **Current**: `0.3.0-alpha`
 
-**Issues**: [GitHub Issues](https://github.com/YOUR_ORG/QC-AdvancedMedic/issues)
+**Issues**: [GitHub Issues](https://github.com/YOUR_ORG/FDB-MEDIC/issues)
 **Last Updated**: November 10, 2025

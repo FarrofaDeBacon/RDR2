@@ -34,7 +34,7 @@ function ProcessDamage(src, damageType, bodyPart, amount, originResource)
     local newHp = math.max(0, math.min(maxHp, math.floor(currentHp - amount)))
 
     -- Aplica nativamente via Server (Único local do projeto!)
-    SetEntityHealth(ped, newHp)
+    TriggerClientEvent('fdb-medical-core:client:setHealth', src, newHp)
 
     -- Atualiza os vitais fisiológicos
     vitals.health = newHp

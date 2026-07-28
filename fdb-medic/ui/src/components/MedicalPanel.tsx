@@ -140,15 +140,17 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
   };
 
   const getHasBandage = (bodyPart: string) => {
-    // Check treatments array for bandages on this body part
-    return treatments.some(treatment => 
+    // Check treatments object/array for bandages on this body part
+    const treatmentsArray = Array.isArray(treatments) ? treatments : Object.values(treatments || {});
+    return treatmentsArray.some((treatment: any) => 
       treatment.bodyPart === bodyPart && treatment.type === 'bandage'
     );
   };
 
   const getHasTourniquet = (bodyPart: string) => {
-    // Check treatments array for tourniquets on this body part
-    return treatments.some(treatment => 
+    // Check treatments object/array for tourniquets on this body part
+    const treatmentsArray = Array.isArray(treatments) ? treatments : Object.values(treatments || {});
+    return treatmentsArray.some((treatment: any) => 
       treatment.bodyPart === bodyPart && treatment.type === 'tourniquet'
     );
   };
@@ -428,7 +430,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
     setCurrentWounds(null);
 
     try {
-      const response = await fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/get-current-inventory`, {
+      const response = await fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/get-current-inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -456,7 +458,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
     setCurrentWounds(null);
 
     try {
-      const response = await fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/get-current-inventory`, {
+      const response = await fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/get-current-inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -931,7 +933,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
                         onClick={() => {
                           if (hasBandages) {
                             const bandage = currentInventory.bandages[0];
-                            fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/apply-bandage`, {
+                            fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/apply-bandage`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
@@ -1069,7 +1071,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
                         onClick={() => {
                           if (hasTourniquets) {
                             const tourniquet = currentInventory.tourniquets[0];
-                            fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/apply-tourniquet`, {
+                            fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/apply-tourniquet`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
@@ -1169,7 +1171,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
               color: 'white'
             }}>
               
-              {treatments.length === 0 ? (
+              {(Array.isArray(treatments) ? treatments : Object.values(treatments || {})).length === 0 ? (
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '20px', 
@@ -1179,7 +1181,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
                   No active treatments
                 </div>
               ) : (
-                treatments.map((treatment, index) => (
+                (Array.isArray(treatments) ? treatments : Object.values(treatments || {})).map((treatment: any, index: number) => (
                   <div key={index} className="treatment-option" style={{
                     padding: '10px',
                     margin: '6px 0',
@@ -1208,7 +1210,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
                       <button onClick={() => {
                         // Send replace bandage request
-                        fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/replace-treatment`, {
+                        fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/replace-treatment`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ 
@@ -1234,7 +1236,7 @@ const MedicalPanel: React.FC<MedicalPanelProps> = ({ wounds, treatments, infecti
                       {!wounds[treatment.bodyPart] && (
                         <button onClick={() => {
                           // Send remove treatment request
-                          fetch(`https://${(window as any).GetParentResourceName?.() || 'qc-advancedmedic'}/remove-treatment`, {
+                          fetch(`https://${(window as any).GetParentResourceName?.() || 'fdb-medic'}/remove-treatment`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 

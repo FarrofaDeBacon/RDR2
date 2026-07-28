@@ -10,6 +10,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/configui_sync.lua',
     'client/structs.js',
     'client/canteen.lua',
     'client/bathing.lua',
@@ -18,5 +19,11 @@ client_scripts {
 }
 
 server_scripts {
+    'server/configui_sync.lua',
     'server/main.lua'
 }
+
+files {
+    'locales/*.json'
+}
+

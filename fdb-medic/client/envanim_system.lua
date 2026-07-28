@@ -30,8 +30,8 @@ local PlayerFractures = {} -- Client-side fracture storage
 --=========================================================
 
 -- Load fractures from server on login/spawn
-RegisterNetEvent('QC-AdvancedMedic:client:LoadFractures')
-AddEventHandler('QC-AdvancedMedic:client:LoadFractures', function(fractures)
+RegisterNetEvent('fdb-medic:client:LoadFractures')
+AddEventHandler('fdb-medic:client:LoadFractures', function(fractures)
     PlayerFractures = fractures or {}
     
     if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
@@ -50,8 +50,8 @@ AddEventHandler('QC-AdvancedMedic:client:LoadFractures', function(fractures)
 end)
 
 -- Handle fracture healed event
-RegisterNetEvent('QC-AdvancedMedic:client:FractureHealed')
-AddEventHandler('QC-AdvancedMedic:client:FractureHealed', function(bodyPart)
+RegisterNetEvent('fdb-medic:client:FractureHealed')
+AddEventHandler('fdb-medic:client:FractureHealed', function(bodyPart)
     if PlayerFractures[bodyPart] then
         PlayerFractures[bodyPart] = nil
         
@@ -77,7 +77,7 @@ CreateThread(function()
     
     if LocalPlayer.state.isLoggedIn then
         Wait(2000) -- Wait for other systems to initialize
-        TriggerServerEvent('QC-AdvancedMedic:server:LoadFractures')
+        TriggerServerEvent('fdb-medic:server:LoadFractures')
     end
 end)
 
@@ -178,7 +178,7 @@ function HandleEnvironmentalDamage(damageType, bodyPart, isRagdoll)
                 }
                 
                 -- Save fracture to database
-                TriggerServerEvent('QC-AdvancedMedic:server:SaveFracture', bodyPart, fractureData)
+                TriggerServerEvent('fdb-medic:server:SaveFracture', bodyPart, fractureData)
                 
                 -- Store in client-side fracture tracking
                 if not PlayerFractures then PlayerFractures = {} end

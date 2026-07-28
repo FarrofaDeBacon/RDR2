@@ -6,7 +6,7 @@ exports['rsg-target']:AddTargetModel(1259819729, {
     options = {
         {
             type = "client",
-            event = 'QC-AdvancedMedic:client:pickup',
+            event = 'fdb-medic:client:pickup',
             icon = "fas fa-undo",
             label = locale('cl_bag_pickup'),
             distance = 3.0
@@ -20,19 +20,19 @@ exports['rsg-target']:AddTargetModel(1259819729, {
             icon = 'far fa-gear',
             label = locale('cl_bag_open'),
             type = "client",
-            event = 'QC-AdvancedMedic:client:medicbagMenu',
+            event = 'fdb-medic:client:medicbagMenu',
         },
     },
     distance = 2.0,
 })
 
-AddEventHandler('QC-AdvancedMedic:client:bagstorage', function()
+AddEventHandler('fdb-medic:client:bagstorage', function()
     local job = RSGCore.Functions.GetPlayerData().job.name
     if not IsMedicJob(job) then return end
-    TriggerServerEvent('QC-AdvancedMedic:server:openbaginv')
+    TriggerServerEvent('fdb-medic:server:openbaginv')
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:pickup', function()
+RegisterNetEvent('fdb-medic:client:pickup', function()
     if deployedtable ~= nil then
         local obj = NetworkGetEntityFromNetworkId(deployedtable)
         local objCoords = GetEntityCoords()
@@ -42,8 +42,8 @@ RegisterNetEvent('QC-AdvancedMedic:client:pickup', function()
         DeleteEntity(obj)
         DeleteObject(obj)
         if not DoesEntityExist(obj) then
-            TriggerServerEvent('QC-AdvancedMedic:server:pickup', deployedtable)
-            TriggerServerEvent('QC-AdvancedMedic:server:pickuptab')
+            TriggerServerEvent('fdb-medic:server:pickup', deployedtable)
+            TriggerServerEvent('fdb-medic:server:pickuptab')
             deployedtable = nil
         end
         Wait(500)
@@ -53,7 +53,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:pickup', function()
     end
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:medicbag', function()
+RegisterNetEvent('fdb-medic:client:medicbag', function()
     print("Event triggered!")
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
@@ -85,51 +85,58 @@ end)
 CreateThread(function()
     for _, v in ipairs(Config.MedicBagCrafting) do
         local IngredientsMetadata = {}
-        local setheader = RSGCore.Shared.Items[tostring(v.receive)].label
-        local itemimg = "nui://"..Config.Image..RSGCore.Shared.Items[tostring(v.receive)].image
-        for i, ingredient in ipairs(v.ingredients) do
-            table.insert(IngredientsMetadata, { label = RSGCore.Shared.Items[ingredient.item].label, value = ingredient.amount })
-        end
-        local option = {
-            title = setheader,
-            icon = itemimg,
-            event = 'QC-AdvancedMedic:client:mediccraft',
-            metadata = IngredientsMetadata,
-            args = {
+        local itemInfo = RSGCore.Shared.Items[tostring(v.receive)]
+        if itemInfo then
+            local setheader = itemInfo.label
+            local itemimg = "nui://"..Config.Image..itemInfo.image
+            for i, ingredient in ipairs(v.ingredients) do
+                local ingInfo = RSGCore.Shared.Items[ingredient.item]
+                local ingLabel = ingInfo and ingInfo.label or ingredient.item
+                table.insert(IngredientsMetadata, { label = ingLabel, value = ingredient.amount })
+            end
+            local option = {
                 title = setheader,
-                category = v.category,
-                ingredients = v.ingredients,
-                crafttime = v.crafttime,
-                craftingrep = v.craftingrep,
-                receive = v.receive,
-                giveamount = v.giveamount
+                icon = itemimg,
+                event = 'fdb-medic:client:mediccraft',
+                metadata = IngredientsMetadata,
+                args = {
+                    title = setheader,
+                    category = v.category,
+                    ingredients = v.ingredients,
+                    crafttime = v.crafttime,
+                    craftingrep = v.craftingrep,
+                    receive = v.receive,
+                    giveamount = v.giveamount
+                }
             }
-        }
-        if not MedicMenus[v.category] then
-            MedicMenus[v.category] = {
-                id = 'crafting_menu_' .. v.category,
-                title = v.category,
-                menu = 'crafting_menu',
-                onBack = function() end,
-                options = { option }
-            }
+            if not MedicMenus[v.category] then
+                MedicMenus[v.category] = {
+                    id = 'crafting_menu_' .. v.category,
+                    title = v.category,
+                    menu = 'crafting_menu',
+                    onBack = function() end,
+                    options = { option }
+                }
+            else
+                table.insert(MedicMenus[v.category].options, option)
+            end
         else
-            table.insert(MedicMenus[v.category].options, option)
+            print("^1[fdb-medic] Error: Item " .. tostring(v.receive) .. " does not exist in RSGCore.Shared.Items^7")
         end
     end
 end)
 
 CreateThread(function()
     for category, MenuData in pairs(MedicMenus) do
-        RegisterNetEvent('QC-AdvancedMedic:client:' .. category)
-        AddEventHandler('QC-AdvancedMedic:client:' .. category, function()
+        RegisterNetEvent('fdb-medic:client:' .. category)
+        AddEventHandler('fdb-medic:client:' .. category, function()
             lib.registerContext(MenuData)
             lib.showContext(MenuData.id)
         end)
     end
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:craftingmenu', function()
+RegisterNetEvent('fdb-medic:client:craftingmenu', function()
     local Menu = {
         id = 'med_craft',
         title = locale('cl_bag_medic_craft'),
@@ -139,7 +146,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:craftingmenu', function()
     for category, MenuData in pairs(MedicMenus) do
         table.insert(Menu.options, {
             title = category,
-            event = 'QC-AdvancedMedic:client:' .. category,
+            event = 'fdb-medic:client:' .. category,
             arrow = true
         })
     end
@@ -147,7 +154,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:craftingmenu', function()
     lib.showContext(Menu.id)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:medicbagMenu', function()
+RegisterNetEvent('fdb-medic:client:medicbagMenu', function()
     lib.registerContext({
         id = 'medicbag_menu',
         title = locale('cl_bag_medicbag_menu'),
@@ -156,14 +163,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:medicbagMenu', function()
                 title = locale('cl_bag_medicbag_craftmenu_title'),
                 description = locale('cl_bag_medicbag_craftmenu_desc'),
                 icon = 'fa-solid fa-user-secret',
-                event = 'QC-AdvancedMedic:client:craftingmenu',
+                event = 'fdb-medic:client:craftingmenu',
                 arrow = true
             },
             {
                 title = locale('cl_bag_medicbag_openstash_title'),
                 description = locale('cl_bag_medicbag_openstash_desc'),
                 icon = 'fa-solid fa-user',
-                event = 'QC-AdvancedMedic:client:bagstorage',
+                event = 'fdb-medic:client:bagstorage',
                 arrow = true
             },
         }
@@ -171,13 +178,13 @@ RegisterNetEvent('QC-AdvancedMedic:client:medicbagMenu', function()
     lib.showContext('medicbag_menu')
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:checkingredients', function(data)
-    RSGCore.Functions.TriggerCallback('QC-AdvancedMedic:server:checkingredients', function(hasRequired)
+RegisterNetEvent('fdb-medic:client:checkingredients', function(data)
+    RSGCore.Functions.TriggerCallback('fdb-medic:server:checkingredients', function(hasRequired)
     if (hasRequired) then
         if Config.Debug == true then
             print("passed")
         end
-        TriggerEvent('QC-AdvancedMedic:crafting', data.name, data.item, tonumber(data.crafttime), data.receive)
+        TriggerEvent('fdb-medic:crafting', data.name, data.item, tonumber(data.crafttime), data.receive)
     else
         if Config.Debug == true then
             print("failed")
@@ -187,8 +194,8 @@ RegisterNetEvent('QC-AdvancedMedic:client:checkingredients', function(data)
     end, Config.medicbagRecipes[data.item].ingredients)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:mediccraft', function(data)
-    RSGCore.Functions.TriggerCallback('QC-AdvancedMedic:server:checkingredients', function(hasRequired)
+RegisterNetEvent('fdb-medic:client:mediccraft', function(data)
+    RSGCore.Functions.TriggerCallback('fdb-medic:server:checkingredients', function(hasRequired)
         if hasRequired == true then
             local ped = PlayerPedId()
             TaskStartScenarioInPlace(ped, GetHashKey('WORLD_HUMAN_CROUCH_INSPECT'), data.crafttime, true, false, false, false)
@@ -204,7 +211,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:mediccraft', function(data)
                 },
                 label = locale('cl_bag_medicbag_craft_label').. RSGCore.Shared.Items[data.receive].label,
             })
-            TriggerServerEvent('QC-AdvancedMedic:server:finishcrafting', data)
+            TriggerServerEvent('fdb-medic:server:finishcrafting', data)
             ClearPedTasks(ped)
         else
             lib.notify({ title = locale('cl_bag_medicbag_craft_notify'), type = 'inform', duration = 7000 })

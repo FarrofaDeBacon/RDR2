@@ -585,7 +585,7 @@ local function CheckAndConvertToScars()
     
     -- Sync scar data to server if any scars were created
     if scarCount > 0 then
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+        TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     end
     
     return scarCount
@@ -1070,7 +1070,7 @@ function CreateWound(bodyPart, weaponData, weaponHash, shooterInfo)
         existingWound.weaponData = weaponData.data
         
         if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
-            print(string.format("^6[WOUND ACCUMULATION] %s hit again! Pain: %d, Bleeding: %d, Health: %.1f%%^7", 
+            print(string.format("^6[WOUND ACCUMULATION] %s hit again! Pain: %.1f, Bleeding: %.1f, Health: %.1f%%^7", 
                 bodyPart, existingWound.painLevel, existingWound.bleedingLevel, healthPercentage))
         end
     end
@@ -1094,7 +1094,7 @@ function CreateWound(bodyPart, weaponData, weaponHash, shooterInfo)
     UpdateGlobalBleeding()
     
     -- Sync wound data to server for persistence
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     
     if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
         local wound = PlayerWounds[bodyPart]
@@ -1297,11 +1297,11 @@ local function ProcessUnifiedMedicalProgression()
     -- UPDATE SERVER DATA if changes occurred
     if woundsChanged then
         UpdateGlobalBleeding()
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+        TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     end
     
     if infectionsChanged then
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateInfectionData', PlayerInfections)
+        TriggerServerEvent('fdb-medic:server:UpdateInfectionData', PlayerInfections)
     end
     
     -- Process wound healing system (bandaged wounds at bleeding level 1)
@@ -1322,7 +1322,7 @@ CreateThread(function()
     -- Wait for player to be logged in
     repeat Wait(1000) until LocalPlayer.state['isLoggedIn']
     
-    print("^2[QC-AdvancedMedic] Wound system initialized and running^7")
+    print("^2[fdb-medic] Wound system initialized and running^7")
     
     while true do
         local ped = PlayerPedId()
@@ -1811,14 +1811,14 @@ exports('RemoveWound', function(bodyPart)
     if PlayerWounds[bodyPart] then
         PlayerWounds[bodyPart] = nil
         UpdateGlobalBleeding()
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+        TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     end
 end)
 
 exports('ClearAllWounds', function()
     PlayerWounds = {}
     BleedingLevel = 0
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
 end)
 
 exports('ApplyMedicalDamage', function(damage, source)
@@ -1847,14 +1847,14 @@ end)
 --=========================================================
 -- NETWORK EVENTS
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:client:SyncWoundData')
-AddEventHandler('QC-AdvancedMedic:client:SyncWoundData', function(woundData)
+RegisterNetEvent('fdb-medic:client:SyncWoundData')
+AddEventHandler('fdb-medic:client:SyncWoundData', function(woundData)
     PlayerWounds = woundData or {}
     UpdateGlobalBleeding()
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:UseMorphine')
-AddEventHandler('QC-AdvancedMedic:client:UseMorphine', function(duration)
+RegisterNetEvent('fdb-medic:client:UseMorphine')
+AddEventHandler('fdb-medic:client:UseMorphine', function(duration)
     LimbEffects.onMorphine = duration or 300 -- 5 minutes default
     lib.notify({
         title = locale('qc_health'),
@@ -1863,8 +1863,8 @@ AddEventHandler('QC-AdvancedMedic:client:UseMorphine', function(duration)
     })
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:ResetLimbs')
-AddEventHandler('QC-AdvancedMedic:client:ResetLimbs', function()
+RegisterNetEvent('fdb-medic:client:ResetLimbs')
+AddEventHandler('fdb-medic:client:ResetLimbs', function()
     PlayerWounds = {}
     BleedingLevel = 0
     LimbEffects = {
@@ -1875,7 +1875,7 @@ AddEventHandler('QC-AdvancedMedic:client:ResetLimbs', function()
         armCount = 0,
         headCount = 0
     }
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     
     lib.notify({
         title = locale('qc_health'),
@@ -1884,8 +1884,8 @@ AddEventHandler('QC-AdvancedMedic:client:ResetLimbs', function()
     })
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:ClearAllWounds')
-AddEventHandler('QC-AdvancedMedic:client:ClearAllWounds', function()
+RegisterNetEvent('fdb-medic:client:ClearAllWounds')
+AddEventHandler('fdb-medic:client:ClearAllWounds', function()
     PlayerWounds = {}
     BleedingLevel = 0
     LimbEffects = {
@@ -1902,14 +1902,31 @@ AddEventHandler('QC-AdvancedMedic:client:ClearAllWounds', function()
         PlayerFractures = {}
     end
     
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    -- Restore health when clearing wounds
+    local ped = PlayerPedId()
+    SetEntityHealth(ped, Config.MaxHealth or 600)
+    
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:LoadWounds')
-AddEventHandler('QC-AdvancedMedic:client:LoadWounds', function(woundData)
+RegisterNetEvent('fdb-medic:client:LoadWounds')
+AddEventHandler('fdb-medic:client:LoadWounds', function(woundData)
     if woundData and type(woundData) == 'table' then
         PlayerWounds = woundData
         UpdateGlobalBleeding()
+        
+        -- Safe-check to prevent instant death upon loading wound states if the player was alive
+        local playerData = RSGCore.Functions.GetPlayerData()
+        if playerData and playerData.metadata and not playerData.metadata['isdead'] then
+            local ped = PlayerPedId()
+            if GetEntityHealth(ped) <= 0 then
+                SetEntityHealth(ped, Config.MaxHealth or 600)
+                ClearPedTasksImmediately(ped)
+                if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
+                    print("^2[SAFE-CHECK] Player was alive in metadata but spawned with 0 health. Restored health to prevent instant death.^7")
+                end
+            end
+        end
         
         if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
             local woundCount = 0
@@ -1998,7 +2015,7 @@ local function RemoveLodgedBullet(bodyPart)
     UpdateGlobalBleeding()
     
     -- Sync to server
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
     
     -- Notify player
     local bodyPartConfig = Config.BodyParts[bodyPart]
@@ -2017,7 +2034,7 @@ end
 exports('RemoveLodgedBullet', RemoveLodgedBullet)
 
 -- Server event handler for bullet removal (for medic profession use)
-RegisterNetEvent('QC-AdvancedMedic:client:RemoveBullet')
-AddEventHandler('QC-AdvancedMedic:client:RemoveBullet', function(bodyPart)
+RegisterNetEvent('fdb-medic:client:RemoveBullet')
+AddEventHandler('fdb-medic:client:RemoveBullet', function(bodyPart)
     RemoveLodgedBullet(bodyPart)
 end)

@@ -4,26 +4,26 @@ local RSGCore = exports['rsg-core']:GetCoreObject()
 RSGCore.Functions.CreateUseableItem("medicalbag", function(source, item)
 	local src = source
 	local Player = RSGCore.Functions.GetPlayer(src)
-	TriggerClientEvent('QC-AdvancedMedic:client:medicbag', src)
+	TriggerClientEvent('fdb-medic:client:medicbag', src)
 	Player.Functions.RemoveItem('medicalbag', 1)
 	TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['medicalbag'], "remove", 1)
 end)
 
-RegisterServerEvent('QC-AdvancedMedic:server:pickuptab')
-AddEventHandler('QC-AdvancedMedic:server:pickuptab', function()
+RegisterServerEvent('fdb-medic:server:pickuptab')
+AddEventHandler('fdb-medic:server:pickuptab', function()
 	local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 	Player.Functions.AddItem('medicalbag', 1)
 	TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items['medicalbag'], "add", 1)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:server:pickup')
-AddEventHandler('QC-AdvancedMedic:server:pickup', function(entity)
+RegisterNetEvent('fdb-medic:server:pickup')
+AddEventHandler('fdb-medic:server:pickup', function(entity)
     local src = source
     --might add soon :)
 end)
 
-RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:checkingredients', function(source, cb, ingredients)
+RSGCore.Functions.CreateCallback('fdb-medic:server:checkingredients', function(source, cb, ingredients)
     local src = source
     local hasItems = false
     local icheck = 0
@@ -41,7 +41,7 @@ RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:checkingredients', fun
     end
 end)
 
-RegisterServerEvent('QC-AdvancedMedic:server:finishcrafting', function(data)
+RegisterServerEvent('fdb-medic:server:finishcrafting', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then 
@@ -72,7 +72,7 @@ end)
 
 
 
-RegisterNetEvent('QC-AdvancedMedic:server:openbaginv', function(location)
+RegisterNetEvent('fdb-medic:server:openbaginv', function(location)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end

@@ -114,7 +114,7 @@ function ApplyBandage(bodyPart, bandageType, appliedBy)
     end
     
     -- Update wound data on server
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', wounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', wounds)
     
     if Config.WoundSystem.debugging.enabled then
         print(string.format("^3[BANDAGE] Pain:%.1f→%.1f Bleed:%.1f→%.1f^7", 
@@ -154,7 +154,7 @@ function ApplyBandage(bodyPart, bandageType, appliedBy)
     })
     
     -- Update server with treatment data
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateTreatmentData', ActiveTreatments)
+    TriggerServerEvent('fdb-medic:server:UpdateTreatmentData', ActiveTreatments)
     
     -- Success notification with detailed info
     lib.notify({
@@ -287,7 +287,7 @@ local function ApplyTourniquet(bodyPart, tourniquetType, appliedBy)
     if wound and wound.bleedingLevel > 0 then
         if math.random() <= tourniquetConfig.bleedingStopChance then
             wound.bleedingLevel = 0
-            TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', wounds)
+            TriggerServerEvent('fdb-medic:server:UpdateWoundData', wounds)
 
             lib.notify({
                 title = locale('cl_menu_emergency_treatment'),
@@ -316,7 +316,7 @@ local function ApplyTourniquet(bodyPart, tourniquetType, appliedBy)
     -- Increase pain due to tourniquet pressure
     if wound and tourniquetConfig.painIncrease then
         wound.painLevel = math.min(wound.painLevel + (tourniquetConfig.painIncrease / 10), 10)
-        TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', wounds)
+        TriggerServerEvent('fdb-medic:server:UpdateWoundData', wounds)
     end
     
     -- Track active tourniquet
@@ -340,7 +340,7 @@ local function ApplyTourniquet(bodyPart, tourniquetType, appliedBy)
     StartTourniquetTimer(bodyPart, tourniquetType)
     
     -- Update server
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateTreatmentData', ActiveTreatments)
+    TriggerServerEvent('fdb-medic:server:UpdateTreatmentData', ActiveTreatments)
 
     lib.notify({
         title = locale('cl_menu_emergency_treatment'),
@@ -656,10 +656,10 @@ function RemoveTreatment(bodyPart, treatmentType)
     ActiveTreatments[bodyPart] = nil
     
     -- Update server with treatment data (for database and NUI)
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateTreatmentData', ActiveTreatments)
+    TriggerServerEvent('fdb-medic:server:UpdateTreatmentData', ActiveTreatments)
     
     -- Trigger specific removal event for NUI/medic interfaces
-    TriggerServerEvent('QC-AdvancedMedic:server:TreatmentRemoved', bodyPart, treatmentType, treatment)
+    TriggerServerEvent('fdb-medic:server:TreatmentRemoved', bodyPart, treatmentType, treatment)
     
     return true
 end
@@ -691,33 +691,33 @@ end)
 --=========================================================
 -- NETWORK EVENTS
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyBandage')
-AddEventHandler('QC-AdvancedMedic:client:ApplyBandage', function(bodyPart, bandageType, appliedBy)
+RegisterNetEvent('fdb-medic:client:ApplyBandage')
+AddEventHandler('fdb-medic:client:ApplyBandage', function(bodyPart, bandageType, appliedBy)
     ApplyBandage(bodyPart, bandageType, appliedBy)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyTourniquet')
-AddEventHandler('QC-AdvancedMedic:client:ApplyTourniquet', function(bodyPart, tourniquetType, appliedBy)
+RegisterNetEvent('fdb-medic:client:ApplyTourniquet')
+AddEventHandler('fdb-medic:client:ApplyTourniquet', function(bodyPart, tourniquetType, appliedBy)
     ApplyTourniquet(bodyPart, tourniquetType, appliedBy)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:AdministreMedicine')
-AddEventHandler('QC-AdvancedMedic:client:AdministreMedicine', function(medicineType, appliedBy)
+RegisterNetEvent('fdb-medic:client:AdministreMedicine')
+AddEventHandler('fdb-medic:client:AdministreMedicine', function(medicineType, appliedBy)
     AdministreMedicine(medicineType, appliedBy)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:ApplyMedicine')
-AddEventHandler('QC-AdvancedMedic:client:ApplyMedicine', function(medicineType, appliedBy)
+RegisterNetEvent('fdb-medic:client:ApplyMedicine')
+AddEventHandler('fdb-medic:client:ApplyMedicine', function(medicineType, appliedBy)
     AdministreMedicine(medicineType, appliedBy)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:GiveInjection')
-AddEventHandler('QC-AdvancedMedic:client:GiveInjection', function(injectionType, appliedBy)
+RegisterNetEvent('fdb-medic:client:GiveInjection')
+AddEventHandler('fdb-medic:client:GiveInjection', function(injectionType, appliedBy)
     GiveInjection(injectionType, appliedBy)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:LoadTreatments')
-AddEventHandler('QC-AdvancedMedic:client:LoadTreatments', function(treatmentData)
+RegisterNetEvent('fdb-medic:client:LoadTreatments')
+AddEventHandler('fdb-medic:client:LoadTreatments', function(treatmentData)
     if treatmentData and type(treatmentData) == 'table' then
         -- Load active treatments from server data
         ActiveTreatments = {}
@@ -773,21 +773,21 @@ end)
 -- handled in the unified medical progression system in wound_system.lua
 -- No effectiveness decay or gradual healing - just immediate effect + expiration
 
-RegisterNetEvent('QC-AdvancedMedic:client:RemoveTreatment')
-AddEventHandler('QC-AdvancedMedic:client:RemoveTreatment', function(bodyPart, treatmentType)
+RegisterNetEvent('fdb-medic:client:RemoveTreatment')
+AddEventHandler('fdb-medic:client:RemoveTreatment', function(bodyPart, treatmentType)
     RemoveTreatment(bodyPart, treatmentType)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:SyncTreatmentData')
-AddEventHandler('QC-AdvancedMedic:client:SyncTreatmentData', function(treatmentData)
+RegisterNetEvent('fdb-medic:client:SyncTreatmentData')
+AddEventHandler('fdb-medic:client:SyncTreatmentData', function(treatmentData)
     ActiveTreatments = treatmentData or {}
 end)
 
 ---------------------------------------------------------------------
 -- Self-use tourniquet and injection events
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:usetourniquet')
-AddEventHandler('QC-AdvancedMedic:client:usetourniquet', function(tourniquetType)
+RegisterNetEvent('fdb-medic:client:usetourniquet')
+AddEventHandler('fdb-medic:client:usetourniquet', function(tourniquetType)
     local PlayerData = RSGCore.Functions.GetPlayerData()
 
     if PlayerData.metadata['isdead'] or PlayerData.metadata['ishandcuffed'] then
@@ -838,11 +838,11 @@ AddEventHandler('QC-AdvancedMedic:client:usetourniquet', function(tourniquetType
     ApplyTourniquet(targetBodyPart, tourniquetType, GetPlayerServerId(PlayerId()))
 
     -- Remove item on server
-    TriggerServerEvent('QC-AdvancedMedic:server:removeitem', tourniquetConfig.itemName, 1)
+    TriggerServerEvent('fdb-medic:server:removeitem', tourniquetConfig.itemName, 1)
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:client:useinjection')
-AddEventHandler('QC-AdvancedMedic:client:useinjection', function(injectionType)
+RegisterNetEvent('fdb-medic:client:useinjection')
+AddEventHandler('fdb-medic:client:useinjection', function(injectionType)
     local PlayerData = RSGCore.Functions.GetPlayerData()
 
     if PlayerData.metadata['isdead'] or PlayerData.metadata['ishandcuffed'] then
@@ -860,7 +860,7 @@ AddEventHandler('QC-AdvancedMedic:client:useinjection', function(injectionType)
     GiveInjection(injectionType, GetPlayerServerId(PlayerId()))
 
     -- Remove item on server
-    TriggerServerEvent('QC-AdvancedMedic:server:removeitem', injectionConfig.itemName, 1)
+    TriggerServerEvent('fdb-medic:server:removeitem', injectionConfig.itemName, 1)
 end)
 
 -- Functions are now globally accessible - no initialization needed

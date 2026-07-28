@@ -3,7 +3,7 @@
 -- Tabela de estado de vitais server-authoritative por jogador
 -- ============================================================
 
-local PlayerVitals = {}
+PlayerVitals = {}
 
 --- Retorna a tabela de vitais de um jogador (ou inicializa se não existir)
 --- @param src number Player ID

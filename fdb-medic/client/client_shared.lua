@@ -1,4 +1,4 @@
--- QC-AdvancedMedic Client Shared Functions
+-- fdb-medic Client Shared Functions
 -- This file contains shared functions used across multiple client files
 -- Replaces dangerous internal exports with direct function calls
 

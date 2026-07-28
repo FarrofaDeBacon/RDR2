@@ -16,9 +16,12 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/configui_sync.lua',
     'client/main.lua'
 }
 
 server_scripts {
+    'server/configui_sync.lua',
     'server/main.lua'
 }
+

@@ -112,11 +112,11 @@ const InspectionPanel: React.FC<InspectionPanelProps> = ({ data, translations, o
       } else if (event.data.type === 'vitals-response') {
         // Handle health response from backend for realistic pulse calculation
         const { health, isDead, isUnconscious } = event.data;
-        console.log('[QC-AdvancedMedic] Received vitals-response:', { health, isDead, isUnconscious });
+        console.log('[FDB-MEDIC] Received vitals-response:', { health, isDead, isUnconscious });
         updateVitalsFromHealth(health, isDead, isUnconscious);
       } else if (event.data.type === 'update-mission-wounds') {
         // Handle wound updates after mission treatments
-        console.log('[QC-AdvancedMedic] Received wound update for mission NPC:', event.data.data);
+        console.log('[FDB-MEDIC] Received wound update for mission NPC:', event.data.data);
         
         // Update the data by replacing it with the new wound data
         // This is a direct mutation which will trigger re-renders
@@ -263,7 +263,7 @@ const InspectionPanel: React.FC<InspectionPanelProps> = ({ data, translations, o
 
   // Update vitals based on real health data from backend
   const updateVitalsFromHealth = (health: number, isDead: boolean, isUnconscious: boolean) => {
-    console.log('[QC-AdvancedMedic] updateVitalsFromHealth called with:', { health, isDead, isUnconscious });
+    console.log('[FDB-MEDIC] updateVitalsFromHealth called with:', { health, isDead, isUnconscious });
     let heartRate = 0;
     let status = '';
     let description = '';
@@ -1222,11 +1222,11 @@ const InspectionPanel: React.FC<InspectionPanelProps> = ({ data, translations, o
     .then(resp => resp.json())
     .then(result => {
       if (result.status === 'error') {
-        console.error('[QC-AdvancedMedic] Medical action error:', result.message);
+        console.error('[FDB-MEDIC] Medical action error:', result.message);
       }
     })
     .catch(err => {
-      console.error('[QC-AdvancedMedic] Medical action failed:', err);
+      console.error('[FDB-MEDIC] Medical action failed:', err);
     });
   };
 

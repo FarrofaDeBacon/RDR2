@@ -39,7 +39,7 @@ local function InitializePlayerMedicalData(source)
     local citizenid = Player.PlayerData.citizenid
     
     -- Load all medical data from database
-    local data = exports['QC-AdvancedMedic']:GetCompleteMedicalProfile(citizenid)
+    local data = exports['fdb-medic']:GetCompleteMedicalProfile(citizenid)
     
     PlayerMedicalData[source] = {
         citizenid = citizenid,
@@ -51,11 +51,11 @@ local function InitializePlayerMedicalData(source)
     }
     
     -- Send initial data to client
-    TriggerClientEvent('QC-AdvancedMedic:client:SyncWoundData', source, data.wounds)
-    TriggerClientEvent('QC-AdvancedMedic:client:SyncTreatmentData', source, data.treatments)
-    TriggerClientEvent('QC-AdvancedMedic:client:SyncInfectionData', source, data.infections)
+    TriggerClientEvent('fdb-medic:client:SyncWoundData', source, data.wounds)
+    TriggerClientEvent('fdb-medic:client:SyncTreatmentData', source, data.treatments)
+    TriggerClientEvent('fdb-medic:client:SyncInfectionData', source, data.infections)
     
-    print(string.format("^2[QC-AdvancedMedic] Loaded medical data for %s^7", citizenid))
+    print(string.format("^2[fdb-medic] Loaded medical data for %s^7", citizenid))
 end
 
 --=========================================================
@@ -81,8 +81,33 @@ AddEventHandler('RSGCore:Server:PlayerLoaded', function(Player)
         injectionTypes = Config.InjectionTypes or {}
     }
     
-    TriggerClientEvent('QC-AdvancedMedic:client:ReceiveConfigs', source, configData)
-    print(string.format('^2[QC-AdvancedMedic] Sent config data to player %d^7', source))
+    TriggerClientEvent('fdb-medic:client:ReceiveConfigs', source, configData)
+    print(string.format('^2[fdb-medic] Sent config data to player %d^7', source))
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if GetCurrentResourceName() ~= resourceName then return end
+    Wait(2000) -- Wait for config to initialize
+    
+    local configData = {
+        injuryStates = Config.InjuryStates,
+        infectionStages = Config.InfectionSystem.stages,
+        bodyParts = Config.BodyParts,
+        uiColors = Config.UI.colors,
+        locale = Config.Locale,
+        translations = Config.Strings or {},
+        bandageTypes = Config.BandageTypes or {},
+        tourniquetTypes = Config.TourniquetTypes or {},
+        medicineTypes = Config.MedicineTypes or {},
+        injectionTypes = Config.InjectionTypes or {}
+    }
+    
+    local players = RSGCore.Functions.GetPlayers()
+    for _, src in ipairs(players) do
+        InitializePlayerMedicalData(src)
+        TriggerClientEvent('fdb-medic:client:ReceiveConfigs', src, configData)
+    end
+    print('^2[fdb-medic] Pushed config data and initialized medical data for all online players (Script Restart)^7')
 end)
 
 AddEventHandler('RSGCore:Server:OnPlayerUnload', function(source)
@@ -91,25 +116,25 @@ AddEventHandler('RSGCore:Server:OnPlayerUnload', function(source)
         local data = PlayerMedicalData[source]
         
         if data.wounds and next(data.wounds) then
-            exports['QC-AdvancedMedic']:SaveWoundData(data.citizenid, data.wounds)
+            exports['fdb-medic']:SaveWoundData(data.citizenid, data.wounds)
         end
         
         if data.treatments and next(data.treatments) then
-            exports['QC-AdvancedMedic']:SaveTreatmentData(data.citizenid, data.treatments)
+            exports['fdb-medic']:SaveTreatmentData(data.citizenid, data.treatments)
         end
         
         if data.infections and next(data.infections) then
-            exports['QC-AdvancedMedic']:SaveInfectionData(data.citizenid, data.infections)
+            exports['fdb-medic']:SaveInfectionData(data.citizenid, data.infections)
         end
         
         if data.bandages and next(data.bandages) then
-            exports['QC-AdvancedMedic']:SaveBandageData(data.citizenid, data.bandages)
+            exports['fdb-medic']:SaveBandageData(data.citizenid, data.bandages)
         end
 
-        TriggerClientEvent('QC-AdvancedMedic:client:SaveMedicalDataOnDisconnect', source)
+        TriggerClientEvent('fdb-medic:client:SaveMedicalDataOnDisconnect', source)
 
         PlayerMedicalData[source] = nil
-        print(string.format("^3[QC-AdvancedMedic] Saved and cleared medical data for %s^7", data.citizenid))
+        print(string.format("^3[fdb-medic] Saved and cleared medical data for %s^7", data.citizenid))
     end
 end)
 
@@ -120,7 +145,7 @@ end)
 -- This ensures /inspect always shows current data without duplicate DB saves
 
 -- Wound cache update (triggered by medical_events.lua after DB save)
-AddEventHandler('QC-AdvancedMedic:internal:UpdateWoundCache', function(source, woundData)
+AddEventHandler('fdb-medic:internal:UpdateWoundCache', function(source, woundData)
     if PlayerMedicalData[source] then
         PlayerMedicalData[source].wounds = woundData or {}
         PlayerMedicalData[source].lastSync = os.time()
@@ -143,7 +168,7 @@ AddEventHandler('QC-AdvancedMedic:internal:UpdateWoundCache', function(source, w
 end)
 
 -- Treatment cache update (triggered by medical_events.lua after DB save)
-AddEventHandler('QC-AdvancedMedic:internal:UpdateTreatmentCache', function(source, treatmentData)
+AddEventHandler('fdb-medic:internal:UpdateTreatmentCache', function(source, treatmentData)
     if PlayerMedicalData[source] then
         PlayerMedicalData[source].treatments = treatmentData or {}
         PlayerMedicalData[source].lastSync = os.time()
@@ -157,7 +182,7 @@ AddEventHandler('QC-AdvancedMedic:internal:UpdateTreatmentCache', function(sourc
 end)
 
 -- Infection cache update (triggered by medical_events.lua after DB save)
-AddEventHandler('QC-AdvancedMedic:internal:UpdateInfectionCache', function(source, infectionData)
+AddEventHandler('fdb-medic:internal:UpdateInfectionCache', function(source, infectionData)
     if PlayerMedicalData[source] then
         PlayerMedicalData[source].infections = infectionData or {}
         PlayerMedicalData[source].lastSync = os.time()
@@ -173,8 +198,8 @@ end)
 --=========================================================
 -- BANDAGE TRACKING SYNCHRONIZATION
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:server:UpdateBandageData')
-AddEventHandler('QC-AdvancedMedic:server:UpdateBandageData', function(bandageData)
+RegisterNetEvent('fdb-medic:server:UpdateBandageData')
+AddEventHandler('fdb-medic:server:UpdateBandageData', function(bandageData)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -189,15 +214,15 @@ AddEventHandler('QC-AdvancedMedic:server:UpdateBandageData', function(bandageDat
         PlayerMedicalData[src].lastSync = os.time()
         
         -- Save to database
-        exports['QC-AdvancedMedic']:SaveBandageData(Player.PlayerData.citizenid, bandageData)
+        exports['fdb-medic']:SaveBandageData(Player.PlayerData.citizenid, bandageData)
     end
 end)
 
 --=========================================================
 -- MEDIC TREATMENT COMMANDS
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:server:MedicApplyBandage')
-AddEventHandler('QC-AdvancedMedic:server:MedicApplyBandage', function(targetId, bodyPart, bandageType)
+RegisterNetEvent('fdb-medic:server:MedicApplyBandage')
+AddEventHandler('fdb-medic:server:MedicApplyBandage', function(targetId, bodyPart, bandageType)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(targetId)
@@ -231,10 +256,10 @@ AddEventHandler('QC-AdvancedMedic:server:MedicApplyBandage', function(targetId, 
         TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[bandageType], 'remove', 1)
         
         -- Apply treatment to patient
-        TriggerClientEvent('QC-AdvancedMedic:client:ApplyBandage', Patient.PlayerData.source, bodyPart, bandageType, src)
+        TriggerClientEvent('fdb-medic:client:ApplyBandage', Patient.PlayerData.source, bodyPart, bandageType, src)
         
         -- Log medical action
-        exports['QC-AdvancedMedic']:LogMedicalEvent(
+        exports['fdb-medic']:LogMedicalEvent(
             Patient.PlayerData.citizenid,
             'medic_treatment',
             string.format("Medic applied %s to %s", bandageType, bodyPart),
@@ -259,8 +284,8 @@ AddEventHandler('QC-AdvancedMedic:server:MedicApplyBandage', function(targetId, 
     end
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:server:MedicApplyTourniquet')
-AddEventHandler('QC-AdvancedMedic:server:MedicApplyTourniquet', function(targetId, bodyPart, tourniquetType)
+RegisterNetEvent('fdb-medic:server:MedicApplyTourniquet')
+AddEventHandler('fdb-medic:server:MedicApplyTourniquet', function(targetId, bodyPart, tourniquetType)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(targetId)
@@ -294,10 +319,10 @@ AddEventHandler('QC-AdvancedMedic:server:MedicApplyTourniquet', function(targetI
         TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[tourniquetType], 'remove', 1)
         
         -- Apply emergency treatment to patient
-        TriggerClientEvent('QC-AdvancedMedic:client:ApplyTourniquet', Patient.PlayerData.source, bodyPart, tourniquetType, src)
+        TriggerClientEvent('fdb-medic:client:ApplyTourniquet', Patient.PlayerData.source, bodyPart, tourniquetType, src)
         
         -- Log medical action
-        exports['QC-AdvancedMedic']:LogMedicalEvent(
+        exports['fdb-medic']:LogMedicalEvent(
             Patient.PlayerData.citizenid,
             'emergency_treatment',
             string.format("Medic applied emergency %s to %s", tourniquetType, bodyPart),
@@ -322,8 +347,8 @@ AddEventHandler('QC-AdvancedMedic:server:MedicApplyTourniquet', function(targetI
     end
 end)
 
-RegisterNetEvent('QC-AdvancedMedic:server:MedicApplyMedicine')
-AddEventHandler('QC-AdvancedMedic:server:MedicApplyMedicine', function(targetId, medicineType)
+RegisterNetEvent('fdb-medic:server:MedicApplyMedicine')
+AddEventHandler('fdb-medic:server:MedicApplyMedicine', function(targetId, medicineType)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(targetId)
@@ -379,10 +404,10 @@ AddEventHandler('QC-AdvancedMedic:server:MedicApplyMedicine', function(targetId,
         TriggerClientEvent('rsg-inventory:client:ItemBox', src, RSGCore.Shared.Items[itemName], 'remove', 1)
         
         -- Apply medicine treatment to patient (mark as treated, don't clear wounds)
-        TriggerClientEvent('QC-AdvancedMedic:client:ApplyMedicine', Patient.PlayerData.source, medicineType, src)
+        TriggerClientEvent('fdb-medic:client:ApplyMedicine', Patient.PlayerData.source, medicineType, src)
         
         -- Log medical action
-        exports['QC-AdvancedMedic']:LogMedicalEvent(
+        exports['fdb-medic']:LogMedicalEvent(
             Patient.PlayerData.citizenid,
             'medicine_treatment',
             string.format("Medic administered %s for pain management", medicineConfig.label or medicineType),
@@ -410,8 +435,8 @@ end)
 --=========================================================
 -- MEDICAL INSPECTION SYSTEM
 --=========================================================
-RegisterNetEvent('QC-AdvancedMedic:server:RequestMedicalInspection')
-AddEventHandler('QC-AdvancedMedic:server:RequestMedicalInspection', function(targetId)
+RegisterNetEvent('fdb-medic:server:RequestMedicalInspection')
+AddEventHandler('fdb-medic:server:RequestMedicalInspection', function(targetId)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(targetId)
@@ -456,10 +481,10 @@ AddEventHandler('QC-AdvancedMedic:server:RequestMedicalInspection', function(tar
     }
     
     -- Send inspection data to medic
-    TriggerClientEvent('QC-AdvancedMedic:client:ShowMedicalInspection', src, inspectionData)
+    TriggerClientEvent('fdb-medic:client:ShowMedicalInspection', src, inspectionData)
     
     -- Log inspection
-    exports['QC-AdvancedMedic']:LogMedicalEvent(
+    exports['fdb-medic']:LogMedicalEvent(
         Patient.PlayerData.citizenid,
         'medical_inspection',
         nil, -- No specific body part for general inspection
@@ -485,7 +510,7 @@ end)
 --=========================================================
 -- MEDICAL HISTORY CALLBACK
 --=========================================================
-RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:GetMedicalHistory', function(source, cb, targetId, limit)
+RSGCore.Functions.CreateCallback('fdb-medic:server:GetMedicalHistory', function(source, cb, targetId, limit)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     
@@ -500,7 +525,7 @@ RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:GetMedicalHistory', fu
         return
     end
     
-    exports['QC-AdvancedMedic']:GetMedicalHistory(Patient.PlayerData.citizenid, limit or 25, function(history)
+    exports['fdb-medic']:GetMedicalHistory(Patient.PlayerData.citizenid, limit or 25, function(history)
         cb(history)
     end)
 end)
@@ -508,7 +533,7 @@ end)
 --=========================================================
 -- PLAYER WOUND DATA CALLBACK
 --=========================================================
-RSGCore.Functions.CreateCallback('QC-AdvancedMedic:server:GetPlayerWounds', function(source, cb, targetId)
+RSGCore.Functions.CreateCallback('fdb-medic:server:GetPlayerWounds', function(source, cb, targetId)
     local targetSource = targetId or source
     
     if PlayerMedicalData[targetSource] then
@@ -529,27 +554,27 @@ CreateThread(function()
             if data.lastSync and (os.time() - data.lastSync) < 600 then -- Only sync if data changed in last 10 minutes
                 -- Save wounds
                 if data.wounds and next(data.wounds) then
-                    exports['QC-AdvancedMedic']:SaveWoundData(data.citizenid, data.wounds)
+                    exports['fdb-medic']:SaveWoundData(data.citizenid, data.wounds)
                 end
                 
                 -- Save treatments
                 if data.treatments and next(data.treatments) then
-                    exports['QC-AdvancedMedic']:SaveTreatmentData(data.citizenid, data.treatments)
+                    exports['fdb-medic']:SaveTreatmentData(data.citizenid, data.treatments)
                 end
                 
                 -- Save infections
                 if data.infections and next(data.infections) then
-                    exports['QC-AdvancedMedic']:SaveInfectionData(data.citizenid, data.infections)
+                    exports['fdb-medic']:SaveInfectionData(data.citizenid, data.infections)
                 end
                 
                 -- Save bandage tracking
                 if data.bandages and next(data.bandages) then
-                    exports['QC-AdvancedMedic']:SaveBandageData(data.citizenid, data.bandages)
+                    exports['fdb-medic']:SaveBandageData(data.citizenid, data.bandages)
                 end
             end
         end
         
-        print("^2[QC-AdvancedMedic] Performed regular data sync for all players^7")
+        print("^2[fdb-medic] Performed regular data sync for all players^7")
     end
 end)
 
@@ -558,7 +583,7 @@ end)
 --=========================================================
 RSGCore.Commands.Add('inspect', 'Inspect another player\'s medical condition (Medic Only)', {{name = 'id', help = 'Player ID to inspect'}}, true, function(source, args)
     local src = source
-    print('^3[QC-AdvancedMedic] DEBUG: /inspect command triggered by player ' .. src .. '^7')
+    print('^3[fdb-medic] DEBUG: /inspect command triggered by player ' .. src .. '^7')
     local Medic = RSGCore.Functions.GetPlayer(src)
     
     if not Medic then return end
@@ -671,11 +696,11 @@ RSGCore.Commands.Add('inspect', 'Inspect another player\'s medical condition (Me
     }
     
     -- Send inspection data to medic's NUI
-    TriggerClientEvent('QC-AdvancedMedic:client:ShowInspectionPanel', src, inspectionData)
+    TriggerClientEvent('fdb-medic:client:ShowInspectionPanel', src, inspectionData)
     
     -- Log inspection (async to prevent blocking)
     CreateThread(function()
-        exports['QC-AdvancedMedic']:LogMedicalEvent(
+        exports['fdb-medic']:LogMedicalEvent(
             Patient.PlayerData.citizenid,
             'medical_inspection',
             nil, -- No specific body part for general inspection
@@ -716,8 +741,8 @@ end)
 -- Health/Vitals Check Request Handler
 --=========================================================
 
-RegisterServerEvent('QC-AdvancedMedic:server:CheckVitals')
-AddEventHandler('QC-AdvancedMedic:server:CheckVitals', function(targetPlayerId)
+RegisterServerEvent('fdb-medic:server:CheckVitals')
+AddEventHandler('fdb-medic:server:CheckVitals', function(targetPlayerId)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
     local Patient = RSGCore.Functions.GetPlayer(targetPlayerId)
@@ -727,15 +752,15 @@ AddEventHandler('QC-AdvancedMedic:server:CheckVitals', function(targetPlayerId)
         return
     end
     
-    print(string.format('^2[QC-AdvancedMedic] Requesting vitals from target client: %d^7', Patient.PlayerData.source))
+    print(string.format('^2[fdb-medic] Requesting vitals from target client: %d^7', Patient.PlayerData.source))
     
     -- Request health data from the target player's client
-    TriggerClientEvent('QC-AdvancedMedic:client:SendVitalsToMedic', Patient.PlayerData.source, src)
+    TriggerClientEvent('fdb-medic:client:SendVitalsToMedic', Patient.PlayerData.source, src)
 end)
 
 -- New event to receive vitals data from target client
-RegisterServerEvent('QC-AdvancedMedic:server:ReceiveVitalsData')
-AddEventHandler('QC-AdvancedMedic:server:ReceiveVitalsData', function(medicSource, vitalsData)
+RegisterServerEvent('fdb-medic:server:ReceiveVitalsData')
+AddEventHandler('fdb-medic:server:ReceiveVitalsData', function(medicSource, vitalsData)
     local src = source -- This is the patient who is sending their vitals
     local Patient = RSGCore.Functions.GetPlayer(src)
     
@@ -744,7 +769,7 @@ AddEventHandler('QC-AdvancedMedic:server:ReceiveVitalsData', function(medicSourc
         return
     end
     
-    print(string.format('^2[QC-AdvancedMedic] Received vitals from %s: Health=%d%%, Dead=%s^7', 
+    print(string.format('^2[fdb-medic] Received vitals from %s: Health=%d%%, Dead=%s^7', 
         Patient.PlayerData.name, vitalsData.health, tostring(vitalsData.isDead)))
     
     -- Add player name to vitals data
@@ -754,14 +779,14 @@ AddEventHandler('QC-AdvancedMedic:server:ReceiveVitalsData', function(medicSourc
     )
     
     -- Send vitals data to the requesting medic
-    TriggerClientEvent('QC-AdvancedMedic:client:VitalsResponse', medicSource, vitalsData)
+    TriggerClientEvent('fdb-medic:client:VitalsResponse', medicSource, vitalsData)
 end)
 
 --=========================================================
 -- DOCTOR BAG TOOL USAGE HANDLER
 --=========================================================
-RegisterServerEvent('QC-AdvancedMedic:server:UseDoctorBagTool')
-AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction, targetPlayerId)
+RegisterServerEvent('fdb-medic:server:UseDoctorBagTool')
+AddEventHandler('fdb-medic:server:UseDoctorBagTool', function(toolAction, targetPlayerId)
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
 
@@ -784,7 +809,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         end
 
         if not medicineConfig then
-            TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+            TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
                 success = false,
                 message = 'Invalid medicine type: ' .. tostring(medicineType)
             })
@@ -808,7 +833,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
             if Config.Debug then
                 print(string.format("^1[SERVER UseDoctorBagTool] Player missing medicine: %s^7", medicineConfig.label))
             end
-            TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+            TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
                 success = false,
                 message = string.format('Missing item: %s', medicineConfig.label),
                 refreshInventory = true
@@ -821,7 +846,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         if not Patient then
             -- Refund medicine if patient not found
             Medic.Functions.AddItem(itemName, 1)
-            TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+            TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
                 success = false,
                 message = 'Patient not found'
             })
@@ -829,9 +854,9 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         end
 
         -- Trigger client to apply medicine using existing system
-        TriggerClientEvent('QC-AdvancedMedic:client:AdministreMedicine', Patient.PlayerData.source, medicineType, src)
+        TriggerClientEvent('fdb-medic:client:AdministreMedicine', Patient.PlayerData.source, medicineType, src)
 
-        TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+        TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
             success = true,
             message = string.format('Administered %s', medicineConfig.label),
             refreshInventory = true
@@ -859,7 +884,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         if Config.Debug then
             print(string.format("^1[SERVER UseDoctorBagTool] Invalid tool action: %s^7", tostring(toolAction)))
         end
-        TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+        TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
             success = false,
             message = 'Invalid tool action: ' .. tostring(toolAction)
         })
@@ -890,7 +915,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         if Config.Debug then
             print(string.format("^1[SERVER UseDoctorBagTool] Player missing item: %s^7", toolConfig.label))
         end
-        TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+        TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
             success = false,
             message = string.format('Missing item: %s', toolConfig.label),
             refreshInventory = true  -- Tell client to refresh inventory
@@ -905,7 +930,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         if toolConfig.consumable then
             Medic.Functions.AddItem(itemName, 1)
         end
-        TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+        TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
             success = false,
             message = 'Patient not found'
         })
@@ -920,7 +945,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
                 Patient.PlayerData.charinfo.firstname, Patient.PlayerData.source))
         end
 
-        TriggerClientEvent('QC-AdvancedMedic:client:playerRevive', Patient.PlayerData.source)
+        TriggerClientEvent('fdb-medic:client:playerRevive', Patient.PlayerData.source)
 
         TriggerClientEvent('ox_lib:notify', src, {
             title = locale('sv_smelling_salts'),
@@ -941,7 +966,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
 
     elseif toolAction == 'check_heart_lungs' then
         -- Stethoscope - trigger vitals check
-        TriggerEvent('QC-AdvancedMedic:server:CheckVitals', targetPlayerId)
+        TriggerEvent('fdb-medic:server:CheckVitals', targetPlayerId)
 
     elseif toolAction == 'check_temperature' then
         -- Thermometer - check for infections/fever
@@ -964,7 +989,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
 
     elseif toolAction == 'emergency_surgery' then
         -- Field surgery kit - heal all wounds
-        TriggerClientEvent('QC-AdvancedMedic:client:ClearAllWounds', Patient.PlayerData.source)
+        TriggerClientEvent('fdb-medic:client:ClearAllWounds', Patient.PlayerData.source)
 
         TriggerClientEvent('ox_lib:notify', src, {
             title = locale('sv_emergency_surgery'),
@@ -978,7 +1003,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
         local medicineType = toolAction:gsub('medicine_', '')  -- Extract medicine key
 
         -- Trigger client to apply medicine using existing system
-        TriggerClientEvent('QC-AdvancedMedic:client:AdministreMedicine', Patient.PlayerData.source, medicineType, src)
+        TriggerClientEvent('fdb-medic:client:AdministreMedicine', Patient.PlayerData.source, medicineType, src)
 
         TriggerClientEvent('ox_lib:notify', src, {
             title = locale('sv_medicine_administered'),
@@ -993,7 +1018,7 @@ AddEventHandler('QC-AdvancedMedic:server:UseDoctorBagTool', function(toolAction,
     end
 
     -- Success - return with updated inventory
-    TriggerClientEvent('QC-AdvancedMedic:client:ToolUsageResult', src, {
+    TriggerClientEvent('fdb-medic:client:ToolUsageResult', src, {
         success = true,
         message = string.format('Successfully used %s', toolConfig.label),
         refreshInventory = true
@@ -1003,8 +1028,8 @@ end)
 --=========================================================
 -- REFRESH MEDIC INVENTORY (after item usage)
 --=========================================================
-RegisterServerEvent('QC-AdvancedMedic:server:RefreshMedicInventory')
-AddEventHandler('QC-AdvancedMedic:server:RefreshMedicInventory', function()
+RegisterServerEvent('fdb-medic:server:RefreshMedicInventory')
+AddEventHandler('fdb-medic:server:RefreshMedicInventory', function()
     local src = source
     local Medic = RSGCore.Functions.GetPlayer(src)
 
@@ -1040,7 +1065,7 @@ AddEventHandler('QC-AdvancedMedic:server:RefreshMedicInventory', function()
     end
 
     -- Send updated inventory to client
-    TriggerClientEvent('QC-AdvancedMedic:client:UpdateMedicInventory', src, medicInventory)
+    TriggerClientEvent('fdb-medic:client:UpdateMedicInventory', src, medicInventory)
 end)
 
 --=========================================================
@@ -1147,11 +1172,11 @@ CreateThread(function()
                     
                     -- Save changes to database and sync to client
                     if woundsChanged then
-                        exports['QC-AdvancedMedic']:SaveWoundData(Player.PlayerData.citizenid, data.wounds)
-                        TriggerClientEvent('QC-AdvancedMedic:client:SyncWoundData', src, data.wounds)
+                        exports['fdb-medic']:SaveWoundData(Player.PlayerData.citizenid, data.wounds)
+                        TriggerClientEvent('fdb-medic:client:SyncWoundData', src, data.wounds)
                         
                         -- Log progression event
-                        exports['QC-AdvancedMedic']:LogMedicalEvent(
+                        exports['fdb-medic']:LogMedicalEvent(
                             Player.PlayerData.citizenid,
                             'wound_change',
                             nil,
@@ -1221,8 +1246,8 @@ CreateThread(function()
                     
                     -- Save changes to database and sync to client
                     if woundsChanged then
-                        exports['QC-AdvancedMedic']:SaveWoundData(Player.PlayerData.citizenid, data.wounds)
-                        TriggerClientEvent('QC-AdvancedMedic:client:SyncWoundData', src, data.wounds)
+                        exports['fdb-medic']:SaveWoundData(Player.PlayerData.citizenid, data.wounds)
+                        TriggerClientEvent('fdb-medic:client:SyncWoundData', src, data.wounds)
                     end
                 end
             end

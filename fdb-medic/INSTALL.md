@@ -1,6 +1,6 @@
-# Installation Guide - QC-AdvancedMedic
+# Installation Guide - FDB-MEDIC
 
-Complete step-by-step installation instructions for QC-AdvancedMedic on RedM servers using RSG-Core framework.
+Complete step-by-step installation instructions for FDB-MEDIC on RedM servers using RSG-Core framework.
 
 ## Prerequisites
 
@@ -45,20 +45,20 @@ cp -r resources resources_backup_$(date +%Y%m%d)
 ### Step 2: Extract Resource Files
 
 1. Download the latest release from GitHub
-2. Extract the `QC-AdvancedMedic` folder
+2. Extract the `FDB-MEDIC` folder
 3. Place in your server's resources directory:
 
 ```
 YourServer/
 └── resources/
     └── [quantum]/               # Or your custom resource folder
-        └── QC-AdvancedMedic/
+        └── FDB-MEDIC/
 ```
 
 **Verify folder structure:**
 
 ```
-QC-AdvancedMedic/
+FDB-MEDIC/
 ├── fxmanifest.lua          ✓ Present
 ├── config.lua              ✓ Present
 ├── client/                 ✓ Folder with 9 files
@@ -82,8 +82,8 @@ QC-AdvancedMedic/
 **Option B: MySQL Command Line**
 
 ```bash
-# Navigate to QC-AdvancedMedic folder
-cd /path/to/resources/[quantum]/QC-AdvancedMedic/INSTALL_FIRST
+# Navigate to FDB-MEDIC folder
+cd /path/to/resources/[quantum]/FDB-MEDIC/INSTALL_FIRST
 
 # Execute schema
 mysql -u [username] -p [database_name] < schema.sql
@@ -136,7 +136,7 @@ RSGShared.Items = {
         -- ... existing item data ...
     },  -- ← Make sure this comma exists!
 
-    -- Paste QC-AdvancedMedic items here:
+    -- Paste FDB-MEDIC items here:
     ['bandage'] = {
         ['name'] = 'bandage',
         ['label'] = 'Bandage',
@@ -293,10 +293,10 @@ Config.MissionLocations = {
 
 ```cfg
 # Medical Systems
-ensure QC-AdvancedMedic
+ensure FDB-MEDIC
 ```
 
-**Load Order Matters** - Ensure these start BEFORE QC-AdvancedMedic:
+**Load Order Matters** - Ensure these start BEFORE FDB-MEDIC:
 
 ```cfg
 ensure oxmysql
@@ -306,7 +306,7 @@ ensure rsg-inventory
 ensure rsg-bossmenu
 
 # Then start medical system:
-ensure QC-AdvancedMedic
+ensure FDB-MEDIC
 ```
 
 ### Step 8: Restart Server
@@ -315,7 +315,7 @@ ensure QC-AdvancedMedic
 
 ```bash
 # In server console:
-restart QC-AdvancedMedic
+restart FDB-MEDIC
 ```
 
 **For Production Servers**:
@@ -329,9 +329,9 @@ start
 
 **Watch for errors** in console during startup:
 
-- ✓ `[QC-AdvancedMedic] Resource started successfully`
+- ✓ `[FDB-MEDIC] Resource started successfully`
 - ✓ `[oxmysql] Query executed successfully`
-- ✗ `[script:QC-AdvancedMedic] SCRIPT ERROR` - See troubleshooting below
+- ✗ `[script:FDB-MEDIC] SCRIPT ERROR` - See troubleshooting below
 
 ## Verification Steps
 
@@ -421,10 +421,10 @@ SHOW PROCEDURE STATUS WHERE Db = '[your_database]';
 restart rsg-core
 ```
 
-4. Then restart QC-AdvancedMedic:
+4. Then restart FDB-MEDIC:
 
 ```
-restart QC-AdvancedMedic
+restart FDB-MEDIC
 ```
 
 **Error**: Item images show as placeholder
@@ -601,13 +601,13 @@ mysql -u [user] -p[pass] [database] -e "CALL CleanupExpiredMedicalData();"
 
 ## Uninstallation
 
-If you need to remove QC-AdvancedMedic:
+If you need to remove FDB-MEDIC:
 
 ### 1. Stop the Resource
 
 ```cfg
 # In server.cfg, remove or comment out:
-# ensure QC-AdvancedMedic
+# ensure FDB-MEDIC
 ```
 
 ### 2. Remove Database Tables (OPTIONAL - Data will be lost!)
@@ -624,13 +624,13 @@ DROP PROCEDURE IF EXISTS CleanupExpiredMedicalData;
 ### 3. Remove Items from Framework
 
 1. Open `rsg-core/shared/items.lua`
-2. Remove all QC-AdvancedMedic items
+2. Remove all FDB-MEDIC items
 3. Restart `rsg-core`
 
 ### 4. Delete Resource Folder
 
 ```bash
-rm -rf resources/[quantum]/QC-AdvancedMedic
+rm -rf resources/[quantum]/FDB-MEDIC
 ```
 
 ## Support
@@ -679,4 +679,4 @@ Before going live, verify:
 
 **Installation Complete!**
 
-Your QC-AdvancedMedic system is now ready for alpha testing. Monitor server console and player feedback for any issues.
+Your FDB-MEDIC system is now ready for alpha testing. Monitor server console and player feedback for any issues.

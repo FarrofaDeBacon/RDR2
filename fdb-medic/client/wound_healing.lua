@@ -155,7 +155,7 @@ local function CompleteHealing(bodyPart, wound)
     })
     
     -- Update server with scar data
-    TriggerServerEvent('QC-AdvancedMedic:server:UpdateWoundData', PlayerWounds)
+    TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
 end
 
 --=========================================================

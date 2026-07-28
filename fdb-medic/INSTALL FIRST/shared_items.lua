@@ -1,5 +1,5 @@
     --
-    -- QC-AdvancedMedic
+    -- fdb-medic
     --
     cotton_band                         = {name = 'cotton_band', label = 'Cotton Bandage', weight = 0, type = 'item', image = 'cotton_band.png', unique = false, useable = true, shouldClose = true, combinable = nil, description = 'A medical bandage for treating wounds' },
     cloth_band                          = {name = 'cloth_band', label = 'Cloth Strip', weight = 0, type = 'item', image = 'cloth_strip.png', unique = false, useable = true, shouldClose = true, combinable = nil, description = 'A medical bandage for treating wounds'},

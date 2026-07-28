@@ -2,8 +2,8 @@ fx_version 'cerulean'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 game 'rdr3'
 author 'Quantum Projects Community'
-description 'QC-AdvancedMedic - Advanced Medical System for RedM | Dev: Artmines'
-quantum_github 'https://github.com/Quantum-Projects-RedM/QC-AdvancedMedic'
+description 'fdb-medic - Advanced Medical System for RedM | Dev: Artmines'
+quantum_github 'https://github.com/Quantum-Projects-RedM/fdb-medic'
 use_experimental_fxv2_oal 'yes'
 version '0.3.1'
 
@@ -27,7 +27,8 @@ server_scripts {
     'server/versionchecker.lua',  -- Version checking
     'server/database.lua',        -- NEW: Database integration layer
     'server/medical_events.lua',  -- NEW: Medical system network events
-    'server/medical_server.lua'   -- NEW: Medical inspection system with /inspect command
+    'server/medical_server.lua',  -- NEW: Medical inspection system with /inspect command
+    'server/configui_sync.lua'    -- fdb-configui sync layer
 }
 
 client_scripts {
@@ -38,7 +39,8 @@ client_scripts {
     'client/infection_system.lua', -- Infection progression system
     'client/treatment_system.lua', -- Treatment application system
     'client/wound_healing.lua',   -- Wound healing to scars system
-    'client/envanim_system.lua'   -- Environmental & animal attack system
+    'client/envanim_system.lua',  -- Environmental & animal attack system
+    'client/configui_sync.lua'    -- fdb-configui sync layer
 }
 
 dependencies {

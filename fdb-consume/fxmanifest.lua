@@ -20,6 +20,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/configui_sync.lua',
     'client/exports.lua',
     'client/foods.lua',
     'client/drinks.lua',
@@ -29,6 +30,7 @@ client_scripts {
 }
 
 server_scripts {
+    'server/configui_sync.lua',
     'server.lua'
 }
 
@@ -39,3 +41,4 @@ files {
 dependencies {
     'rsg-core'
 }
+

@@ -321,7 +321,6 @@ AddEventHandler("onResourceStart", function(resourceName)
     end
 end)
 
--- Comando de teste para abrir o Painel Editor
 RegisterCommand("hud", function()
     SetNuiFocus(true, true)
     SendNUIMessage({

@@ -14,6 +14,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/configui_sync.lua',
     'client/alcohol.lua',
     'client/main.lua',
     'client/cleanliness.lua',
@@ -26,9 +27,11 @@ client_scripts {
 }
 
 server_scripts {
+    'server/configui_sync.lua',
     'server/main.lua'
 }
 
 files {
     'locales/*.json'
 }
+

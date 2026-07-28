@@ -1,5 +1,5 @@
 --=========================================================
---               QC-ADVANCED MEDIC MISSION CONFIGURATION
+--              FDB-MEDIC MISSION CONFIGURATION
 --=========================================================
 -- IMPORTANT: This file contains all mission configurations
 -- for the medic training system. Each mission is designed

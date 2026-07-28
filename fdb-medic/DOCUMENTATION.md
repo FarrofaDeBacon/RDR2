@@ -1,4 +1,4 @@
-# Technical Documentation - QC-AdvancedMedic
+# Technical Documentation - FDB-MEDIC
 
 Complete technical reference for developers and server owners. This guide explains how everything works under the hood, from damage detection to database persistence.
 
@@ -26,7 +26,7 @@ Complete technical reference for developers and server owners. This guide explai
 ### File Structure
 
 ```
-QC-AdvancedMedic/
+FDB-MEDIC/
 ├── fxmanifest.lua              # Resource manifest
 ├── config.lua                  # Main configuration (1,119 lines)
 ├── ConfigMissions.lua          # Mission configurations (326 lines)
@@ -230,7 +230,7 @@ function ApplyBandage(bodyPart, bandageType)
     }
 
     -- Sync to server
-    TriggerServerEvent('QC-AdvancedMedic:server:updateTreatment', bodyPart, 'bandage', bandageType)
+    TriggerServerEvent('FDB-MEDIC:server:updateTreatment', bodyPart, 'bandage', bandageType)
 end
 
 -- 3. Time-based healing thread
@@ -443,7 +443,7 @@ function ConvertToScar(bodyPart)
     wound.originalInjury = wound.description
 
     -- Sync to server
-    TriggerServerEvent('QC-AdvancedMedic:server:convertToScar', bodyPart, wound)
+    TriggerServerEvent('FDB-MEDIC:server:convertToScar', bodyPart, wound)
 
     TriggerEvent('ox_lib:notify', {
         title = 'Wound Healed',
@@ -501,7 +501,7 @@ RSGCore.Commands.Add('inspect', 'Examine patient medical condition', {{name = 'i
     local profile = MySQL.query.await('CALL GetCompleteMedicalProfile(?)', {citizenid})
 
     -- Send to medic's client
-    TriggerClientEvent('QC-AdvancedMedic:client:openInspectionUI', src, {
+    TriggerClientEvent('FDB-MEDIC:client:openInspectionUI', src, {
         targetId = targetId,
         targetName = Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname,
         wounds = profile.wounds,
@@ -515,7 +515,7 @@ end, 'medic')
 **Client-Side NUI**:
 ```lua
 -- Open inspection UI
-RegisterNetEvent('QC-AdvancedMedic:client:openInspectionUI', function(data)
+RegisterNetEvent('FDB-MEDIC:client:openInspectionUI', function(data)
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'openInspection',
@@ -530,7 +530,7 @@ RegisterNUICallback('applyTreatment', function(data, cb)
     local targetId = data.targetId
 
     -- Apply treatment to target player
-    TriggerServerEvent('QC-AdvancedMedic:server:medicApplyTreatment', targetId, bodyPart, treatmentType)
+    TriggerServerEvent('FDB-MEDIC:server:medicApplyTreatment', targetId, bodyPart, treatmentType)
 
     cb('ok')
 end)
@@ -595,27 +595,27 @@ PlayerInfections = {
 **Triggerable**:
 ```lua
 -- Update wound data
-TriggerEvent('QC-AdvancedMedic:client:updateWound', bodyPart, woundData)
+TriggerEvent('FDB-MEDIC:client:updateWound', bodyPart, woundData)
 
 -- Apply treatment
-TriggerEvent('QC-AdvancedMedic:client:applyTreatment', bodyPart, treatmentType, treatmentItem)
+TriggerEvent('FDB-MEDIC:client:applyTreatment', bodyPart, treatmentType, treatmentItem)
 
 -- Show wound UI
-TriggerEvent('QC-AdvancedMedic:client:showWoundUI')
+TriggerEvent('FDB-MEDIC:client:showWoundUI')
 
 -- Revive player
-TriggerEvent('QC-AdvancedMedic:client:revive')
+TriggerEvent('FDB-MEDIC:client:revive')
 ```
 
 **Registered**:
 ```lua
 -- From server: sync wound data
-RegisterNetEvent('QC-AdvancedMedic:client:syncWoundData', function(wounds)
+RegisterNetEvent('FDB-MEDIC:client:syncWoundData', function(wounds)
     PlayerWounds = wounds
 end)
 
 -- From server: death trigger
-RegisterNetEvent('QC-AdvancedMedic:client:onDeath', function()
+RegisterNetEvent('FDB-MEDIC:client:onDeath', function()
     -- Handle death state
 end)
 ```
@@ -625,16 +625,16 @@ end)
 **Triggerable from Client**:
 ```lua
 -- Update wound data in database
-TriggerServerEvent('QC-AdvancedMedic:server:updateWoundData', bodyPart, woundData)
+TriggerServerEvent('FDB-MEDIC:server:updateWoundData', bodyPart, woundData)
 
 -- Apply treatment (medic to patient)
-TriggerServerEvent('QC-AdvancedMedic:server:medicApplyTreatment', targetId, bodyPart, treatmentType)
+TriggerServerEvent('FDB-MEDIC:server:medicApplyTreatment', targetId, bodyPart, treatmentType)
 
 -- Convert wound to scar
-TriggerServerEvent('QC-AdvancedMedic:server:convertToScar', bodyPart, woundData)
+TriggerServerEvent('FDB-MEDIC:server:convertToScar', bodyPart, woundData)
 
 -- Log medical event
-TriggerServerEvent('QC-AdvancedMedic:server:logMedicalEvent', eventType, details)
+TriggerServerEvent('FDB-MEDIC:server:logMedicalEvent', eventType, details)
 ```
 
 ### Exports
@@ -642,31 +642,31 @@ TriggerServerEvent('QC-AdvancedMedic:server:logMedicalEvent', eventType, details
 **Client Exports**:
 ```lua
 -- Get current wounds
-local wounds = exports['QC-AdvancedMedic']:GetPlayerWounds()
+local wounds = exports['FDB-MEDIC']:GetPlayerWounds()
 
 -- Get wound for specific body part
-local headWound = exports['QC-AdvancedMedic']:GetWound('head')
+local headWound = exports['FDB-MEDIC']:GetWound('head')
 
 -- Check if player has any injuries
-local hasInjuries = exports['QC-AdvancedMedic']:HasInjuries()
+local hasInjuries = exports['FDB-MEDIC']:HasInjuries()
 
 -- Get total bleeding level
-local totalBleeding = exports['QC-AdvancedMedic']:GetTotalBleeding()
+local totalBleeding = exports['FDB-MEDIC']:GetTotalBleeding()
 
 -- Check if player is medic
-local isMedic = exports['QC-AdvancedMedic']:IsMedicJob(jobName)
+local isMedic = exports['FDB-MEDIC']:IsMedicJob(jobName)
 ```
 
 **Server Exports**:
 ```lua
 -- Get player medical profile from database
-local profile = exports['QC-AdvancedMedic']:GetMedicalProfile(citizenid)
+local profile = exports['FDB-MEDIC']:GetMedicalProfile(citizenid)
 
 -- Save wound data
-exports['QC-AdvancedMedic']:SaveWoundData(citizenid, bodyPart, woundData)
+exports['FDB-MEDIC']:SaveWoundData(citizenid, bodyPart, woundData)
 
 -- Check if player has medic job
-local isMedic = exports['QC-AdvancedMedic']:IsMedicJob(jobName)
+local isMedic = exports['FDB-MEDIC']:IsMedicJob(jobName)
 ```
 
 ## Configuration Reference
@@ -946,7 +946,7 @@ Config.Bandages['super_bandage'] = {
 ```lua
 RSGCore.Functions.CreateUseableItem('super_bandage', function(source, item)
     local src = source
-    TriggerClientEvent('QC-AdvancedMedic:client:useBandage', src, 'super_bandage')
+    TriggerClientEvent('FDB-MEDIC:client:useBandage', src, 'super_bandage')
 end)
 ```
 
@@ -1006,14 +1006,14 @@ local boneMapping = {
 **Trigger custom medical event**:
 ```lua
 -- Client-side
-TriggerServerEvent('QC-AdvancedMedic:server:logMedicalEvent', 'custom_event', {
+TriggerServerEvent('FDB-MEDIC:server:logMedicalEvent', 'custom_event', {
     bodyPart = 'head',
     severity = 'high',
     customData = 'Additional info'
 })
 
 -- Server-side (in medical_events.lua)
-RegisterNetEvent('QC-AdvancedMedic:server:logMedicalEvent', function(eventType, details)
+RegisterNetEvent('FDB-MEDIC:server:logMedicalEvent', function(eventType, details)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 
@@ -1105,10 +1105,10 @@ end)
 function TestDatabaseConnection()
     local result = MySQL.query.await('SELECT 1 as test')
     if result and result[1] and result[1].test == 1 then
-        print('^2[QC-AdvancedMedic] Database connected successfully^7')
+        print('^2[FDB-MEDIC] Database connected successfully^7')
         return true
     else
-        print('^1[QC-AdvancedMedic] Database connection failed^7')
+        print('^1[FDB-MEDIC] Database connection failed^7')
         return false
     end
 end

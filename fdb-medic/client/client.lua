@@ -21,8 +21,8 @@ local targetBodyPartOverride = nil  -- Used by /usebandage command to specify ex
 -- Note: ActiveTreatments is declared in treatment_system.lua
 
 -- Event to receive treatments data from server
-RegisterNetEvent('QC-AdvancedMedic:client:LoadTreatments')
-AddEventHandler('QC-AdvancedMedic:client:LoadTreatments', function(treatments)
+RegisterNetEvent('fdb-medic:client:LoadTreatments')
+AddEventHandler('fdb-medic:client:LoadTreatments', function(treatments)
     if treatments then
         ActiveTreatments = treatments
         
@@ -88,8 +88,8 @@ AddEventHandler('QC-AdvancedMedic:client:LoadTreatments', function(treatments)
 end)
 
 -- Event to receive wounds data from server
-RegisterNetEvent('QC-AdvancedMedic:client:LoadWounds')
-AddEventHandler('QC-AdvancedMedic:client:LoadWounds', function(wounds)
+RegisterNetEvent('fdb-medic:client:LoadWounds')
+AddEventHandler('fdb-medic:client:LoadWounds', function(wounds)
     if wounds then
         PlayerWounds = wounds
         
@@ -98,8 +98,8 @@ AddEventHandler('QC-AdvancedMedic:client:LoadWounds', function(wounds)
 end)
 
 -- Event to receive infections data from server
-RegisterNetEvent('QC-AdvancedMedic:client:LoadInfections')
-AddEventHandler('QC-AdvancedMedic:client:LoadInfections', function(infections)
+RegisterNetEvent('fdb-medic:client:LoadInfections')
+AddEventHandler('fdb-medic:client:LoadInfections', function(infections)
     if infections then
         PlayerInfections = infections
         
@@ -135,7 +135,7 @@ local deathTimer = function()
             
             -- Update NUI occasionally instead of server events
             if deathSecondsRemaining % 30 == 0 then -- Every 30 seconds
-                TriggerEvent("QC-AdvancedMedic:client:GetMedicsOnDuty")
+                TriggerEvent("fdb-medic:client:GetMedicsOnDuty")
                 SendNUIMessage({
                     type = 'update-death-timer',
                     data = {
@@ -188,7 +188,7 @@ local StartDeathCam = function()
             type = 'warning',
             duration = 5000
         })
-        print('^3[QC-AdvancedMedic] WARNING: Free-look death camera enabled - higher performance impact^7')
+        print('^3[fdb-medic] WARNING: Free-look death camera enabled - higher performance impact^7')
         
         -- Create free-look camera at player position
         deadcam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", coords, 0, 0, 0, fov)
@@ -385,7 +385,7 @@ local function UpdateMedicPrompts()
             local prompt = exports['rsg-core']:createPrompt(loc.prompt, loc.coords, RSGCore.Shared.Keybinds['J'], locale('cl_open') .. loc.name,
             {
                 type = 'client',
-                event = 'QC-AdvancedMedic:client:mainmenu',
+                event = 'fdb-medic:client:mainmenu',
                 args = {loc.prompt, loc.name}
             })
             
@@ -432,16 +432,17 @@ end)
 ---------------------------------------------------------------------
 CreateThread(function()
     repeat Wait(1000) until LocalPlayer.state['isLoggedIn']
+    Wait(5000) -- Aguarda 5 segundos para o jogador carregar o personagem sem morrer
     while true do
         local health = GetEntityHealth(cache.ped)
-        if health == 0 and deathactive == false then
+        if health <= 0 and IsEntityDead(cache.ped) and deathactive == false then
             exports.spawnmanager:setAutoSpawn(false)
             deathTimerStarted = true
             deathTimer()
             deathLog()
             deathactive = true
             TriggerServerEvent("RSGCore:Server:SetMetaData", "isdead", true)
-            TriggerEvent('QC-AdvancedMedic:client:DeathCam')
+            TriggerEvent('fdb-medic:client:DeathCam')
         end
         Wait(1000)
     end
@@ -457,7 +458,7 @@ CreateThread(function()
         
         -- PERFORMANCE FIX: Don't send server events when dead (saves network traffic)
         if not deathactive then
-            TriggerServerEvent('QC-AdvancedMedic:server:SetHealth', health)
+            TriggerServerEvent('fdb-medic:server:SetHealth', health)
         end
         
         Wait(deathactive and 5000 or 1000) -- Check every 5 seconds when dead, every 1 second when alive
@@ -519,7 +520,7 @@ end
 
 -- medic menu
 ---------------------------------------------------------------------
-AddEventHandler('QC-AdvancedMedic:client:mainmenu', function(location, name)
+AddEventHandler('fdb-medic:client:mainmenu', function(location, name)
     if not CanAccessLocation(location) then
         lib.notify({ title = locale('cl_access_denied'), description = locale('cl_no_access_facility'), type = 'error', icon = 'fa-solid fa-kit-medical', iconAnimation = 'shake', duration = 7000 })
         return
@@ -539,27 +540,27 @@ AddEventHandler('QC-AdvancedMedic:client:mainmenu', function(location, name)
         {   title = locale('cl_duty'),
             icon = 'fa-solid fa-shield-heart',
             description = locale('cl_desc_duty_management'),
-            event = 'QC-AdvancedMedic:client:OpenDutyMenu',
+            event = 'fdb-medic:client:OpenDutyMenu',
             arrow = true
         },
         -- 2. Medical Storage (always available)
         {   title = locale('cl_medical_storage'),
             icon = 'fa-solid fa-box-open',
             description = locale('cl_medical_storage_desc') or 'Access medical equipment storage',
-            event = 'QC-AdvancedMedic:client:storage',
+            event = 'fdb-medic:client:storage',
             arrow = true
         },
         -- 3. Medical Supplies (always available)
         {   title = locale('cl_medical_supplies'),
             icon = 'fa-solid fa-pills',
             description = locale('cl_desc_purchase_supplies'),
-            event = 'QC-AdvancedMedic:client:OpenMedicSupplies',
+            event = 'fdb-medic:client:OpenMedicSupplies',
             arrow = true
         },
         {
             title = locale('cl_menu_start_medical_mission'),
             icon = 'fa-solid fa-briefcase-medical',
-            event = 'QC-AdvancedMedic:client:startMission',
+            event = 'fdb-medic:client:startMission',
             arrow = true
         },
     }
@@ -570,7 +571,7 @@ AddEventHandler('QC-AdvancedMedic:client:mainmenu', function(location, name)
             title = locale('cl_pharmaceutical_supplies') or 'Pharmaceutical Supplies',
             icon = 'fa-solid fa-flask',
             description = locale('cl_desc_experimental_medicine'),
-            event = 'QC-AdvancedMedic:client:OpenPharmaceuticalShop',
+            event = 'fdb-medic:client:OpenPharmaceuticalShop',
             arrow = true
         })
     end
@@ -595,9 +596,9 @@ AddEventHandler('QC-AdvancedMedic:client:mainmenu', function(location, name)
 end)
 
 -- medicmenu handler (for back buttons)
-AddEventHandler('QC-AdvancedMedic:client:medicmenu', function(data)
+AddEventHandler('fdb-medic:client:medicmenu', function(data)
     if data and data.location then
-        TriggerEvent('QC-AdvancedMedic:client:mainmenu', data.location, data.location)
+        TriggerEvent('fdb-medic:client:mainmenu', data.location, data.location)
     end
 end)
 
@@ -624,7 +625,7 @@ local function GetSessionDutyTime()
 end
 
 -- Enhanced duty menu
-AddEventHandler('QC-AdvancedMedic:client:OpenDutyMenu', function()
+AddEventHandler('fdb-medic:client:OpenDutyMenu', function()
     local PlayerData = RSGCore.Functions.GetPlayerData()
     local onDuty = PlayerData.job.onduty
     local sessionTimeMs = GetSessionDutyTime()
@@ -650,13 +651,13 @@ AddEventHandler('QC-AdvancedMedic:client:OpenDutyMenu', function()
             {   title = onDuty and "Go Off Duty" or "Go On Duty",
                 icon = onDuty and 'fa-solid fa-sign-out-alt' or 'fa-solid fa-sign-in-alt',
                 description = onDuty and "Clock out and go off duty" or "Clock in and go on duty",
-                event = 'QC-AdvancedMedic:client:ToggleDutyStatus',
+                event = 'fdb-medic:client:ToggleDutyStatus',
                 arrow = true
             },
             {   title = locale('cl_menu_back_main'),
                 icon = 'fa-solid fa-arrow-left',
                 description = locale('cl_desc_return_menu'),
-                event = 'QC-AdvancedMedic:client:medicmenu',
+                event = 'fdb-medic:client:medicmenu',
                 args = { location = mediclocation }
             }
         }
@@ -665,7 +666,8 @@ AddEventHandler('QC-AdvancedMedic:client:OpenDutyMenu', function()
 end)
 
 -- Toggle duty with time tracking
-AddEventHandler('QC-AdvancedMedic:client:ToggleDutyStatus', function()
+RegisterNetEvent('fdb-medic:client:ToggleDutyStatus')
+AddEventHandler('fdb-medic:client:ToggleDutyStatus', function()
     local PlayerData = RSGCore.Functions.GetPlayerData()
     local wasOnDuty = PlayerData.job.onduty
     
@@ -678,7 +680,7 @@ AddEventHandler('QC-AdvancedMedic:client:ToggleDutyStatus', function()
         
         -- Send session time to server for payment calculation
         local totalSessionTimeSeconds = math.floor(sessionTime / 1000)
-        TriggerServerEvent('QC-AdvancedMedic:server:ProcessDutyPay', totalSessionTimeSeconds)
+        TriggerServerEvent('fdb-medic:server:ProcessDutyPay', totalSessionTimeSeconds)
         
         lib.notify({
             title = locale('cl_menu_clocked_out'),
@@ -692,7 +694,7 @@ AddEventHandler('QC-AdvancedMedic:client:ToggleDutyStatus', function()
     else
         -- Going on duty - start timer and automatic pay system
         dutyStartTime = GetGameTimer()
-        TriggerServerEvent('QC-AdvancedMedic:server:StartDutyPayTimer')
+        TriggerServerEvent('fdb-medic:server:StartDutyPayTimer')
         lib.notify({
             title = locale('cl_menu_clocked_in'),
             description = locale('cl_desc_now_on_duty'),
@@ -706,7 +708,7 @@ AddEventHandler('QC-AdvancedMedic:client:ToggleDutyStatus', function()
     
     -- Refresh the duty menu after a short delay
     Wait(1000)
-    TriggerEvent('QC-AdvancedMedic:client:OpenDutyMenu')
+    TriggerEvent('fdb-medic:client:OpenDutyMenu')
 end)
 
 -- Update timer display every minute when duty menu is open
@@ -733,7 +735,7 @@ local function IsPlayerMedic()
     return false
 end
 
-AddEventHandler('QC-AdvancedMedic:client:OpenMedicSupplies', function()
+AddEventHandler('fdb-medic:client:OpenMedicSupplies', function()
     if not CanAccessLocation(mediclocation) then 
         lib.notify({ title = locale('cl_access_denied'), description = locale('cl_no_access_facility'), type = 'error', duration = 5000 })
         return 
@@ -744,7 +746,7 @@ end)
 ---------------------------------------------------------------------
 -- pharmaceutical supplies (1890s medical shop)
 ---------------------------------------------------------------------
-AddEventHandler('QC-AdvancedMedic:client:OpenPharmaceuticalShop', function()
+AddEventHandler('fdb-medic:client:OpenPharmaceuticalShop', function()
     local PlayerData = RSGCore.Functions.GetPlayerData()
     local job = PlayerData.job.name
     local grade = PlayerData.job.grade.level
@@ -783,7 +785,7 @@ AddEventHandler('QC-AdvancedMedic:client:OpenPharmaceuticalShop', function()
             title = config.label .. " - $" .. (config.price or 25),
             description = config.description,
             icon = 'fa-solid fa-pill',
-            event = 'QC-AdvancedMedic:client:PurchasePharmaceutical',
+            event = 'fdb-medic:client:PurchasePharmaceutical',
             args = { type = 'medicine', item = config.itemName, price = config.price or 25, label = config.label }
         })
     end
@@ -800,7 +802,7 @@ AddEventHandler('QC-AdvancedMedic:client:OpenPharmaceuticalShop', function()
             title = config.label .. " - $" .. (config.price or 50),
             description = config.description,
             icon = 'fa-solid fa-syringe',
-            event = 'QC-AdvancedMedic:client:PurchasePharmaceutical',
+            event = 'fdb-medic:client:PurchasePharmaceutical',
             args = { type = 'injection', item = config.itemName, price = config.price or 50, label = config.label }
         })
     end
@@ -809,7 +811,7 @@ AddEventHandler('QC-AdvancedMedic:client:OpenPharmaceuticalShop', function()
     table.insert(pharmaceuticalOptions, {
         title = locale('cl_menu_back_main'),
         icon = 'fa-solid fa-arrow-left',
-        event = 'QC-AdvancedMedic:client:medicmenu',
+        event = 'fdb-medic:client:medicmenu',
         args = { location = mediclocation }
     })
     
@@ -822,7 +824,7 @@ AddEventHandler('QC-AdvancedMedic:client:OpenPharmaceuticalShop', function()
 end)
 
 -- Purchase pharmaceutical item
-AddEventHandler('QC-AdvancedMedic:client:PurchasePharmaceutical', function(data)
+AddEventHandler('fdb-medic:client:PurchasePharmaceutical', function(data)
     local input = lib.inputDialog('Purchase ' .. data.label, {
         {type = 'number', label = 'Quantity', description = locale('cl_desc_quantity_purchase'), default = 1, min = 1, max = 10}
     })
@@ -831,7 +833,7 @@ AddEventHandler('QC-AdvancedMedic:client:PurchasePharmaceutical', function(data)
         local quantity = tonumber(input[1])
         local totalCost = (data.price or 25) * quantity
         
-        TriggerServerEvent('QC-AdvancedMedic:server:PurchasePharmaceutical', {
+        TriggerServerEvent('fdb-medic:server:PurchasePharmaceutical', {
             item = data.item,
             quantity = quantity,
             price = data.price or 25,
@@ -845,7 +847,7 @@ end)
 ---------------------------------------------------------------------
 -- death cam
 ---------------------------------------------------------------------
-AddEventHandler('QC-AdvancedMedic:client:DeathCam', function()
+AddEventHandler('fdb-medic:client:DeathCam', function()
     CreateThread(function()
         while true do
             Wait(1000)
@@ -886,14 +888,14 @@ end)
 ---------------------------------------------------------------------
 -- get medics on-duty
 ---------------------------------------------------------------------
-AddEventHandler('QC-AdvancedMedic:client:GetMedicsOnDuty', function()
-    RSGCore.Functions.TriggerCallback('QC-AdvancedMedic:server:getmedics', function(mediccount)
+AddEventHandler('fdb-medic:client:GetMedicsOnDuty', function()
+    RSGCore.Functions.TriggerCallback('fdb-medic:server:getmedics', function(mediccount)
         medicsonduty = mediccount
     end)
 end)
 
 -- Player Revive After Pressing [E]
-AddEventHandler('QC-AdvancedMedic:client:revive', function()
+AddEventHandler('fdb-medic:client:revive', function()
     SetClosestRespawn()
 
     -- Hide death screen NUI and disable focus
@@ -919,7 +921,10 @@ AddEventHandler('QC-AdvancedMedic:client:revive', function()
         TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
         TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
         TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-        TriggerServerEvent('QC-AdvancedMedic:server:SetHealth', Config.MaxHealth)
+        TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
+        TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
+        TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
+        TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
 
         -- Reset Outlaw Status on respawn
         if Config.ResetOutlawStatus then
@@ -947,7 +952,7 @@ end)
 -- admin revive
 ---------------------------------------------------------------------
 -- Admin Revive
-RegisterNetEvent('QC-AdvancedMedic:client:adminRevive', function()
+RegisterNetEvent('fdb-medic:client:adminRevive', function()
     -- Hide death screen NUI and disable focus
     SendNUIMessage({
         type = 'hide-death-screen'
@@ -971,6 +976,9 @@ RegisterNetEvent('QC-AdvancedMedic:client:adminRevive', function()
     TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
     -- NOTE: Wounds persist through self-revive - use /clearwounds command to clear them
 
     -- Reset Outlaw Status on respawn
@@ -994,7 +1002,7 @@ end)
 ---------------------------------------------------------------------
 -- player revive
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:playerRevive', function()
+RegisterNetEvent('fdb-medic:client:playerRevive', function()
     -- Hide death screen NUI and disable focus
     SendNUIMessage({
         type = 'hide-death-screen'
@@ -1017,7 +1025,10 @@ RegisterNetEvent('QC-AdvancedMedic:client:playerRevive', function()
     TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-    TriggerServerEvent('QC-AdvancedMedic:server:SetHealth', Config.MaxHealth)
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
+    TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
+    TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
     -- NOTE: Wounds persist through admin/player revive - use /clearwounds command to clear them
     -- Reset Outlaw Status on respawn
     if Config.ResetOutlawStatus then
@@ -1040,7 +1051,7 @@ end)
 ---------------------------------------------------------------------
 -- admin Heal
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:adminHeal', function()
+RegisterNetEvent('fdb-medic:client:adminHeal', function()
     local player = PlayerPedId()
     local pos = GetEntityCoords(cache.ped, true)
     Wait(1000)
@@ -1052,14 +1063,14 @@ RegisterNetEvent('QC-AdvancedMedic:client:adminHeal', function()
     TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-    TriggerServerEvent('QC-AdvancedMedic:server:SetHealth', Config.MaxHealth)
-    TriggerEvent('QC-AdvancedMedic:ResetLimbs')
+    TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
+    TriggerEvent('fdb-medic:ResetLimbs')
     lib.notify({title = locale('cl_beenhealed'), duration = 5000, type = 'inform'})
 end)
 ---------------------------------------------------------------------
 -- Player Heal
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:playerHeal', function()
+RegisterNetEvent('fdb-medic:client:playerHeal', function()
     -- Hide death screen NUI and disable focus
     SendNUIMessage({
         type = 'hide-death-screen'
@@ -1077,35 +1088,35 @@ RegisterNetEvent('QC-AdvancedMedic:client:playerHeal', function()
     TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
     TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-    TriggerServerEvent('QC-AdvancedMedic:server:SetHealth', Config.MaxHealth)
-    TriggerEvent('QC-AdvancedMedic:ResetLimbs')
+    TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
+    TriggerEvent('fdb-medic:ResetLimbs')
     lib.notify({title = locale('cl_beenhealed'), duration = 5000, type = 'inform'})
 end)
 
 ---------------------------------------------------------------------
 -- medic storage
 ---------------------------------------------------------------------
-AddEventHandler('QC-AdvancedMedic:client:storage', function()
+AddEventHandler('fdb-medic:client:storage', function()
     local job = RSGCore.Functions.GetPlayerData().job.name
     local stashloc = mediclocation
 
     if not IsMedicJob(job) then return end
-    TriggerServerEvent('QC-AdvancedMedic:server:openstash', stashloc)
+    TriggerServerEvent('fdb-medic:server:openstash', stashloc)
 end)
 
 ---------------------------------------------------------------------
 -- kill player
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:KillPlayer')
-AddEventHandler('QC-AdvancedMedic:client:KillPlayer', function()
+RegisterNetEvent('fdb-medic:client:KillPlayer')
+AddEventHandler('fdb-medic:client:KillPlayer', function()
     SetEntityHealth(cache.ped, 0)
 end)
 
 ---------------------------------------------------------------------
 -- Handle vitals check response from server
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:VitalsResponse')
-AddEventHandler('QC-AdvancedMedic:client:VitalsResponse', function(vitalsData)
+RegisterNetEvent('fdb-medic:client:VitalsResponse')
+AddEventHandler('fdb-medic:client:VitalsResponse', function(vitalsData)
     -- Send vitals data to NUI for realistic pulse calculation
     SendNUIMessage({
         type = 'vitals-response',
@@ -1119,8 +1130,8 @@ end)
 ---------------------------------------------------------------------
 -- Send vitals data to requesting medic (client-side health detection)
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:SendVitalsToMedic')
-AddEventHandler('QC-AdvancedMedic:client:SendVitalsToMedic', function(medicSource)
+RegisterNetEvent('fdb-medic:client:SendVitalsToMedic')
+AddEventHandler('fdb-medic:client:SendVitalsToMedic', function(medicSource)
     -- Get accurate health data from client-side
     local ped = PlayerPedId()
     local health = GetEntityHealth(ped)
@@ -1129,7 +1140,7 @@ AddEventHandler('QC-AdvancedMedic:client:SendVitalsToMedic', function(medicSourc
     local isDead = health <= 0 or Dead -- Use local dead state
     local isUnconscious = false -- Could add unconscious detection here
     
-    print(string.format('^2[QC-AdvancedMedic] Sending CLIENT vitals to medic %d: Health=%d, Dead=%s^7', 
+    print(string.format('^2[fdb-medic] Sending CLIENT vitals to medic %d: Health=%d, Dead=%s^7', 
         medicSource, healthPercent, tostring(isDead)))
     
     local vitalsData = {
@@ -1139,7 +1150,7 @@ AddEventHandler('QC-AdvancedMedic:client:SendVitalsToMedic', function(medicSourc
     }
     
     -- Send vitals data back to server for relay to medic
-    TriggerServerEvent('QC-AdvancedMedic:server:ReceiveVitalsData', medicSource, vitalsData)
+    TriggerServerEvent('fdb-medic:server:ReceiveVitalsData', medicSource, vitalsData)
 end)
 
 ---------------------------------------------------------------------
@@ -1147,10 +1158,10 @@ end)
 ---------------------------------------------------------------------
 local ClientConfigData = {}
 
-RegisterNetEvent('QC-AdvancedMedic:client:ReceiveConfigs')
-AddEventHandler('QC-AdvancedMedic:client:ReceiveConfigs', function(configData)
+RegisterNetEvent('fdb-medic:client:ReceiveConfigs')
+AddEventHandler('fdb-medic:client:ReceiveConfigs', function(configData)
     ClientConfigData = configData
-    print('^2[QC-AdvancedMedic] Config data cached on client^7')
+    print('^2[fdb-medic] Config data cached on client^7')
 end)
 
 ---------------------------------------------------------------------
@@ -1169,7 +1180,7 @@ RegisterNUICallback('medical-request', function(data, cb)
             local healthPercent = math.floor((health / maxHealth) * 100)
             local isDead = health <= 0 or Dead -- Use local dead state
             
-            print(string.format('^2[QC-AdvancedMedic] CLIENT-SIDE VITALS: Health=%d, MaxHealth=%d, Percent=%d%%, Dead=%s^7', 
+            print(string.format('^2[fdb-medic] CLIENT-SIDE VITALS: Health=%d, MaxHealth=%d, Percent=%d%%, Dead=%s^7', 
                 health, maxHealth, healthPercent, tostring(isDead)))
             
             -- Send vitals data directly to NUI
@@ -1181,7 +1192,7 @@ RegisterNUICallback('medical-request', function(data, cb)
             })
         else
             -- Checking another player - request from server but send client health too
-            TriggerServerEvent('QC-AdvancedMedic:server:CheckVitals', targetId)
+            TriggerServerEvent('fdb-medic:server:CheckVitals', targetId)
         end
         cb('ok')
     end
@@ -1190,12 +1201,12 @@ end)
 ---------------------------------------------------------------------
 -- check for self treatment (missing event handler for server integration)
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:CheckForSelfTreatment')
-AddEventHandler('QC-AdvancedMedic:client:CheckForSelfTreatment', function(treatmentType, itemType)
+RegisterNetEvent('fdb-medic:client:CheckForSelfTreatment')
+AddEventHandler('fdb-medic:client:CheckForSelfTreatment', function(treatmentType, itemType)
     if treatmentType == 'bandage' then
-        TriggerEvent('QC-AdvancedMedic:client:usebandage', itemType)
+        TriggerEvent('fdb-medic:client:usebandage', itemType)
     elseif treatmentType == 'tourniquet' then
-        TriggerEvent('QC-AdvancedMedic:client:usetourniquet', itemType)
+        TriggerEvent('fdb-medic:client:usetourniquet', itemType)
     end
 end)
 
@@ -1203,8 +1214,8 @@ end)
 ---------------------------------------------------------------------
 -- show inspection panel for medic examination
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:ShowInspectionPanel')
-AddEventHandler('QC-AdvancedMedic:client:ShowInspectionPanel', function(inspectionData)
+RegisterNetEvent('fdb-medic:client:ShowInspectionPanel')
+AddEventHandler('fdb-medic:client:ShowInspectionPanel', function(inspectionData)
     if not inspectionData then
         lib.notify({
             title = locale('cl_menu_inspection_error'),
@@ -1249,8 +1260,8 @@ end)
 ---------------------------------------------------------------------
 -- hide inspection panel
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:HideInspectionPanel')
-AddEventHandler('QC-AdvancedMedic:client:HideInspectionPanel', function()
+RegisterNetEvent('fdb-medic:client:HideInspectionPanel')
+AddEventHandler('fdb-medic:client:HideInspectionPanel', function()
     -- Disable NUI focus
     SetNuiFocus(false, false)
     
@@ -1264,7 +1275,7 @@ end)
 -- NUI callback handlers for inspection panel actions
 ---------------------------------------------------------------------
 RegisterNUICallback('closeInspectionPanel', function(data, cb)
-    TriggerEvent('QC-AdvancedMedic:client:HideInspectionPanel')
+    TriggerEvent('fdb-medic:client:HideInspectionPanel')
     cb({status = 'ok'})
 end)
 
@@ -1279,15 +1290,15 @@ RegisterNUICallback('applyTreatment', function(data, cb)
     end
     
     -- Hide inspection panel first
-    TriggerEvent('QC-AdvancedMedic:client:HideInspectionPanel')
+    TriggerEvent('fdb-medic:client:HideInspectionPanel')
     
     -- Trigger appropriate server event based on treatment type
     if treatmentType == 'bandage' then
-        TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyBandage', targetPlayerId, bodyPart, data.itemType or 'cotton_band')
+        TriggerServerEvent('fdb-medic:server:MedicApplyBandage', targetPlayerId, bodyPart, data.itemType or 'cotton_band')
     elseif treatmentType == 'tourniquet' then
-        TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyTourniquet', targetPlayerId, bodyPart, data.itemType or 'tourniquet_rope')
+        TriggerServerEvent('fdb-medic:server:MedicApplyTourniquet', targetPlayerId, bodyPart, data.itemType or 'tourniquet_rope')
     elseif treatmentType == 'medicine' then
-        TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyMedicine', targetPlayerId, bodyPart, data.itemType or 'laudanum')
+        TriggerServerEvent('fdb-medic:server:MedicApplyMedicine', targetPlayerId, bodyPart, data.itemType or 'laudanum')
     end
     
     cb({status = 'ok'})
@@ -1304,19 +1315,19 @@ RegisterNUICallback('death-respawn', function(data, cb)
     
     if deathSecondsRemaining <= 0 then
         -- Trigger self-respawn (no medic helped)
-        TriggerEvent('QC-AdvancedMedic:client:revive')
-        TriggerServerEvent('QC-AdvancedMedic:server:deathactions')
+        TriggerEvent('fdb-medic:client:revive')
+        TriggerServerEvent('fdb-medic:server:deathactions')
     end
     cb({status = 'ok'})
 end)
 
 RegisterNUICallback('death-call-medic', function(data, cb)
-    TriggerEvent('QC-AdvancedMedic:client:MedicCall')
+    TriggerEvent('fdb-medic:client:MedicCall')
     cb({status = 'ok'})
 end)
 
 -- Medic call event handler
-RegisterNetEvent('QC-AdvancedMedic:client:MedicCall', function()
+RegisterNetEvent('fdb-medic:client:MedicCall', function()
     if not medicCalled then
         medicCalled = true
         
@@ -1335,7 +1346,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:MedicCall', function()
 
         -- Send emergency call to medics
         local pos = GetEntityCoords(cache.ped)
-        TriggerServerEvent('QC-AdvancedMedic:server:EmergencyCall', pos)
+        TriggerServerEvent('fdb-medic:server:EmergencyCall', pos)
         
         lib.notify({
             title = locale('cl_menu_emergency_call_sent'),
@@ -1363,8 +1374,8 @@ RegisterNUICallback('hide-death-screen', function(data, cb)
 end)
 
 -- Handle tool usage result from server (NUI handles notifications)
-RegisterNetEvent('QC-AdvancedMedic:client:ToolUsageResult')
-AddEventHandler('QC-AdvancedMedic:client:ToolUsageResult', function(result)
+RegisterNetEvent('fdb-medic:client:ToolUsageResult')
+AddEventHandler('fdb-medic:client:ToolUsageResult', function(result)
     if not result then return end
 
     if Config.Debug then
@@ -1386,13 +1397,13 @@ AddEventHandler('QC-AdvancedMedic:client:ToolUsageResult', function(result)
         -- Request updated inspection data from server
         -- This silently updates inventory in background without closing NUI
         Wait(500)  -- Small delay to let server process
-        TriggerServerEvent('QC-AdvancedMedic:server:RefreshMedicInventory')
+        TriggerServerEvent('fdb-medic:server:RefreshMedicInventory')
     end
 end)
 
 -- Server sends updated inventory after tool usage
-RegisterNetEvent('QC-AdvancedMedic:client:UpdateMedicInventory')
-AddEventHandler('QC-AdvancedMedic:client:UpdateMedicInventory', function(medicInventory)
+RegisterNetEvent('fdb-medic:client:UpdateMedicInventory')
+AddEventHandler('fdb-medic:client:UpdateMedicInventory', function(medicInventory)
     -- Send updated inventory to NUI without closing panel
     SendNUIMessage({
         type = 'update-medic-inventory',
@@ -1405,7 +1416,7 @@ AddEventHandler('QC-AdvancedMedic:client:UpdateMedicInventory', function(medicIn
 end)
 
 -- Emergency alert for medics
-RegisterNetEvent('QC-AdvancedMedic:client:EmergencyAlert', function(data)
+RegisterNetEvent('fdb-medic:client:EmergencyAlert', function(data)
     lib.notify({
         title = locale('cl_menu_emergency_medical_call'),
         description = string.format(locale('cl_desc_fmt_needs_medical_assistance'), data.caller),
@@ -1478,7 +1489,7 @@ RegisterNUICallback('medical-action', function(data, cb)
         end
 
         -- Send to server to use tool (server validates inventory + removes item)
-        TriggerServerEvent('QC-AdvancedMedic:server:UseDoctorBagTool', toolAction, targetPlayerId)
+        TriggerServerEvent('fdb-medic:server:UseDoctorBagTool', toolAction, targetPlayerId)
 
         if Config.Debug then
             print("^3[CLIENT] Server event triggered, returning pending status^7")
@@ -1536,11 +1547,11 @@ RegisterNUICallback('medical-treatment', function(data, cb)
         -- Check if this is a mission NPC (source = -1) or real player
         if targetPlayerId == -1 or targetPlayerId == "-1" then
             -- Handle mission NPC medicine application
-            TriggerEvent('QC-AdvancedMedic:client:ApplyMissionMedicine', medicineType)
+            TriggerEvent('fdb-medic:client:ApplyMissionMedicine', medicineType)
             
             -- Wait a moment for treatment to be applied, then send updated wound data
             Citizen.SetTimeout(100, function()
-                TriggerEvent('QC-AdvancedMedic:client:RefreshMissionNUI')
+                TriggerEvent('fdb-medic:client:RefreshMissionNUI')
             end)
             
             cb({status = 'success', message = 'Medicine administered to mission patient'})
@@ -1550,7 +1561,7 @@ RegisterNUICallback('medical-treatment', function(data, cb)
             end
         else
             -- Handle real player medicine application
-            TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyMedicine', targetPlayerId, medicineType)
+            TriggerServerEvent('fdb-medic:server:MedicApplyMedicine', targetPlayerId, medicineType)
             cb({status = 'success', message = 'Medicine administered successfully'})
             
             if Config.Debug then
@@ -1564,17 +1575,17 @@ RegisterNUICallback('medical-treatment', function(data, cb)
         
         if targetPlayerId == -1 or targetPlayerId == "-1" then
             -- Handle mission NPC bandage application
-            TriggerEvent('QC-AdvancedMedic:client:ApplyMissionBandage', bodyPart, bandageType)
+            TriggerEvent('fdb-medic:client:ApplyMissionBandage', bodyPart, bandageType)
             
             -- Wait a moment for treatment to be applied, then send updated wound data
             Citizen.SetTimeout(100, function()
-                TriggerEvent('QC-AdvancedMedic:client:RefreshMissionNUI')
+                TriggerEvent('fdb-medic:client:RefreshMissionNUI')
             end)
             
             cb({status = 'success', message = 'Bandage applied to mission patient'})
         else
             -- Handle real player bandage application
-            TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyBandage', targetPlayerId, bodyPart, bandageType)
+            TriggerServerEvent('fdb-medic:server:MedicApplyBandage', targetPlayerId, bodyPart, bandageType)
             cb({status = 'success', message = 'Bandage applied successfully'})
         end
         
@@ -1584,11 +1595,11 @@ RegisterNUICallback('medical-treatment', function(data, cb)
         
         if targetPlayerId == -1 or targetPlayerId == "-1" then
             -- Handle mission NPC tourniquet application
-            TriggerEvent('QC-AdvancedMedic:client:ApplyMissionTourniquet', bodyPart, tourniquetType)
+            TriggerEvent('fdb-medic:client:ApplyMissionTourniquet', bodyPart, tourniquetType)
             cb({status = 'success', message = 'Tourniquet applied to mission patient'})
         else
             -- Handle real player tourniquet application
-            TriggerServerEvent('QC-AdvancedMedic:server:MedicApplyTourniquet', targetPlayerId, bodyPart, tourniquetType)
+            TriggerServerEvent('fdb-medic:server:MedicApplyTourniquet', targetPlayerId, bodyPart, tourniquetType)
             cb({status = 'success', message = 'Tourniquet applied successfully'})
         end
         
@@ -1601,7 +1612,7 @@ end)
 ---------------------------------------------------------------------
 -- use bandage (reworked for new 4-type system)
 ---------------------------------------------------------------------
-RegisterNetEvent('QC-AdvancedMedic:client:usebandage', function(bandageType)
+RegisterNetEvent('fdb-medic:client:usebandage', function(bandageType)
     if isBusy then return end
     
     -- Default to cotton if no type specified (backwards compatibility)
@@ -1721,7 +1732,7 @@ RegisterNetEvent('QC-AdvancedMedic:client:usebandage', function(bandageType)
             local success = ApplyBandage(targetBodyPart, bandageType, GetPlayerServerId(PlayerId()))
             
             if success then
-                TriggerServerEvent('QC-AdvancedMedic:server:removeitem', itemName, 1)
+                TriggerServerEvent('fdb-medic:server:removeitem', itemName, 1)
             else
                 lib.notify({
                     title = locale('cl_menu_treatment_failed'),
@@ -1781,7 +1792,7 @@ CreateThread(function()
     Wait(2000) -- Wait for core systems to initialize
     
     if LocalPlayer.state.isLoggedIn then
-        TriggerServerEvent('QC-AdvancedMedic:server:LoadMedicalData')
+        TriggerServerEvent('fdb-medic:server:LoadMedicalData')
         if Config.WoundSystem.debugging.enabled then
             print("[PERSISTENCE] Loading medical data on resource start...")
         end
@@ -1799,7 +1810,7 @@ end)
 -- Load medical data when player spawns
 AddEventHandler('playerSpawned', function()
     Wait(1000) -- Wait a moment for spawn to complete
-    TriggerServerEvent('QC-AdvancedMedic:server:LoadMedicalData')
+    TriggerServerEvent('fdb-medic:server:LoadMedicalData')
     if Config.WoundSystem.debugging.enabled then
         print("[PERSISTENCE] Loading medical data on player spawn...")
     end
@@ -2058,11 +2069,11 @@ RegisterNUICallback('apply-bandage', function(data, cb)
     
     -- Apply bandage using proper treatment system after progress completes
     local appliedBy = GetPlayerServerId(PlayerId())
-    local success = exports['QC-AdvancedMedic']:ApplyBandage(bodyPart:upper(), configBandageType, appliedBy)
+    local success = exports['fdb-medic']:ApplyBandage(bodyPart:upper(), configBandageType, appliedBy)
     
     if success then
         -- Remove item from inventory like regular system
-        TriggerServerEvent('QC-AdvancedMedic:server:removeitem', bandageConfig.itemName, 1)
+        TriggerServerEvent('fdb-medic:server:removeitem', bandageConfig.itemName, 1)
         
         -- IMMEDIATELY update NUI with new treatment data before responding to callback
         local updatedBodyPartHealth = GetBodyPartHealthData()
@@ -2174,11 +2185,11 @@ RegisterNUICallback('apply-tourniquet', function(data, cb)
     
     -- Apply tourniquet using treatment system
     local appliedBy = GetPlayerServerId(PlayerId())
-    local success = exports['QC-AdvancedMedic']:ApplyTourniquet(bodyPart:upper(), tourniquetType, appliedBy)
+    local success = exports['fdb-medic']:ApplyTourniquet(bodyPart:upper(), tourniquetType, appliedBy)
     
     if success then
         -- Remove item from inventory
-        TriggerServerEvent('QC-AdvancedMedic:server:removeitem', tourniquetType, 1)
+        TriggerServerEvent('fdb-medic:server:removeitem', tourniquetType, 1)
         
         -- IMMEDIATELY update NUI with new treatment data
         local updatedBodyPartHealth = GetBodyPartHealthData()
@@ -2248,7 +2259,7 @@ RegisterNUICallback('remove-treatment', function(data, cb)
     
     -- Use the existing removebandage command flow
     if treatmentType == 'bandage' then
-        TriggerServerEvent('QC-AdvancedMedic:server:removebandage', bodyPart:upper())
+        TriggerServerEvent('fdb-medic:server:removebandage', bodyPart:upper())
 
         lib.notify({
             title = locale('cl_menu_treatment_removed'),
@@ -2265,7 +2276,7 @@ RegisterNUICallback('remove-treatment', function(data, cb)
         Wait(2000) -- Wait for server processing
         
         -- Request fresh medical data from server
-        TriggerServerEvent('QC-AdvancedMedic:server:LoadMedicalData')
+        TriggerServerEvent('fdb-medic:server:LoadMedicalData')
         Wait(500) -- Wait for server response
         
         -- Get updated medical data
@@ -2318,7 +2329,7 @@ RegisterNUICallback('replace-treatment', function(data, cb)
     -- For replace, we first remove the current treatment and then trigger the bandage panel
     if treatmentType == 'bandage' then
         -- Remove current bandage
-        TriggerServerEvent('QC-AdvancedMedic:server:removebandage', bodyPart:upper())
+        TriggerServerEvent('fdb-medic:server:removebandage', bodyPart:upper())
         
         -- Wait a moment then trigger bandage selection
         CreateThread(function()
@@ -2364,7 +2375,7 @@ end)
 -- Handle refresh medical data request from NUI
 RegisterNUICallback('refresh-medical-data', function(data, cb)
     -- Request fresh medical data from server first
-    TriggerServerEvent('QC-AdvancedMedic:server:LoadMedicalData')
+    TriggerServerEvent('fdb-medic:server:LoadMedicalData')
     
     CreateThread(function()
         Wait(500) -- Wait for server response
@@ -2611,7 +2622,7 @@ RegisterCommand('usebandage', function(source, args)
     -- Trigger the same event flow as useable bandage items
     -- Store the target body part for the bandage system to use
     targetBodyPartOverride = bodyPart
-    TriggerEvent('QC-AdvancedMedic:client:usebandage', bandageType)
+    TriggerEvent('fdb-medic:client:usebandage', bandageType)
 end)
 
 -- Remove Bandage Command: /removebandage [bodyPart]

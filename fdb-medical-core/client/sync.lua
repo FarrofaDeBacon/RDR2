@@ -17,10 +17,14 @@ AddStateBagChangeHandler('medical', nil, function(bagName, key, value, _unused, 
         TriggerEvent('fdb-medical-core:client:vitalsUpdated', value)
     end
 end)
-
 -- Limpeza e encerramento de threads ao parar o recurso
 AddEventHandler('onResourceStop', function(resourceName)
     if GetCurrentResourceName() == resourceName then
         print("[fdb-medical-core] Recurso finalizado de forma limpa.")
     end
+end)
+
+RegisterNetEvent('fdb-medical-core:client:setHealth', function(newHp)
+    local ped = PlayerPedId()
+    SetEntityHealth(ped, math.floor(newHp))
 end)

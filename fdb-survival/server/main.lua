@@ -125,7 +125,29 @@ RegisterNetEvent('fdb-survival:server:ForceClean', function()
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     if not Player then return end
+    
     Player.Functions.SetMetaData("cleanliness", 100)
+    TriggerClientEvent('fdb-survival:client:ForceClean', src)
+end)
+
+RegisterNetEvent('fdb-survival:server:EmptyBladder', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("bladder", 0)
+    if lastSaveTime[src] then lastSaveTime[src]["bladder"] = os.time() end
+end)
+
+RegisterNetEvent('fdb-survival:server:PeeAccident', function()
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    Player.Functions.SetMetaData("bladder", 0)
+    Player.Functions.SetMetaData("cleanliness", 0)
+    if lastSaveTime[src] then 
+        lastSaveTime[src]["bladder"] = os.time() 
+        lastSaveTime[src]["cleanliness"] = os.time() 
+    end
 end)
 
 exports('AddHunger', function(src, amount)
@@ -315,6 +337,30 @@ RSGCore.Commands.Add('poisonme', 'Debug de Veneno', {{name = 'nivel', help = '0 
         Player.Functions.SetMetaData("poison", val)
         TriggerClientEvent('fdb-survival:client:stateChanged', src, { field = 'poison', value = val })
         TriggerClientEvent('ox_lib:notify', src, {title = 'Teste de Veneno', description = 'Envenenamento forçado para '..val, type = 'warning'})
+    end
+end, 'admin')
+
+RSGCore.Commands.Add('sethunger', 'Define o nivel de fome de um jogador (Admin)', {{name = 'id', help = 'ID do Jogador'}, {name = 'nivel', help = '0 a 100'}}, false, function(source, args)
+    local target = tonumber(args[1])
+    local val = tonumber(args[2])
+    if not target or not val then return end
+    local Player = RSGCore.Functions.GetPlayer(target)
+    if Player then
+        Player.Functions.SetMetaData("hunger", val)
+        TriggerClientEvent('fdb-survival:client:stateChanged', target, { field = 'food', value = val })
+        TriggerClientEvent('ox_lib:notify', source, {title = 'Admin', description = 'Fome de ' .. target .. ' definida para ' .. val, type = 'success'})
+    end
+end, 'admin')
+
+RSGCore.Commands.Add('setthirst', 'Define o nivel de sede de um jogador (Admin)', {{name = 'id', help = 'ID do Jogador'}, {name = 'nivel', help = '0 a 100'}}, false, function(source, args)
+    local target = tonumber(args[1])
+    local val = tonumber(args[2])
+    if not target or not val then return end
+    local Player = RSGCore.Functions.GetPlayer(target)
+    if Player then
+        Player.Functions.SetMetaData("thirst", val)
+        TriggerClientEvent('fdb-survival:client:stateChanged', target, { field = 'water', value = val })
+        TriggerClientEvent('ox_lib:notify', source, {title = 'Admin', description = 'Sede de ' .. target .. ' definida para ' .. val, type = 'success'})
     end
 end, 'admin')
 

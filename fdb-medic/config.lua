@@ -1,5 +1,5 @@
 --=========================================================
---                QC-ADVANCED MEDIC CONFIGURATION
+--                FDB-MEDIC CONFIGURATION
 --=========================================================
 -- IMPORTANT: This is a production-ready configuration file
 -- Please read the documentation before making changes
@@ -16,7 +16,7 @@ Config = {}
 Config.Debug = false
 
 -- Language/Locale Settings (change to 'en', 'fr', or 'es')
-Config.Locale = 'en'
+Config.Locale = 'pt-br'
 
 --=========================================================
 -- DEBUGGING CONFIGURATION
@@ -1134,15 +1134,15 @@ local function LoadLocaleStrings()
             -- Count keys in the object (not array length)
             local count = 0
             for _ in pairs(localeData) do count = count + 1 end
-            print(string.format('^2[QC-AdvancedMedic] Loaded %s locale with %d strings^7', Config.Locale, count))
+            print(string.format('^2[fdb-medic] Loaded %s locale with %d strings^7', Config.Locale, count))
         else
-            print(string.format('^1[QC-AdvancedMedic] Failed to parse locale file: %s^7', Config.Locale))
+            print(string.format('^1[fdb-medic] Failed to parse locale file: %s^7', Config.Locale))
             -- Fallback to English
             Config.Locale = 'en'
             LoadLocaleStrings()
         end
     else
-        print(string.format('^1[QC-AdvancedMedic] Locale file not found: %s^7', Config.Locale))
+        print(string.format('^1[fdb-medic] Locale file not found: %s^7', Config.Locale))
         if Config.Locale ~= 'en' then
             Config.Locale = 'en'
             LoadLocaleStrings()
@@ -1158,7 +1158,7 @@ Citizen.CreateThread(function()
     if Config.Strings and next(Config.Strings) then
         -- Config strings loaded successfully
     else
-        print('^1[QC-AdvancedMedic] ERROR: Config.Strings is empty in config.lua!^7')
+        print('^1[fdb-medic] ERROR: Config.Strings is empty in config.lua!^7')
     end
 end)
 
