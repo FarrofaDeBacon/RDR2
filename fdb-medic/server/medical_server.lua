@@ -1265,10 +1265,10 @@ RegisterNetEvent('fdb-medic:server:TreatWound', function(treatmentType, bodyPart
     if not Player then return end
 
     -- 1. O item PRECISA existir no config de tratamentos. Se não existir, não cura nada.
-    local treatmentConfig = Config.BandageTypes[treatmentType] or 
-                            Config.TourniquetTypes[treatmentType] or 
-                            Config.MedicineTypes[treatmentType] or 
-                            Config.InjectionTypes[treatmentType]
+    local treatmentConfig = (Config.BandageTypes and Config.BandageTypes[treatmentType]) or 
+                            (Config.TourniquetTypes and Config.TourniquetTypes[treatmentType]) or 
+                            (Config.MedicineTypes and Config.MedicineTypes[treatmentType]) or 
+                            (Config.InjectionTypes and Config.InjectionTypes[treatmentType])
                             
     if not treatmentConfig then
         print(string.format('[fdb-medic] ^1TENTATIVA SUSPEITA^7: src %s chamou TreatWound com tratamento nao mapeado: %s', tostring(src), tostring(treatmentType)))
