@@ -205,9 +205,9 @@ local function StartTourniquetTimer(bodyPart, tourniquetType)
             end
             
             -- Apply damage if over max duration
+            if elapsed >= maxDuration then
                 -- Dano de torniquete prolongado delegado ao servidor
-                TriggerServerEvent('fdb-medic:server:TourniquetDamage', bodyPart, damageAmount)
-
+                TriggerServerEvent('fdb-medic:server:TourniquetDamage', bodyPart, tourniquetType)
                 lib.notify({
                     title = locale('cl_menu_tissue_damage'),
                     description = string.format(locale('cl_desc_fmt_tourniquet_damage'),
@@ -543,9 +543,8 @@ local function GiveInjection(injectionType, appliedBy)
         if math.random(100) <= injectionConfig.overdoseRisk then
             -- Overdose occurred
             local ped = PlayerPedId()
-            local overdoseDamage = injectionConfig.healAmount or 20 -- Reverse healing as damage
             
-            TriggerServerEvent('fdb-medic:server:OverdoseDamage', overdoseDamage)
+            TriggerServerEvent('fdb-medic:server:OverdoseDamage', injectionType)
 
             lib.notify({
                 title = locale('cl_menu_medical_emergency'),

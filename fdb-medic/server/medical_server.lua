@@ -1259,15 +1259,37 @@ end)
 -- NetEvents para interação segura com o fdb-medical-core
 -- ============================================================
 
-RegisterNetEvent('fdb-medic:server:TreatWound', function(itemName, bodyPart)
+RegisterNetEvent('fdb-medic:server:TreatWound', function(treatmentType, bodyPart)
     local src = source
-    local healAmount = 0
-    
-    if itemName == 'bandage' or itemName == 'bandage_basic' then
-        healAmount = Config.BandageHealthRestore or 25
-    else
-        healAmount = 25
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    -- 1. O item PRECISA existir no config de tratamentos. Se não existir, não cura nada.
+    local treatmentConfig = Config.BandageTypes[treatmentType] or 
+                            Config.TourniquetTypes[treatmentType] or 
+                            Config.MedicineTypes[treatmentType] or 
+                            Config.InjectionTypes[treatmentType]
+                            
+    if not treatmentConfig then
+        print(string.format('[fdb-medic] ^1TENTATIVA SUSPEITA^7: src %s chamou TreatWound com tratamento nao mapeado: %s', tostring(src), tostring(treatmentType)))
+        return
     end
+
+    -- 2. O jogador PRECISA ter o item de verdade. RemoveItem falha se não tiver.
+    local itemName = treatmentConfig.itemName
+    if not itemName then
+        print(string.format('[fdb-medic] ^1ERRO DE CONFIGURACAO^7: Tratamento mapeado sem itemName: %s', tostring(treatmentType)))
+        return
+    end
+
+    local hasItem = Player.Functions.RemoveItem(itemName, 1)
+    if not hasItem then
+        print(string.format('[fdb-medic] ^1TENTATIVA SUSPEITA^7: src %s tentou TreatWound sem possuir o item: %s (%s)', tostring(src), tostring(itemName), tostring(treatmentType)))
+        return
+    end
+
+    -- 3. Só agora aplica, com o valor que VEM DO CONFIG, nunca do client.
+    local healAmount = treatmentConfig.oneTimeHeal or treatmentConfig.healAmount or 0
     
     if healAmount > 0 then
         exports['fdb-medical-core']:ApplyDamage(src, 'Treatment', bodyPart, -healAmount)
@@ -1279,16 +1301,22 @@ RegisterNetEvent('fdb-medic:server:FullHeal', function()
     exports['fdb-medical-core']:FullHeal(src)
 end)
 
-RegisterNetEvent('fdb-medic:server:TourniquetDamage', function(bodyPart, amount)
-    exports['fdb-medical-core']:ApplyDamage(source, 'Treatment', bodyPart, amount)
+-- Dano de torniquete: valor vem do Config, não do parâmetro do evento
+RegisterNetEvent('fdb-medic:server:TourniquetDamage', function(bodyPart, tourniquetType)
+    local tourniquetConfig = Config.TourniquetTypes and Config.TourniquetTypes[tourniquetType]
+    local damageAmount = (tourniquetConfig and tourniquetConfig.damageAmount) or 3
+    exports['fdb-medical-core']:ApplyDamage(source, 'Treatment', bodyPart, damageAmount)
 end)
 
 RegisterNetEvent('fdb-medic:server:RespiratoryDepressionDamage', function()
     exports['fdb-medical-core']:ApplyDamage(source, 'Illness', 'Torso', 1)
 end)
 
-RegisterNetEvent('fdb-medic:server:OverdoseDamage', function(amount)
-    exports['fdb-medical-core']:ApplyDamage(source, 'Poison', 'Torso', amount)
+-- Dano de overdose: valor vem do Config da injeção usada, não do parâmetro do evento
+RegisterNetEvent('fdb-medic:server:OverdoseDamage', function(injectionType)
+    local injectionConfig = Config.InjectionTypes and Config.InjectionTypes[injectionType]
+    local overdoseDamage = (injectionConfig and injectionConfig.healAmount) or 20
+    exports['fdb-medical-core']:ApplyDamage(source, 'Poison', 'Torso', overdoseDamage)
 end)
 
 RegisterNetEvent('fdb-medic:server:KillMe', function()
