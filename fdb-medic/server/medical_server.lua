@@ -1255,3 +1255,42 @@ CreateThread(function()
     end
 end)
 
+-- ============================================================
+-- NetEvents para interação segura com o fdb-medical-core
+-- ============================================================
+
+RegisterNetEvent('fdb-medic:server:TreatWound', function(itemName, bodyPart)
+    local src = source
+    local healAmount = 0
+    
+    if itemName == 'bandage' or itemName == 'bandage_basic' then
+        healAmount = Config.BandageHealthRestore or 25
+    else
+        healAmount = 25
+    end
+    
+    if healAmount > 0 then
+        exports['fdb-medical-core']:ApplyDamage(src, 'Treatment', bodyPart, -healAmount)
+    end
+end)
+
+RegisterNetEvent('fdb-medic:server:FullHeal', function()
+    local src = source
+    exports['fdb-medical-core']:FullHeal(src)
+end)
+
+RegisterNetEvent('fdb-medic:server:TourniquetDamage', function(bodyPart, amount)
+    exports['fdb-medical-core']:ApplyDamage(source, 'Treatment', bodyPart, amount)
+end)
+
+RegisterNetEvent('fdb-medic:server:RespiratoryDepressionDamage', function()
+    exports['fdb-medical-core']:ApplyDamage(source, 'Illness', 'Torso', 1)
+end)
+
+RegisterNetEvent('fdb-medic:server:OverdoseDamage', function(amount)
+    exports['fdb-medical-core']:ApplyDamage(source, 'Poison', 'Torso', amount)
+end)
+
+RegisterNetEvent('fdb-medic:server:KillMe', function()
+    exports['fdb-medical-core']:ApplyDamage(source, 'Generic', 'Torso', 9999)
+end)

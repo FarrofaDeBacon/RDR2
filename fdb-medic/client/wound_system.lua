@@ -1828,9 +1828,8 @@ exports('ApplyMedicalDamage', function(damage, source)
     
     ApplyingMedicalDamage = true
     
-    -- Use SetEntityHealth instead of ApplyDamageToPed to avoid multipliers
-    local newHealth = math.max(currentHealth - damage, 0)
-    SetEntityHealth(ped, newHealth)
+    -- Use Server Event instead of client SetEntityHealth to centralize damage
+    TriggerServerEvent('fdb-medic:server:ApplyMedicalDamage', damage)
     
     if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
         print(string.format("^6[MEDICAL DAMAGE] Applied %d damage from %s (Health: %d -> %d)^7", 
@@ -1904,7 +1903,7 @@ AddEventHandler('fdb-medic:client:ClearAllWounds', function()
     
     -- Restore health when clearing wounds
     local ped = PlayerPedId()
-    SetEntityHealth(ped, Config.MaxHealth or 600)
+    TriggerServerEvent('fdb-medic:server:FullHeal')
     
     TriggerServerEvent('fdb-medic:server:UpdateWoundData', PlayerWounds)
 end)
@@ -1920,7 +1919,7 @@ AddEventHandler('fdb-medic:client:LoadWounds', function(woundData)
         if playerData and playerData.metadata and not playerData.metadata['isdead'] then
             local ped = PlayerPedId()
             if GetEntityHealth(ped) <= 0 then
-                SetEntityHealth(ped, Config.MaxHealth or 600)
+                TriggerServerEvent('fdb-medic:server:FullHeal')
                 ClearPedTasksImmediately(ped)
                 if Config.WoundSystem and Config.WoundSystem.debugging and Config.WoundSystem.debugging.enabled then
                     print("^2[SAFE-CHECK] Player was alive in metadata but spawned with 0 health. Restored health to prevent instant death.^7")

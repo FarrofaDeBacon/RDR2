@@ -78,12 +78,9 @@ function ApplyBandage(bodyPart, bandageType, appliedBy)
         return false
     end
     
-    -- ONE-TIME HEAL: Apply immediate health restoration
+    -- ONE-TIME HEAL: Delegado para o servidor
     if bandageConfig.oneTimeHeal and bandageConfig.oneTimeHeal > 0 then
-        local ped = PlayerPedId()
-        local currentHealth = GetEntityHealth(ped)
-        local newHealth = math.min(currentHealth + bandageConfig.oneTimeHeal, Config.MaxHealth)
-        SetEntityHealth(ped, newHealth)
+        TriggerServerEvent('fdb-medic:server:TreatWound', bandageType, bodyPart)
         
         if Config.WoundSystem.debugging.enabled then
             print(string.format("^2[BANDAGE] %s: +%d heal^7", 
@@ -208,12 +205,8 @@ local function StartTourniquetTimer(bodyPart, tourniquetType)
             end
             
             -- Apply damage if over max duration
-            if elapsed >= maxDuration then
-                local ped = PlayerPedId()
-                local currentHealth = GetEntityHealth(ped)
-                local damageAmount = tourniquetConfig.damageAmount or Config.Tourniquet.damageAmount
-                
-                SetEntityHealth(ped, math.max(currentHealth - damageAmount, 1))
+                -- Dano de torniquete prolongado delegado ao servidor
+                TriggerServerEvent('fdb-medic:server:TourniquetDamage', bodyPart, damageAmount)
 
                 lib.notify({
                     title = locale('cl_menu_tissue_damage'),
@@ -307,10 +300,7 @@ local function ApplyTourniquet(bodyPart, tourniquetType, appliedBy)
     
     -- Apply one-time healing if configured
     if tourniquetConfig.oneTimeHeal and tourniquetConfig.oneTimeHeal > 0 then
-        local ped = PlayerPedId()
-        local currentHealth = GetEntityHealth(ped)
-        local newHealth = math.min(currentHealth + tourniquetConfig.oneTimeHeal, Config.MaxHealth)
-        SetEntityHealth(ped, newHealth)
+        TriggerServerEvent('fdb-medic:server:TreatWound', tourniquetType, bodyPart)
     end
     
     -- Increase pain due to tourniquet pressure
@@ -394,8 +384,7 @@ local function ApplySideEffect(effect, duration)
                 Wait(5000) -- Longer wait for convulsions
             elseif effect == 'respiratory_depression' then
                 -- Gradual health loss
-                local currentHealth = GetEntityHealth(ped)
-                SetEntityHealth(ped, math.max(currentHealth - 1, 1))
+                TriggerServerEvent('fdb-medic:server:RespiratoryDepressionDamage')
             end
             
             Wait(1000)
@@ -430,10 +419,7 @@ local function AdministreMedicine(medicineType, appliedBy)
     
     -- Apply immediate healing
     if medicineConfig.healAmount and medicineConfig.healAmount > 0 then
-        local ped = PlayerPedId()
-        local currentHealth = GetEntityHealth(ped)
-        local newHealth = math.min(currentHealth + medicineConfig.healAmount, Config.MaxHealth)
-        SetEntityHealth(ped, newHealth)
+        TriggerServerEvent('fdb-medic:server:TreatWound', medicineType, 'Torso')
     end
     
     -- Track medicine effects
@@ -557,10 +543,9 @@ local function GiveInjection(injectionType, appliedBy)
         if math.random(100) <= injectionConfig.overdoseRisk then
             -- Overdose occurred
             local ped = PlayerPedId()
-            local currentHealth = GetEntityHealth(ped)
             local overdoseDamage = injectionConfig.healAmount or 20 -- Reverse healing as damage
             
-            SetEntityHealth(ped, math.max(currentHealth - overdoseDamage, 1))
+            TriggerServerEvent('fdb-medic:server:OverdoseDamage', overdoseDamage)
 
             lib.notify({
                 title = locale('cl_menu_medical_emergency'),
@@ -579,10 +564,7 @@ local function GiveInjection(injectionType, appliedBy)
     
     -- Apply immediate healing
     if injectionConfig.healAmount and injectionConfig.healAmount > 0 then
-        local ped = PlayerPedId()
-        local currentHealth = GetEntityHealth(ped)
-        local newHealth = math.min(currentHealth + injectionConfig.healAmount, Config.MaxHealth)
-        SetEntityHealth(ped, newHealth)
+        TriggerServerEvent('fdb-medic:server:TreatWound', injectionType, 'Torso')
     end
     
     -- Track injection effects
