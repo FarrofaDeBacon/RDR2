@@ -359,7 +359,7 @@
     &times;
   </div>
   <div class="medic-big">
-    <div class="medic-label">Medical <span>Panel</span></div>
+    <div class="medic-label">{translations?.ui_medical || 'Medical'} <span>{translations?.ui_panel || 'Panel'}</span></div>
     <div class="medic-details">
       
       <BodyPartBar bodyPart="head" label="HEAD" imageName="head" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
@@ -436,7 +436,7 @@
         {:else if !currentWounds || Object.keys(currentWounds).length === 0}
           <div style="text-align: center; padding: 40px 20px; color: #90EE90; font-style: italic;">
             <p style="font-size: 16px; margin-bottom: 10px;">You're lookin' spick and span here partner!</p>
-            <p style="font-size: 14px;">No bandages needed at this time.</p>
+            <p style="font-size: 14px;">{translations?.ui_noBandagesNeeded || 'No bandages needed at this time.'}</p>
           </div>
         {:else}
           {#each Object.entries(currentWounds) as [bodyPart, wound]}
@@ -463,7 +463,7 @@
                   🩹 ???? - {bodyPart.toUpperCase()}
                 </div>
                 <div style="font-size: 11px; color: #999; font-style: italic;">
-                  (No bandages in inventory)
+                  ({translations?.ui_noBandagesInInventory || 'No bandages in inventory'})
                 </div>
               {/if}
             </div>
@@ -479,9 +479,9 @@
   <div class="tourniquet-selection-panel" style="position: fixed; top: 60vh; right: 2vw; width: 22vw; height: 30vh; z-index: 10000;">
     <div class="treatments-detail-bg" style="background-image: url({weatheredPaper}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; width: 100%; height: 100%; padding: 20px; border-radius: 10px; box-shadow: none;">
       <div class="treatments-detail-header">
-        <div class="treatments-detail-title" style="color: white; font-weight: bold;">APPLY TOURNIQUET</div>
+        <div class="treatments-detail-title" style="color: white; font-weight: bold;">{translations?.ui_applyTourniquetTitle || 'APPLY TOURNIQUET'}</div>
         <div class="treatments-detail-subtitle" style="color: white;">
-          {selectedTourniquetBodyPart ? 'Select Tourniquet Type' : 'Select Severely Bleeding Part'}
+          {selectedTourniquetBodyPart ? '{translations?.ui_selectTourniquetType || 'Select Tourniquet Type'}' : '{translations?.ui_selectSeverelyBleedingPart || 'Select Severely Bleeding Part'}'}
         </div>
         <div class="treatments-close-btn" on:click={closePanels} style="position: absolute; top: 10px; right: 15px; font-size: 20px; color: white; cursor: pointer;">&times;</div>
       </div>
@@ -514,7 +514,7 @@
                   🩸 {currentInventory.tourniquets[0].label} - {bodyPart.toUpperCase()}
                 </div>
                 <div style="font-size: 11px; color: #e74c3c; font-weight: bold;">
-                  SEVERE BLEEDING: Level {wound.bleedingLevel || 0}
+                  {translations?.ui_severeBleedingLevel || 'SEVERE BLEEDING: Level '}{wound.bleedingLevel || 0}
                 </div>
               {:else}
                 <div style="font-weight: bold; margin-bottom: 5px; color: #666;">
@@ -537,16 +537,16 @@
   <div class="treatments-selection-panel" style="position: fixed; top: 30vh; right: 2vw; width: 22vw; height: 30vh; z-index: 10000;">
     <div class="treatments-detail-bg" style="background-image: url({weatheredPaper}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; width: 100%; height: 100%; padding: 20px; border-radius: 10px; box-shadow: none;">
       <div class="treatments-detail-header">
-        <div class="treatments-detail-title" style="color: white; font-weight: bold;">ACTIVE TREATMENTS</div>
+        <div class="treatments-detail-title" style="color: white; font-weight: bold;">{translations?.ui_activeTreatmentsTitle || 'ACTIVE TREATMENTS'}</div>
         <div class="treatments-detail-subtitle" style="color: white;">
-          Manage your current treatments
+          {translations?.ui_manageTreatments || 'Manage your current treatments'}
         </div>
         <div class="treatments-close-btn" on:click={closePanels} style="position: absolute; top: 10px; right: 15px; font-size: 20px; color: white; cursor: pointer;">&times;</div>
       </div>
       <div class="treatments-detail-content" style="margin-top: 20px; max-height: 70%; overflow-y: auto; color: white;">
         {#if normalizedTreatments.length === 0}
           <div style="text-align: center; padding: 20px; color: white; font-style: italic;">
-            No active treatments
+            {translations?.ui_noActiveTreatments || 'No active treatments'}
           </div>
         {:else}
           {#each normalizedTreatments as treatment}
@@ -558,7 +558,7 @@
                 </span>
               </div>
               <div style="font-size: 11px; color: #D3D3D3; margin-bottom: 8px;">
-                Item: {treatment.itemType || 'Unknown'} | Applied: {treatment.appliedBy || 'Self'}
+                Item: {treatment.itemType || 'Unknown'} | {translations?.ui_appliedLbl || 'Applied:'} {treatment.appliedBy || 'Self'}
               </div>
               <div style="display: flex; gap: 5px; justify-content: flex-end;">
                 <button on:click={() => replaceTreatment(treatment.bodyPart, treatment.type)} style="padding: 4px 8px; font-size: 10px; background-image: url({selectionBoxBg}); background-size: 100% 100%; border: none; border-radius: 3px; color: #f39c12; cursor: pointer; transition: all 0.2s ease;">

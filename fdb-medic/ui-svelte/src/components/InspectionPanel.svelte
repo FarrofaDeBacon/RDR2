@@ -34,7 +34,7 @@
   let selectedBodyPart: string | null = null;
 
   let medicalAssessment: string[] = [];
-  let treatmentsApplied: string[] = [];
+  let treatments{translations?.ui_appliedLbl || 'Applied:'} string[] = [];
 
   let discoveredInjuries: Record<string, any> = {};
   let inspectedBones: Set<string> = new Set();
@@ -121,13 +121,13 @@
           isBleeding: updatedData.isBleeding
         });
         data = data;
-        showNotification('Patient condition updated after treatment', 'fa-sync');
+        showNotification(translations?.ui_patientConditionUpdated || 'Patient condition updated after treatment', 'fa-sync');
       }
     } else if (type === 'tool-usage-result') {
       if (event.data.data?.success) {
-        showNotification(event.data.data.message || 'Tool used successfully', 'fa-check-circle');
+        showNotification(event.data.data.message || translations?.ui_toolUsedSuccessfully || 'Tool used successfully', 'fa-check-circle');
       } else {
-        showNotification(event.data.data?.message || 'Unable to use tool', 'fa-times-circle');
+        showNotification(event.data.data?.message || translations?.ui_unableToUseTool || 'Unable to use tool', 'fa-times-circle');
       }
     }
   }
@@ -193,10 +193,10 @@
         effectiveness: config.effectiveness || 50
       }))
     : [
-        { id: 'cloth', name: 'Cloth Strip', desc: 'Basic cloth strip - crude but available', icon: 'fa-band-aid', itemname: 'cloth_band', effectiveness: 60 },
-        { id: 'cotton', name: 'Cotton Bandage', desc: 'Standard cotton bandage - reliable frontier medicine', icon: 'fa-band-aid', itemname: 'cotton_band', effectiveness: 75 },
-        { id: 'linen', name: 'Linen Wrap', desc: 'Quality linen wrap - superior absorbency', icon: 'fa-band-aid', itemname: 'linen_band', effectiveness: 85 },
-        { id: 'sterile', name: 'Sterilized Gauze', desc: 'Professional medical gauze - sterile and effective', icon: 'fa-band-aid', itemname: 'sterile_band', effectiveness: 95 }
+        { id: 'cloth', name: translations?.ui_item_cloth_name || 'Cloth Strip', desc: translations?.ui_item_cloth_desc || 'Basic cloth strip - crude but available', icon: 'fa-band-aid', itemname: 'cloth_band', effectiveness: 60 },
+        { id: 'cotton', name: translations?.ui_item_cotton_name || 'Cotton Bandage', desc: translations?.ui_item_cotton_desc || 'Standard cotton bandage - reliable frontier medicine', icon: 'fa-band-aid', itemname: 'cotton_band', effectiveness: 75 },
+        { id: 'linen', name: translations?.ui_item_linen_name || 'Linen Wrap', desc: translations?.ui_item_linen_desc || 'Quality linen wrap - superior absorbency', icon: 'fa-band-aid', itemname: 'linen_band', effectiveness: 85 },
+        { id: 'sterile', name: translations?.ui_item_sterile_name || 'Sterilized Gauze', desc: translations?.ui_item_sterile_desc || 'Professional medical gauze - sterile and effective', icon: 'fa-band-aid', itemname: 'sterile_band', effectiveness: 95 }
       ];
 
   $: tourniquetTypes = Object.keys(configData?.tourniquetTypes || {}).length > 0 
@@ -209,10 +209,10 @@
         effectiveness: config.effectiveness || 70
       }))
     : [
-        { id: 'rope', name: 'Rope Tourniquet', desc: 'Improvised rope tourniquet - rough but effective', icon: 'fa-compress', itemname: 'tourniquet_rope', effectiveness: 70 },
-        { id: 'leather', name: 'Leather Strap', desc: 'Leather strap tourniquet - durable frontier solution', icon: 'fa-compress', itemname: 'tourniquet_leather', effectiveness: 75 },
-        { id: 'cloth', name: 'Cloth Tourniquet', desc: 'Cloth tourniquet - basic emergency bleeding control', icon: 'fa-compress', itemname: 'tourniquet_cloth', effectiveness: 65 },
-        { id: 'medical', name: 'Medical Tourniquet', desc: 'Professional medical tourniquet - hospital grade', icon: 'fa-compress', itemname: 'tourniquet_medical', effectiveness: 95 }
+        { id: 'rope', name: translations?.ui_item_rope_name || 'Rope Tourniquet', desc: translations?.ui_item_rope_desc || 'Improvised rope tourniquet - rough but effective', icon: 'fa-compress', itemname: 'tourniquet_rope', effectiveness: 70 },
+        { id: 'leather', name: translations?.ui_item_leather_name || 'Leather Strap', desc: translations?.ui_item_leather_desc || 'Leather strap tourniquet - durable frontier solution', icon: 'fa-compress', itemname: 'tourniquet_leather', effectiveness: 75 },
+        { id: 'cloth', name: translations?.ui_item_clothT_name || 'Cloth Tourniquet', desc: translations?.ui_item_clothT_desc || 'Cloth tourniquet - basic emergency bleeding control', icon: 'fa-compress', itemname: 'tourniquet_cloth', effectiveness: 65 },
+        { id: 'medical', name: translations?.ui_item_medicalT_name || 'Medical Tourniquet', desc: translations?.ui_item_medicalT_desc || 'Professional medical tourniquet - hospital grade', icon: 'fa-compress', itemname: 'tourniquet_medical', effectiveness: 95 }
       ];
 
   $: medicineTypes = Object.keys(configData?.medicineTypes || {}).length > 0 
@@ -225,10 +225,10 @@
         effectiveness: config.effectiveness || 50
       }))
     : [
-        { id: 'laudanum', name: 'Laudanum', desc: 'Opium-based painkiller - powerful but addictive', icon: 'fa-prescription-bottle', itemname: 'medicine_laudanum', effectiveness: 85 },
-        { id: 'morphine', name: 'Morphine Powder', desc: 'Powerful opiate analgesic - strongest painkiller available', icon: 'fa-prescription-bottle', itemname: 'medicine_morphine', effectiveness: 95 },
-        { id: 'whiskey', name: 'Medicinal Whiskey', desc: 'Alcohol-based antiseptic and anesthetic - frontier medicine', icon: 'fa-prescription-bottle', itemname: 'medicine_whiskey', effectiveness: 60 },
-        { id: 'quinine', name: 'Quinine Powder', desc: 'Antimalarial and fever reducer - specialized treatment', icon: 'fa-prescription-bottle', itemname: 'medicine_quinine', effectiveness: 70 }
+        { id: 'laudanum', name: translations?.ui_item_laudanum_name || 'Laudanum', desc: translations?.ui_item_laudanum_desc || 'Opium-based painkiller - powerful but addictive', icon: 'fa-prescription-bottle', itemname: 'medicine_laudanum', effectiveness: 85 },
+        { id: 'morphine', name: translations?.ui_item_morphine_name || 'Morphine Powder', desc: translations?.ui_item_morphine_desc || 'Powerful opiate analgesic - strongest painkiller available', icon: 'fa-prescription-bottle', itemname: 'medicine_morphine', effectiveness: 95 },
+        { id: 'whiskey', name: translations?.ui_item_whiskey_name || 'Medicinal Whiskey', desc: translations?.ui_item_whiskey_desc || 'Alcohol-based antiseptic and anesthetic - frontier medicine', icon: 'fa-prescription-bottle', itemname: 'medicine_whiskey', effectiveness: 60 },
+        { id: 'quinine', name: translations?.ui_item_quinine_name || 'Quinine Powder', desc: translations?.ui_item_quinine_desc || 'Antimalarial and fever reducer - specialized treatment', icon: 'fa-prescription-bottle', itemname: 'medicine_quinine', effectiveness: 70 }
       ];
 
   $: injectionTypes = Object.keys(configData?.injectionTypes || {}).length > 0 
@@ -241,10 +241,10 @@
         riskLevel: config.riskLevel || 'medium'
       }))
     : [
-        { id: 'adrenaline', name: 'Adrenaline Shot', desc: 'Cardiac stimulant for emergency resuscitation - use with extreme caution', icon: 'fa-syringe', itemname: 'injection_adrenaline', riskLevel: 'high' },
-        { id: 'cocaine', name: 'Cocaine Solution', desc: 'Local anesthetic for surgical procedures - numbs pain effectively', icon: 'fa-syringe', itemname: 'injection_cocaine', riskLevel: 'medium' },
-        { id: 'strychnine', name: 'Strychnine (Micro)', desc: 'Stimulant for paralysis and respiratory failure - extremely dangerous', icon: 'fa-syringe', itemname: 'injection_strychnine', riskLevel: 'extreme' },
-        { id: 'saline', name: 'Salt Water', desc: 'Hydration and blood volume replacement - safe basic treatment', icon: 'fa-syringe', itemname: 'injection_saline', riskLevel: 'low' }
+        { id: 'adrenaline', name: translations?.ui_item_adrenaline_name || 'Adrenaline Shot', desc: translations?.ui_item_adrenaline_desc || 'Cardiac stimulant for emergency resuscitation - use with extreme caution', icon: 'fa-syringe', itemname: 'injection_adrenaline', riskLevel: 'high' },
+        { id: 'cocaine', name: translations?.ui_item_cocaine_name || 'Cocaine Solution', desc: translations?.ui_item_cocaine_desc || 'Local anesthetic for surgical procedures - numbs pain effectively', icon: 'fa-syringe', itemname: 'injection_cocaine', riskLevel: 'medium' },
+        { id: 'strychnine', name: translations?.ui_item_strychnine_name || 'Strychnine (Micro)', desc: translations?.ui_item_strychnine_desc || 'Stimulant for paralysis and respiratory failure - extremely dangerous', icon: 'fa-syringe', itemname: 'injection_strychnine', riskLevel: 'extreme' },
+        { id: 'saline', name: translations?.ui_item_saline_name || 'Salt Water', desc: translations?.ui_item_saline_desc || 'Hydration and blood volume replacement - safe basic treatment', icon: 'fa-syringe', itemname: 'injection_saline', riskLevel: 'low' }
       ];
 
   function showNotification(message: string, icon: string = 'fa-check-circle') {
@@ -575,14 +575,14 @@
         })
       }).then(r => r.json()).then(result => {
         if (result.status === 'success') {
-          showNotification(`Successfully applied ${bandage?.name} to ${selectedBodyPart}`, 'fa-check-circle');
-          addTreatmentEntry(`Applied ${bandage?.name} to ${selectedBodyPart} for bleeding control`);
+          // Notification handled by medical-treatment-response event
+          // Handled by medical-treatment-response
           selectedBandageType = null;
           selectedBodyPart = null;
         } else {
-          showNotification(result.message || `Failed to apply ${bandage?.name}`, 'fa-times-circle');
+          showNotification(result.message || `${translations?.ui_failedToApply || 'Failed to apply'} ${bandage?.name}`, 'fa-times-circle');
         }
-      }).catch(() => showNotification('Bandage application failed', 'fa-times-circle'));
+      }).catch(() => showNotification(translations?.ui_bandageApplicationFailed || 'Bandage application failed', 'fa-times-circle'));
     } catch (e) {}
   }
 
@@ -607,14 +607,14 @@
         })
       }).then(r => r.json()).then(result => {
         if (result.status === 'success') {
-          showNotification(`Successfully applied ${tourniquet?.name} to ${selectedBodyPart}`, 'fa-check-circle');
-          addTreatmentEntry(`Applied ${tourniquet?.name} to ${selectedBodyPart} for severe bleeding control`);
+          // Notification handled by medical-treatment-response event
+          // Handled by medical-treatment-response
           selectedTourniquetType = null;
           selectedBodyPart = null;
         } else {
-          showNotification(result.message || `Failed to apply ${tourniquet?.name}`, 'fa-times-circle');
+          showNotification(result.message || `${translations?.ui_failedToApply || 'Failed to apply'} ${tourniquet?.name}`, 'fa-times-circle');
         }
-      }).catch(() => showNotification('Tourniquet application failed', 'fa-times-circle'));
+      }).catch(() => showNotification(translations?.ui_tourniquetApplicationFailed || 'Tourniquet application failed', 'fa-times-circle'));
     } catch (e) {}
   }
 
@@ -639,13 +639,13 @@
         })
       }).then(r => r.json()).then(result => {
         if (result.status === 'success') {
-          showNotification(`Successfully administered ${medicine?.name}`, 'fa-check-circle');
-          addTreatmentEntry(`Applied ${medicine?.name} for pain management`);
+          // Notification handled by medical-treatment-response event
+          // Handled by medical-treatment-response
           selectedMedicineType = null;
         } else {
-          showNotification(result.message || `Failed to administer ${medicine?.name}`, 'fa-times-circle');
+          showNotification(result.message || `${translations?.ui_failedToAdminister || 'Failed to administer'} ${medicine?.name}`, 'fa-times-circle');
         }
-      }).catch(() => showNotification('Medicine application failed', 'fa-times-circle'));
+      }).catch(() => showNotification(translations?.ui_medicineApplicationFailed || 'Medicine application failed', 'fa-times-circle'));
     } catch (e) {}
   }
 
@@ -653,17 +653,20 @@
     if (!selectedInjectionType || !selectedBodyPart) return;
     const injection = injectionTypes.find(i => i.id === selectedInjectionType);
     
-    window.postMessage({
-      type: 'medical-treatment',
-      action: 'give-injection',
-      data: {
-        playerId: data.playerId,
-        bodyPart: selectedBodyPart,
-        itemType: selectedInjectionType,
-        itemName: injection?.itemname || injection?.name || 'injection',
-        displayName: injection?.name || 'Injection'
-      }
-    }, '*');
+    fetch(`https://${(window as any).GetParentResourceName()}/medical-treatment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'give-injection',
+        data: {
+          playerId: data.playerId,
+          bodyPart: selectedBodyPart,
+          itemType: selectedInjectionType,
+          itemName: injection?.itemname || injection?.name || 'injection',
+          displayName: injection?.name || 'Injection'
+        }
+      })
+    }).catch(() => showNotification(translations?.ui_injectionApplicationFailed || 'Injection application failed', 'fa-times-circle'));
     
     showNotification(`${translations?.ui_checkingInventoryFor || 'Checking inventory for'} ${injection?.name}...`, 'fa-clock');
   }
@@ -701,14 +704,14 @@
 
       if (woundData.isScar) {
         return {
-          boneIntegrity: 'Healed - Scar tissue formed',
-          softTissue: 'Scar tissue present from previous injury',
-          bloodFlow: 'Normal circulation restored',
-          painResponse: 'No active pain - fully healed',
-          swelling: 'None - injury has healed',
-          discoloration: 'Permanent scar tissue visible',
-          woundDescription: `OLD HEALED INJURY: ${woundData.metadata?.description || 'Unknown injury'}`,
-          recommendation: 'No treatment required - wound has fully healed into scar tissue'
+          boneIntegrity: translations?.ui_healedScar || 'Healed - Scar tissue formed',
+          softTissue: translations?.ui_scarTissuePresent || 'Scar tissue present from previous injury',
+          bloodFlow: translations?.ui_normalCirculationRestored || 'Normal circulation restored',
+          painResponse: translations?.ui_noActivePain || 'No active pain - fully healed',
+          swelling: translations?.ui_noneHealed || 'None - injury has healed',
+          discoloration: translations?.ui_permanentScar || 'Permanent scar tissue visible',
+          woundDescription: `${translations?.ui_oldHealedInjury || 'OLD HEALED INJURY:'} ${woundData.metadata?.description || translations?.ui_unknownInjury || 'Unknown injury'}`,
+          recommendation: translations?.ui_noTreatmentScar || 'No treatment required - wound has fully healed into scar tissue'
         };
       }
 
@@ -891,7 +894,7 @@
               </div>
             {:else}
               <div style="font-size: 0.6vw; color: white; margin-bottom: 0.8vw; font-style: italic;">
-                Medical assessment findings:
+                {translations?.ui_medicalAssessmentFindings || 'Medical assessment findings:'}
               </div>
               <div style="max-height: 18vw; overflow-y: auto; margin-bottom: 1vw;">
                 {#each medicalAssessment as finding}
@@ -964,7 +967,7 @@
             <div class="vitals-results" style="padding: 1vw;">
               <div class="section-title" style="margin-bottom: 1vw;">
                 <i class="fas fa-check-circle" style="color: #27ae60;"></i>
-                <span>VITAL SIGNS RESULTS</span>
+                <span>{translations?.ui_vitalSignsResults || 'VITAL SIGNS RESULTS'}</span>
               </div>
               <div style="display: flex; flex-direction: column; gap: 0.5vw;">
                 <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
@@ -997,7 +1000,7 @@
           </div>
           
           <div style="font-size: 0.6vw; color: white; margin-bottom: 0.8vw; font-style: italic;">
-            Click on body parts to perform detailed inspection
+            {translations?.ui_clickBodyParts || 'Click on body parts to perform detailed inspection'}
           </div>
           
           <div class="body-parts-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.3vw; margin-bottom: 1vw;">
@@ -1431,12 +1434,12 @@
       </div>
       <div class="medical-tools-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5vw;">
         {#each [
-          { name: 'Stethoscope', icon: 'fa-stethoscope', action: 'stethoscope', desc: 'Check heart and lung sounds' },
-          { name: 'Thermometer', icon: 'fa-thermometer-half', action: 'thermometer', desc: 'Measure body temperature' },
-          { name: 'Laudanum', icon: 'fa-prescription-bottle', action: 'laudanum', desc: 'Opium-based painkiller' },
-          { name: 'Whiskey', icon: 'fa-wine-bottle', action: 'whiskey', desc: 'Antiseptic and anesthetic' },
-          { name: 'Field Surgery Kit', icon: 'fa-first-aid', action: 'field-kit', desc: 'Emergency surgical tools' },
-          { name: 'Smelling Salts', icon: 'fa-vial', action: 'smelling-salts', desc: 'Revive unconscious patients' }
+          { name: translations?.ui_stethoscope || 'Stethoscope', icon: 'fa-stethoscope', action: 'stethoscope', desc: translations?.ui_stethoscopeDesc || 'Check heart and lung sounds' },
+          { name: translations?.ui_tool_thermometer || 'Thermometer', icon: 'fa-thermometer-half', action: 'thermometer', desc: translations?.ui_tool_thermometer_desc || 'Measure body temperature' },
+          { name: translations?.ui_tool_laudanum || 'Laudanum', icon: 'fa-prescription-bottle', action: 'laudanum', desc: translations?.ui_tool_laudanum_desc || 'Opium-based painkiller' },
+          { name: translations?.ui_tool_whiskey || 'Whiskey', icon: 'fa-wine-bottle', action: 'whiskey', desc: translations?.ui_tool_whiskey_desc || 'Antiseptic and anesthetic' },
+          { name: translations?.ui_tool_surgerykit || 'Field Surgery Kit', icon: 'fa-first-aid', action: 'field-kit', desc: translations?.ui_tool_surgerykit_desc || 'Emergency surgical tools' },
+          { name: translations?.ui_tool_smellingsalts || 'Smelling Salts', icon: 'fa-vial', action: 'smelling-salts', desc: translations?.ui_tool_smellingsalts_desc || 'Revive unconscious patients' }
         ] as tool}
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
