@@ -1,19 +1,46 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import '../assets/css/rightside-inspection.css';
   import weatheredPaper from '../assets/imgs/weathered_paper.png';
   import selectionBoxBg from '../assets/imgs/selection_box_bg_1d.png';
 
   export let data: any = {};
+  export let configData: any = {};
   export let translations: any = {};
   export let onClose: () => void;
 
   let currentView = 'home';
   let notification: { message: string, icon: string } | null = null;
+  
   let checkingVitals = false;
   let vitalsProgress = 0;
   let vitalsChecked = false;
+  let showVitalsSubMenu = false;
+  let vitalsAnimating = false;
 
-  let currentPatientVitals: any = null;
+  let checkingTemperature = false;
+  let temperatureProgress = 0;
+  let temperatureChecked = false;
+  let showThermometerSubMenu = false;
+  let thermometerAnimating = false;
+
+  let showDoctorsBagSubMenu = false;
+  let doctorsBagAnimating = false;
+
+  let selectedBandageType: string | null = null;
+  let selectedTourniquetType: string | null = null;
+  let selectedMedicineType: string | null = null;
+  let selectedInjectionType: string | null = null;
+  let selectedBodyPart: string | null = null;
+
+  let medicalAssessment: string[] = [];
+  let treatmentsApplied: string[] = [];
+
+  let discoveredInjuries: Record<string, any> = {};
+  let inspectedBones: Set<string> = new Set();
+  let selectedBone: string | null = null;
+  let detailedInspectionResults: Record<string, any> = {};
+  let hasInspectedFully = false;
 
   function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
@@ -23,11 +50,202 @@
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('message', handleMessage);
+
+    setTimeout(() => {
+      try {
+        fetch(`https://${(window as any).GetParentResourceName()}/medical-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'check-vitals',
+            data: { playerId: data.playerId, playerSource: data.playerSource }
+          })
+        }).catch(() => {});
+      } catch (error) {}
+    }, 500);
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('message', handleMessage);
   });
+
+  function handleMessage(event: MessageEvent) {
+    const { type, success, message, action, bodyPart, itemName, updatedConditions, playerId, conditions, bandageTypes, tourniquetTypes, medicineTypes, injectionTypes, bodyParts, health, isDead, isUnconscious } = event.data;
+    
+    if (type === 'medical-treatment-response') {
+      if (success) {
+        showNotification(`${translations?.ui_successfullyApplied || 'Successfully applied'} ${itemName} ${translations?.ui_to || 'to'} ${bodyPart}`, 'fa-check-circle');
+        const bodyPartName = bodyPart !== 'patient' ? getBodyPartName(bodyPart) : 'patient';
+        addTreatmentEntry(`${translations?.ui_applied || 'Applied'} ${itemName} ${translations?.ui_to || 'to'} ${bodyPartName}`);
+        
+        if (action === 'apply-bandage') {
+          selectedBandageType = null;
+          selectedBodyPart = null;
+        } else if (action === 'apply-tourniquet') {
+          selectedTourniquetType = null;
+          selectedBodyPart = null;
+        } else if (action === 'administer-medicine') {
+          selectedMedicineType = null;
+        } else if (action === 'give-injection') {
+          selectedInjectionType = null;
+        }
+      } else {
+        showNotification(message || `${translations?.ui_youDontHave || "You don't have"} ${itemName} ${translations?.ui_inYourInventory || 'in your inventory'}`, 'fa-times-circle');
+      }
+    } else if (type === 'patient-condition-update') {
+      if (playerId === data.playerId) {
+        // Real-time update logic
+      }
+    } else if (type === 'medical-config-data') {
+      configData = {
+        bandageTypes: bandageTypes || {},
+        tourniquetTypes: tourniquetTypes || {},
+        medicineTypes: medicineTypes || {},
+        injectionTypes: injectionTypes || {},
+        bodyParts: bodyParts || {}
+      };
+    } else if (type === 'vitals-response') {
+      updateVitalsFromHealth(health, isDead, isUnconscious);
+    } else if (type === 'update-mission-wounds') {
+      if (Number(data.playerId) === -1 && event.data.data) {
+        const updatedData = event.data.data;
+        Object.assign(data, {
+          wounds: updatedData.wounds,
+          treatments: updatedData.treatments,
+          infections: updatedData.infections,
+          bandages: updatedData.bandages,
+          healthData: updatedData.healthData,
+          bloodLevel: updatedData.bloodLevel,
+          isBleeding: updatedData.isBleeding
+        });
+        data = data;
+        showNotification('Patient condition updated after treatment', 'fa-sync');
+      }
+    } else if (type === 'tool-usage-result') {
+      if (event.data.data?.success) {
+        showNotification(event.data.data.message || 'Tool used successfully', 'fa-check-circle');
+      } else {
+        showNotification(event.data.data?.message || 'Unable to use tool', 'fa-times-circle');
+      }
+    }
+  }
+
+  let currentPatientVitals: { heartRate: number, status: string, description: string, health: number } | null = null;
+
+  function updateVitalsFromHealth(health: number, isDead: boolean, isUnconscious: boolean) {
+    let heartRate = 0;
+    let status = '';
+    let description = '';
+
+    if (isDead) {
+      heartRate = 0;
+      status = translations?.vitals_noPulseDetected || 'No Pulse Detected';
+      description = translations?.vitals_noPulse || 'Patient shows no signs of life. No pulse or breathing detected.';
+    } else if (isUnconscious) {
+      heartRate = 40 + Math.random() * 20; 
+      status = translations?.vitals_weakPulseStatus || 'Weak Pulse';
+      description = translations?.vitals_unconsciousPulse || 'Patient is unconscious. Weak, irregular pulse detected.';
+    } else {
+      const healthPercent = Math.max(0, Math.min(100, health));
+      if (healthPercent >= 90) {
+        heartRate = 60 + Math.random() * 20;
+        status = translations?.vitals_normalStatus || 'Normal';
+        description = translations?.vitals_normalPulse || 'Strong, regular pulse. Patient appears stable.';
+      } else if (healthPercent >= 75) {
+        heartRate = 80 + Math.random() * 20;
+        status = translations?.vitals_elevatedStatus || 'Elevated';
+        description = translations?.vitals_elevatedPulse || 'Pulse slightly elevated. Patient may be in mild distress.';
+      } else if (healthPercent >= 50) {
+        heartRate = 100 + Math.random() * 30;
+        status = translations?.vitals_tachycardia || 'Tachycardia';
+        description = translations?.vitals_fastPulse || 'Rapid pulse detected. Patient shows signs of significant distress.';
+      } else if (healthPercent >= 25) {
+        heartRate = 120 + Math.random() * 40;
+        status = translations?.vitals_severeTachycardia || 'Severe Tachycardia';
+        description = translations?.vitals_criticalPulse || 'Dangerously fast pulse. Patient in critical condition.';
+      } else if (healthPercent > 0) {
+        heartRate = 40 + Math.random() * 30;
+        status = translations?.vitals_weakIrregular || 'Weak & Irregular';
+        description = translations?.vitals_weakPulse || 'Weak, irregular pulse. Patient is barely clinging to life.';
+      }
+    }
+
+    heartRate = Math.round(heartRate);
+
+    if (vitalsChecked) {
+      addAssessmentEntry(`Updated vital signs: Heart rate ${heartRate} BPM - ${status}`);
+      addAssessmentEntry(`Clinical assessment: ${description}`);
+    }
+
+    currentPatientVitals = { heartRate, status, description, health };
+  }
+
+
+  $: bandageTypes = Object.keys(configData?.bandageTypes || {}).length > 0 
+    ? Object.entries(configData.bandageTypes).map(([key, config]: [string, any]) => ({
+        id: key,
+        name: config.label || translations?.unknownBandage || 'Unknown Bandage',
+        desc: config.description || '',
+        icon: 'fa-band-aid',
+        itemname: config.itemName || key,
+        effectiveness: config.effectiveness || 50
+      }))
+    : [
+        { id: 'cloth', name: 'Cloth Strip', desc: 'Basic cloth strip - crude but available', icon: 'fa-band-aid', itemname: 'cloth_band', effectiveness: 60 },
+        { id: 'cotton', name: 'Cotton Bandage', desc: 'Standard cotton bandage - reliable frontier medicine', icon: 'fa-band-aid', itemname: 'cotton_band', effectiveness: 75 },
+        { id: 'linen', name: 'Linen Wrap', desc: 'Quality linen wrap - superior absorbency', icon: 'fa-band-aid', itemname: 'linen_band', effectiveness: 85 },
+        { id: 'sterile', name: 'Sterilized Gauze', desc: 'Professional medical gauze - sterile and effective', icon: 'fa-band-aid', itemname: 'sterile_band', effectiveness: 95 }
+      ];
+
+  $: tourniquetTypes = Object.keys(configData?.tourniquetTypes || {}).length > 0 
+    ? Object.entries(configData.tourniquetTypes).map(([key, config]: [string, any]) => ({
+        id: key,
+        name: config.label || translations?.unknownTourniquet || 'Unknown Tourniquet',
+        desc: `${translations?.effectiveness || 'Effectiveness'}: ${config.effectiveness || 70}% - ${translations?.maxDuration || 'Max duration'}: ${Math.floor((config.maxDuration || 1200) / 60)} min`,
+        icon: 'fa-compress',
+        itemname: config.itemName || key,
+        effectiveness: config.effectiveness || 70
+      }))
+    : [
+        { id: 'rope', name: 'Rope Tourniquet', desc: 'Improvised rope tourniquet - rough but effective', icon: 'fa-compress', itemname: 'tourniquet_rope', effectiveness: 70 },
+        { id: 'leather', name: 'Leather Strap', desc: 'Leather strap tourniquet - durable frontier solution', icon: 'fa-compress', itemname: 'tourniquet_leather', effectiveness: 75 },
+        { id: 'cloth', name: 'Cloth Tourniquet', desc: 'Cloth tourniquet - basic emergency bleeding control', icon: 'fa-compress', itemname: 'tourniquet_cloth', effectiveness: 65 },
+        { id: 'medical', name: 'Medical Tourniquet', desc: 'Professional medical tourniquet - hospital grade', icon: 'fa-compress', itemname: 'tourniquet_medical', effectiveness: 95 }
+      ];
+
+  $: medicineTypes = Object.keys(configData?.medicineTypes || {}).length > 0 
+    ? Object.entries(configData.medicineTypes).map(([key, config]: [string, any]) => ({
+        id: key,
+        name: config.label || translations?.unknownMedicine || 'Unknown Medicine',
+        desc: config.description || '',
+        icon: 'fa-prescription-bottle',
+        itemname: config.itemName || key,
+        effectiveness: config.effectiveness || 50
+      }))
+    : [
+        { id: 'laudanum', name: 'Laudanum', desc: 'Opium-based painkiller - powerful but addictive', icon: 'fa-prescription-bottle', itemname: 'medicine_laudanum', effectiveness: 85 },
+        { id: 'morphine', name: 'Morphine Powder', desc: 'Powerful opiate analgesic - strongest painkiller available', icon: 'fa-prescription-bottle', itemname: 'medicine_morphine', effectiveness: 95 },
+        { id: 'whiskey', name: 'Medicinal Whiskey', desc: 'Alcohol-based antiseptic and anesthetic - frontier medicine', icon: 'fa-prescription-bottle', itemname: 'medicine_whiskey', effectiveness: 60 },
+        { id: 'quinine', name: 'Quinine Powder', desc: 'Antimalarial and fever reducer - specialized treatment', icon: 'fa-prescription-bottle', itemname: 'medicine_quinine', effectiveness: 70 }
+      ];
+
+  $: injectionTypes = Object.keys(configData?.injectionTypes || {}).length > 0 
+    ? Object.entries(configData.injectionTypes).map(([key, config]: [string, any]) => ({
+        id: key,
+        name: config.label || translations?.unknownInjection || 'Unknown Injection',
+        desc: config.description || '',
+        icon: 'fa-syringe',
+        itemname: config.itemName || key,
+        riskLevel: config.riskLevel || 'medium'
+      }))
+    : [
+        { id: 'adrenaline', name: 'Adrenaline Shot', desc: 'Cardiac stimulant for emergency resuscitation - use with extreme caution', icon: 'fa-syringe', itemname: 'injection_adrenaline', riskLevel: 'high' },
+        { id: 'cocaine', name: 'Cocaine Solution', desc: 'Local anesthetic for surgical procedures - numbs pain effectively', icon: 'fa-syringe', itemname: 'injection_cocaine', riskLevel: 'medium' },
+        { id: 'strychnine', name: 'Strychnine (Micro)', desc: 'Stimulant for paralysis and respiratory failure - extremely dangerous', icon: 'fa-syringe', itemname: 'injection_strychnine', riskLevel: 'extreme' },
+        { id: 'saline', name: 'Salt Water', desc: 'Hydration and blood volume replacement - safe basic treatment', icon: 'fa-syringe', itemname: 'injection_saline', riskLevel: 'low' }
+      ];
 
   function showNotification(message: string, icon: string = 'fa-check-circle') {
     notification = { message, icon };
@@ -36,176 +254,1283 @@
     }, 4500);
   }
 
-  function getVitals() {
-    return {
-      heartRate: currentPatientVitals?.heartRate || 72,
-      status: currentPatientVitals?.status || 'Stable',
-      statusColor: '#27ae60'
-    };
+  function calculateVitals() {
+    if (currentPatientVitals) {
+      let statusColor = '#27ae60';
+      if (currentPatientVitals.heartRate === 0 || currentPatientVitals.status.includes('No Pulse')) {
+        statusColor = '#e74c3c';
+      } else if (currentPatientVitals.heartRate < 50 || currentPatientVitals.status.includes('Weak')) {
+        statusColor = '#f39c12';
+      } else if (currentPatientVitals.heartRate > 120 || currentPatientVitals.status.includes('Tachycardia')) {
+        statusColor = '#e74c3c';
+      } else if (currentPatientVitals.heartRate > 100 || currentPatientVitals.status.includes('Elevated')) {
+        statusColor = '#f39c12';
+      }
+      return {
+        heartRate: currentPatientVitals.heartRate,
+        status: currentPatientVitals.status,
+        description: currentPatientVitals.description || currentPatientVitals.status,
+        statusColor
+      };
+    }
+
+    const bloodLevel = data.bloodLevel || 100;
+    let baseHeartRate = 70;
+    let totalSeverity = 0;
+
+    if (data.wounds) {
+      Object.values(data.wounds).forEach((wound: any) => {
+        const severity = (wound.painLevel || 0) + (wound.bleedingLevel || 0) * 2;
+        totalSeverity += severity;
+      });
+    }
+
+    if (bloodLevel < 50) baseHeartRate += 40;
+    else if (bloodLevel < 70) baseHeartRate += 25;
+    else if (bloodLevel < 90) baseHeartRate += 10;
+
+    if (totalSeverity > 300) baseHeartRate += 20;
+    else if (totalSeverity > 150) baseHeartRate += 10;
+
+    const heartRate = Math.min(Math.max(baseHeartRate, 40), 180);
+
+    let status = translations?.ui_stable || 'Stable';
+    let statusColor = '#27ae60';
+
+    if (bloodLevel < 30 || totalSeverity > 400) {
+      status = translations?.ui_critical || 'Critical';
+      statusColor = '#e74c3c';
+    } else if (bloodLevel < 60 || totalSeverity > 200) {
+      status = translations?.ui_serious || 'Serious';
+      statusColor = '#f39c12';
+    } else if (bloodLevel < 80 || totalSeverity > 100) {
+      status = translations?.ui_injured || 'Injured';
+      statusColor = '#e67e22';
+    }
+
+    return { heartRate, status, statusColor, description: status };
   }
 
-  $: vitals = getVitals();
+  $: vitals = calculateVitals();
 
-  // Basic mock functions
+  function calculateTemperature() {
+    const baseTemp = 98.6;
+    const bloodLevel = data.bloodLevel || 100;
+    let totalSeverity = 0;
+
+    if (data.wounds) {
+      Object.values(data.wounds).forEach((wound: any) => {
+        const severity = (wound.painLevel || 0) + (wound.bleedingLevel || 0) * 2;
+        totalSeverity += severity;
+      });
+    }
+
+    let tempAdjustment = 0;
+    if (totalSeverity > 300) tempAdjustment += 3.5;
+    else if (totalSeverity > 150) tempAdjustment += 2;
+    else if (totalSeverity > 50) tempAdjustment += 1;
+
+    if (bloodLevel < 30) tempAdjustment -= 2;
+    else if (bloodLevel < 60) tempAdjustment -= 1;
+
+    return Math.round((baseTemp + tempAdjustment) * 10) / 10;
+  }
+
+  function mapFrontendToBackend(frontendBodyPart: string): string {
+    const mapping: { [key: string]: string } = {
+      'head': 'HEAD', 'spine': 'SPINE', 'upbody': 'UPPER_BODY', 'lowbody': 'LOWER_BODY',
+      'larm': 'LARM', 'rarm': 'RARM', 'lhand': 'LHAND', 'rhand': 'RHAND',
+      'lleg': 'LLEG', 'rleg': 'RLEG', 'lfoot': 'LFOOT', 'rfoot': 'RFOOT'
+    };
+    return mapping[frontendBodyPart.toLowerCase()] || frontendBodyPart.toUpperCase();
+  }
+
+  function getBodyPartName(bodyPart: string): string {
+    const backendBodyPart = mapFrontendToBackend(bodyPart);
+    if (configData?.bodyParts && configData.bodyParts[backendBodyPart]) {
+      return configData.bodyParts[backendBodyPart].label || configData.bodyParts[backendBodyPart];
+    }
+    const fallbackNames: { [key: string]: string } = {
+      'head': 'Head', 'spine': 'Spine', 'upbody': 'Upper Body', 'lowbody': 'Lower Body',
+      'larm': 'Left Arm', 'rarm': 'Right Arm', 'lhand': 'Left Hand', 'rhand': 'Right Hand',
+      'lleg': 'Left Leg', 'rleg': 'Right Leg', 'lfoot': 'Left Foot', 'rfoot': 'Right Foot'
+    };
+    return fallbackNames[bodyPart.toLowerCase()] || bodyPart;
+  }
+
+  function getWoundData(frontendBodyPart: string) {
+    if (!data.wounds) return null;
+    const backendBodyPart = mapFrontendToBackend(frontendBodyPart);
+    return data.wounds[backendBodyPart] || null;
+  }
+
+  function needsMedicine(frontendBodyPart: string): boolean {
+    const discoveredWound = discoveredInjuries[frontendBodyPart];
+    if (!discoveredWound) return false;
+    const hasPain = discoveredWound.painLevel && discoveredWound.painLevel > 0;
+    if (!hasPain) return false;
+    
+    if (Number(data.playerId) === -1 && data.wounds) {
+      const backendBodyPart = mapFrontendToBackend(frontendBodyPart);
+      const currentWound = data.wounds[backendBodyPart];
+      if (currentWound && currentWound.treatments) {
+        // Lua tables normalize
+        const trts = Array.isArray(currentWound.treatments) ? currentWound.treatments : Object.values(currentWound.treatments);
+        for (const treatment of trts) {
+          if ((treatment as any).status === "active" && (treatment as any).treatsCondition === "pain") {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  function needsBandage(frontendBodyPart: string): boolean {
+    const discoveredWound = discoveredInjuries[frontendBodyPart];
+    if (!discoveredWound) return false;
+    return discoveredWound.bleedingLevel && discoveredWound.bleedingLevel >= 1 && discoveredWound.bleedingLevel <= 6;
+  }
+
+  function isBandaged(frontendBodyPart: string): boolean {
+    if (Number(data.playerId) === -1 && data.wounds) {
+      const backendBodyPart = mapFrontendToBackend(frontendBodyPart);
+      const currentWound = data.wounds[backendBodyPart];
+      if (currentWound && currentWound.treatments) {
+        const trts = Array.isArray(currentWound.treatments) ? currentWound.treatments : Object.values(currentWound.treatments);
+        for (const treatment of trts) {
+          if ((treatment as any).status === "active" && (treatment as any).treatsCondition === "bleeding") {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function needsTourniquet(frontendBodyPart: string): boolean {
+    const discoveredWound = discoveredInjuries[frontendBodyPart];
+    if (!discoveredWound) return false;
+    return discoveredWound.bleedingLevel && discoveredWound.bleedingLevel >= 7;
+  }
+
+  function isTourniqueted(frontendBodyPart: string): boolean {
+    if (Number(data.playerId) === -1 && data.wounds) {
+      const backendBodyPart = mapFrontendToBackend(frontendBodyPart);
+      const currentWound = data.wounds[backendBodyPart];
+      if (currentWound && currentWound.treatments) {
+        const trts = Array.isArray(currentWound.treatments) ? currentWound.treatments : Object.values(currentWound.treatments);
+        for (const treatment of trts) {
+          if ((treatment as any).status === "active" && (treatment as any).treatsCondition === "severe_bleeding") {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function addAssessmentEntry(entry: string) {
+    if (!medicalAssessment.includes(entry)) {
+      medicalAssessment = [...medicalAssessment, entry];
+    }
+  }
+
+  function addTreatmentEntry(treatment: string) {
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    treatmentsApplied = [...treatmentsApplied, `${timestamp} - ${treatment}`];
+  }
+
+  function closeVitalsSubMenu() {
+    vitalsAnimating = false;
+    setTimeout(() => { showVitalsSubMenu = false; }, 300);
+  }
+
+  function closeDoctorsBagSubMenu() {
+    doctorsBagAnimating = false;
+    setTimeout(() => { showDoctorsBagSubMenu = false; }, 300);
+  }
+
+  function closeThermometerSubMenu() {
+    thermometerAnimating = false;
+    setTimeout(() => { showThermometerSubMenu = false; }, 300);
+  }
+
+  function switchView(view: string) {
+    if (view === 'vitals') {
+      if (showDoctorsBagSubMenu) closeDoctorsBagSubMenu();
+      if (showThermometerSubMenu) closeThermometerSubMenu();
+      showVitalsSubMenu = true;
+      vitalsAnimating = true;
+      return;
+    }
+    if (view === 'doctors-bag') {
+      if (showVitalsSubMenu) closeVitalsSubMenu();
+      if (showThermometerSubMenu) closeThermometerSubMenu();
+      showDoctorsBagSubMenu = true;
+      doctorsBagAnimating = true;
+      return;
+    }
+    
+    currentView = view;
+    checkingVitals = false;
+    vitalsProgress = 0;
+    selectedBandageType = null;
+    selectedTourniquetType = null;
+    selectedMedicineType = null;
+    selectedInjectionType = null;
+    selectedBodyPart = null;
+    
+    if (showVitalsSubMenu) closeVitalsSubMenu();
+    if (showDoctorsBagSubMenu) closeDoctorsBagSubMenu();
+    if (showThermometerSubMenu) closeThermometerSubMenu();
+  }
+
+  let vitalsInterval: any;
   function startVitalsCheck() {
+    if (checkingVitals) return;
+    
+    window.postMessage({
+      type: 'medical-request',
+      action: 'check-vitals',
+      data: { playerId: data.playerId, playerSource: data.playerSource }
+    }, '*');
+    
     checkingVitals = true;
     vitalsProgress = 0;
-    const interval = setInterval(() => {
-      vitalsProgress += 10;
+    
+    vitalsInterval = setInterval(() => {
+      vitalsProgress += 3.33;
       if (vitalsProgress >= 100) {
-        clearInterval(interval);
-        checkingVitals = false;
+        clearInterval(vitalsInterval);
         vitalsChecked = true;
+        checkingVitals = false;
+        vitalsProgress = 100;
+        
+        try {
+          fetch(`https://${(window as any).GetParentResourceName()}/medical-request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'check-vitals',
+              data: { playerId: data.playerId, playerSource: data.playerSource }
+            })
+          }).catch(() => {});
+        } catch (e) {}
       }
-    }, 300);
+    }, 100);
   }
 
   function stopVitalsCheck() {
     checkingVitals = false;
     vitalsProgress = 0;
+    if (vitalsInterval) clearInterval(vitalsInterval);
   }
+
+  let tempInterval: any;
+  function startTemperatureCheck() {
+    if (checkingTemperature) return;
+    checkingTemperature = true;
+    temperatureProgress = 0;
+    
+    tempInterval = setInterval(() => {
+      temperatureProgress += 3.33;
+      if (temperatureProgress >= 100) {
+        clearInterval(tempInterval);
+        temperatureChecked = true;
+        checkingTemperature = false;
+        temperatureProgress = 100;
+        window.postMessage({ 
+          type: 'temperature-checked', 
+          data: { playerId: data.playerId, temperature: calculateTemperature() }
+        }, '*');
+      }
+    }, 100);
+  }
+
+  function stopTemperatureCheck() {
+    checkingTemperature = false;
+    temperatureProgress = 0;
+    if (tempInterval) clearInterval(tempInterval);
+  }
+
+  function applyBandage() {
+    if (!selectedBandageType || !selectedBodyPart) return;
+    const bandage = bandageTypes.find(b => b.id === selectedBandageType);
+    showNotification(`${translations?.ui_checkingInventoryFor || 'Checking inventory for'} ${bandage?.name}...`, 'fa-clock');
+    
+    try {
+      fetch(`https://${(window as any).GetParentResourceName()}/medical-treatment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply-bandage',
+          data: {
+            playerId: data.playerId,
+            bodyPart: selectedBodyPart,
+            itemType: selectedBandageType,
+            itemName: bandage?.itemname || bandage?.name || 'bandage',
+            displayName: bandage?.name || 'Bandage'
+          }
+        })
+      }).then(r => r.json()).then(result => {
+        if (result.status === 'success') {
+          showNotification(`Successfully applied ${bandage?.name} to ${selectedBodyPart}`, 'fa-check-circle');
+          addTreatmentEntry(`Applied ${bandage?.name} to ${selectedBodyPart} for bleeding control`);
+          selectedBandageType = null;
+          selectedBodyPart = null;
+        } else {
+          showNotification(result.message || `Failed to apply ${bandage?.name}`, 'fa-times-circle');
+        }
+      }).catch(() => showNotification('Bandage application failed', 'fa-times-circle'));
+    } catch (e) {}
+  }
+
+  function applyTourniquet() {
+    if (!selectedTourniquetType || !selectedBodyPart) return;
+    const tourniquet = tourniquetTypes.find(t => t.id === selectedTourniquetType);
+    showNotification(`${translations?.ui_checkingInventoryFor || 'Checking inventory for'} ${tourniquet?.name}...`, 'fa-clock');
+    
+    try {
+      fetch(`https://${(window as any).GetParentResourceName()}/medical-treatment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply-tourniquet',
+          data: {
+            playerId: data.playerId,
+            bodyPart: selectedBodyPart,
+            itemType: selectedTourniquetType,
+            itemName: tourniquet?.itemname || tourniquet?.name || 'tourniquet',
+            displayName: tourniquet?.name || 'Tourniquet'
+          }
+        })
+      }).then(r => r.json()).then(result => {
+        if (result.status === 'success') {
+          showNotification(`Successfully applied ${tourniquet?.name} to ${selectedBodyPart}`, 'fa-check-circle');
+          addTreatmentEntry(`Applied ${tourniquet?.name} to ${selectedBodyPart} for severe bleeding control`);
+          selectedTourniquetType = null;
+          selectedBodyPart = null;
+        } else {
+          showNotification(result.message || `Failed to apply ${tourniquet?.name}`, 'fa-times-circle');
+        }
+      }).catch(() => showNotification('Tourniquet application failed', 'fa-times-circle'));
+    } catch (e) {}
+  }
+
+  function administerMedicine() {
+    if (!selectedMedicineType) return;
+    const medicine = medicineTypes.find(m => m.id === selectedMedicineType);
+    showNotification(`${translations?.ui_checkingInventoryFor || 'Checking inventory for'} ${medicine?.name}...`, 'fa-clock');
+    
+    try {
+      fetch(`https://${(window as any).GetParentResourceName()}/medical-treatment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'administer-medicine',
+          data: {
+            playerId: data.playerId,
+            bodyPart: 'patient',
+            itemType: selectedMedicineType,
+            itemName: medicine?.itemname || medicine?.name || 'medicine',
+            displayName: medicine?.name || 'Medicine'
+          }
+        })
+      }).then(r => r.json()).then(result => {
+        if (result.status === 'success') {
+          showNotification(`Successfully administered ${medicine?.name}`, 'fa-check-circle');
+          addTreatmentEntry(`Applied ${medicine?.name} for pain management`);
+          selectedMedicineType = null;
+        } else {
+          showNotification(result.message || `Failed to administer ${medicine?.name}`, 'fa-times-circle');
+        }
+      }).catch(() => showNotification('Medicine application failed', 'fa-times-circle'));
+    } catch (e) {}
+  }
+
+  function giveInjection() {
+    if (!selectedInjectionType || !selectedBodyPart) return;
+    const injection = injectionTypes.find(i => i.id === selectedInjectionType);
+    
+    window.postMessage({
+      type: 'medical-treatment',
+      action: 'give-injection',
+      data: {
+        playerId: data.playerId,
+        bodyPart: selectedBodyPart,
+        itemType: selectedInjectionType,
+        itemName: injection?.itemname || injection?.name || 'injection',
+        displayName: injection?.name || 'Injection'
+      }
+    }, '*');
+    
+    showNotification(`${translations?.ui_checkingInventoryFor || 'Checking inventory for'} ${injection?.name}...`, 'fa-clock');
+  }
+
+  function inspectBodyPart(bodyPart: string) {
+    selectedBone = bodyPart;
+    inspectedBones.add(bodyPart);
+    inspectedBones = inspectedBones;
+    
+    const woundData = getWoundData(bodyPart);
+
+    if (woundData && !woundData.isScar && ((woundData.painLevel || 0) > 3 || (woundData.bleedingLevel || 0) > 2)) {
+      discoveredInjuries[bodyPart] = woundData;
+      discoveredInjuries = discoveredInjuries;
+    }
+    
+    const allBodyParts = ['head', 'spine', 'upbody', 'lowbody', 'larm', 'rarm', 'lhand', 'rhand', 'lleg', 'rleg', 'lfoot', 'rfoot'];
+    if (inspectedBones.size >= allBodyParts.length * 0.8) {
+      hasInspectedFully = true;
+    }
+    
+    const generateDetailedReport = () => {
+      if (!woundData) {
+        return {
+          boneIntegrity: translations?.ui_normalBoneIntegrity || 'Normal',
+          softTissue: translations?.ui_noVisibleDamage || 'No visible damage',
+          bloodFlow: translations?.ui_normalCirculationReport || 'Normal circulation',
+          painResponse: translations?.ui_noSignificantPain || 'No significant pain response',
+          swelling: translations?.ui_noneDetected || 'None detected',
+          discoloration: translations?.ui_normalSkin || 'Normal skin tone',
+          woundDescription: translations?.ui_noWoundsDetected || 'No wounds detected in this area',
+          recommendation: translations?.ui_noImmediateTreatment || 'No immediate treatment required'
+        };
+      }
+
+      if (woundData.isScar) {
+        return {
+          boneIntegrity: 'Healed - Scar tissue formed',
+          softTissue: 'Scar tissue present from previous injury',
+          bloodFlow: 'Normal circulation restored',
+          painResponse: 'No active pain - fully healed',
+          swelling: 'None - injury has healed',
+          discoloration: 'Permanent scar tissue visible',
+          woundDescription: `OLD HEALED INJURY: ${woundData.metadata?.description || 'Unknown injury'}`,
+          recommendation: 'No treatment required - wound has fully healed into scar tissue'
+        };
+      }
+
+      const painLevel = woundData.painLevel || 0;
+      const bleedingLevel = woundData.bleedingLevel || 0;
+      
+      const getPainDesc = (level: number) => {
+        if (level === 0) return 'No pain';
+        return data.injuryStates?.[level]?.pain || `Pain level ${level}`;
+      };
+      
+      const getBleedingDesc = (level: number) => {
+        if (level === 0) return 'No bleeding';
+        return data.injuryStates?.[level]?.bleeding || `Bleeding level ${level}`;
+      };
+      
+      const getTreatmentRecommendation = (painLvl: number, bleedingLvl: number) => {
+        if (bleedingLvl > 0 && painLvl > 0) {
+          const maxLevel = Math.max(painLvl, bleedingLvl);
+          if (data.injuryStates?.[maxLevel]?.unifiedDesc) return data.injuryStates[maxLevel].unifiedDesc;
+          return 'Combined pain and bleeding treatment needed';
+        } else if (bleedingLvl > 0) {
+          if (data.injuryStates?.[bleedingLvl]?.bleedDesc) return data.injuryStates[bleedingLvl].bleedDesc;
+          if (bleedingLvl >= 8) return 'URGENT: Control bleeding immediately - life threatening';
+          if (bleedingLvl >= 6) return 'Apply tourniquet or pressure bandage to stop bleeding';
+          if (bleedingLvl >= 4) return 'Apply bandage to control bleeding';
+          return 'Monitor bleeding, apply basic bandage if needed';
+        } else if (painLvl > 0) {
+          if (data.injuryStates?.[painLvl]?.painDesc) return data.injuryStates[painLvl].painDesc;
+          if (painLvl >= 8) return 'URGENT: Severe pain management required - administer strong painkillers';
+          if (painLvl >= 6) return 'Significant pain management needed - use pain medication';
+          if (painLvl >= 4) return 'Apply pain relief measures - basic painkillers recommended';
+          return 'Monitor discomfort, rest and basic pain relief if needed';
+        }
+        return 'No immediate treatment required';
+      };
+      
+      const totalSeverity = painLevel + (bleedingLevel * 2);
+      
+      return {
+        boneIntegrity: painLevel > 8 ? (translations?.ui_possibleFracture || 'Possible fracture detected') : painLevel > 5 ? (translations?.ui_boneBruising || 'Bone bruising suspected') : (translations?.ui_normalBone || 'Normal'),
+        softTissue: bleedingLevel > 0 ? getBleedingDesc(bleedingLevel) : painLevel > 0 ? `${translations?.ui_contusionsPresent || 'Contusions present'} (${getPainDesc(painLevel)})` : (translations?.ui_noVisibleDamage || 'No visible damage'),
+        bloodFlow: bleedingLevel > 6 ? `${translations?.ui_activeBleeding || 'Active bleeding'}: ${getBleedingDesc(bleedingLevel)}` : bleedingLevel > 0 ? `${getBleedingDesc(bleedingLevel)} ${translations?.ui_bleedingObserved || 'observed'}` : (translations?.ui_normalCirculation || 'Normal circulation'),
+        painResponse: painLevel > 0 ? `${translations?.ui_patientReports || 'Patient reports'}: ${getPainDesc(painLevel)}` : (translations?.ui_noSignificantPain || 'No significant pain response'),
+        swelling: totalSeverity > 12 ? (translations?.ui_significantSwelling || 'Significant swelling present') : totalSeverity > 6 ? (translations?.ui_minorSwelling || 'Minor swelling detected') : (translations?.ui_noneDetected || 'None detected'),
+        discoloration: bleedingLevel > 3 ? (translations?.ui_bloodPooling || 'Blood pooling visible') : painLevel > 5 ? (translations?.ui_bruisingDiscoloration || 'Bruising and discoloration') : (translations?.ui_normalSkin || 'Normal skin tone'),
+        woundDescription: woundData.metadata?.description || (translations?.ui_noWoundDescription || 'No detailed wound description available'),
+        recommendation: getTreatmentRecommendation(painLevel, bleedingLevel)
+      };
+    };
+
+    const detailedReport = generateDetailedReport();
+    detailedInspectionResults[bodyPart] = detailedReport;
+    detailedInspectionResults = detailedInspectionResults;
+
+    if (woundData && !woundData.isScar && ((woundData.painLevel || 0) > 3 || (woundData.bleedingLevel || 0) > 2)) {
+      const bodyPartName = getBodyPartName(bodyPart);
+      const severity = woundData.severity || 0;
+      const bleeding = woundData.bleeding || 0;
+
+      if (severity > 70) addAssessmentEntry(`${bodyPartName}: ${translations?.ui_criticalInjuryDetected || 'Critical injury detected - immediate attention required'}`);
+      else if (severity > 40) addAssessmentEntry(`${bodyPartName}: ${translations?.ui_moderateInjuryFound || 'Moderate injury found - treatment recommended'}`);
+      else if (bleeding > 15) addAssessmentEntry(`${bodyPartName}: ${translations?.ui_activeBleedingObserved || 'Active bleeding observed'}`);
+      else addAssessmentEntry(`${bodyPartName}: ${translations?.ui_minorInjuryNoted || 'Minor injury noted'}`);
+    }
+    
+    window.postMessage({ 
+      type: 'inspect-body-part', 
+      data: {
+        playerId: data.playerId,
+        bodyPart,
+        woundData,
+        detailedReport,
+        patientName: data.playerName
+      }
+    }, '*');
+  }
+
+  function handleMedicalAction(action: string, target?: string, extra?: any) {
+    if (action === 'use-tool' && target === 'thermometer') {
+      showThermometerSubMenu = true;
+      thermometerAnimating = true;
+      return;
+    }
+
+    try {
+      fetch(`https://${(window as any).GetParentResourceName()}/medical-action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          target,
+          extra,
+          playerId: data.playerId,
+          patientName: data.playerName
+        })
+      });
+    } catch (e) {}
+  }
+
 </script>
 
-<style>
-  .inspection-panel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90vw;
-    height: 80vh;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    z-index: 1000;
-  }
-
-  .left-panel, .right-panel {
-    width: 25vw;
-    height: 100%;
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    padding: 2vw;
-    display: flex;
-    flex-direction: column;
-    border-radius: 1vw;
-  }
-
-  .center-panel {
-    width: 35vw;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-
-  .menu-btn {
-    background-size: cover;
-    background-position: center;
-    color: white;
-    border: none;
-    padding: 1vw;
-    margin: 0.5vw 0;
-    width: 80%;
-    border-radius: 0.5vw;
-    font-size: 1vw;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    display: flex;
-    align-items: center;
-  }
-
-  .menu-btn:hover {
-    transform: scale(1.05);
-  }
-</style>
-
-<div class="inspection-panel">
-  <!-- Left Panel: Vitals & Status -->
-  <div class="left-panel" style="background-image: url({weatheredPaper});">
-    <div style="text-align: center; color: white; font-size: 1.5vw; font-weight: bold; margin-bottom: 2vw; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 1vw;">
-      <i class="fas fa-file-medical-alt" style="margin-right: 0.5vw;"></i>
-      {translations?.ui_patientChart || 'PATIENT CHART'}
+<div class="medical-inspection-rightsidepanel" style="display: block;">
+  <div class="medic-action-sidebar">
+    <div class="medic-action-btn home-btn" class:active={currentView === 'home'} on:click={() => switchView('home')}>
+      <i class="fas fa-home"></i><div class="action-tooltip"></div>
     </div>
-    
-    <div style="color: white; font-size: 1vw; margin-bottom: 1vw;">
-      <strong>Name:</strong> {data.playerName || 'Unknown'}
+    <div class="medic-action-btn" class:active={currentView === 'bandage'} on:click={() => switchView('bandage')}>
+      <i class="fas fa-plus-circle"></i><div class="action-tooltip"></div>
     </div>
-    
-    <!-- Vitals block -->
-    <div style="background: rgba(0,0,0,0.3); padding: 1vw; border-radius: 0.5vw; margin-top: 1vw;">
-      <div style="font-size: 1.2vw; color: white; margin-bottom: 1vw; text-align: center;">
-        <i class="fas fa-heartbeat"></i> Vitals
+    <div class="medic-action-btn" class:active={currentView === 'tourniquet'} on:click={() => switchView('tourniquet')}>
+      <i class="fas fa-compress"></i><div class="action-tooltip"></div>
+    </div>
+    <div class="medic-action-btn" class:active={currentView === 'medicine'} on:click={() => switchView('medicine')}>
+      <i class="fas fa-pills"></i><div class="action-tooltip"></div>
+    </div>
+    <div class="medic-action-btn" class:active={currentView === 'injection'} on:click={() => switchView('injection')}>
+      <i class="fas fa-syringe"></i><div class="action-tooltip"></div>
+    </div>
+    <div class="medic-action-btn" class:active={currentView === 'body-inspection'} on:click={() => switchView('body-inspection')}>
+      <i class="fas fa-search"></i><div class="action-tooltip"></div>
+    </div>
+    <div class="medic-action-btn" class:active={currentView === 'vitals'} on:click={() => switchView('vitals')}>
+      <i class="fas fa-heartbeat"></i><div class="action-tooltip"></div>
+    </div>
+    <div class="medic-action-btn" class:active={currentView === 'doctors-bag'} on:click={() => switchView('doctors-bag')}>
+      <i class="fas fa-briefcase-medical"></i><div class="action-tooltip">{translations?.ui_doctorsBag || "Doctor's Bag"}</div>
+    </div>
+  </div>
+
+  <div class="rightsidepanel-container">
+    <div class="rightsidepanel-header">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div class="panel-close-btn" on:click={onClose}>&times;</div>
+      <div class="panel-title">
+        <i class="fas fa-stethoscope"></i>
+        {translations?.ui_medicalInspection || 'MEDICAL INSPECTION'}
       </div>
-      {#if vitalsChecked}
-        <div style="color: white; font-size: 1vw; display: flex; justify-content: space-between;">
-          <span>Heart Rate:</span>
-          <span style="color: {vitals.statusColor}">{vitals.heartRate} BPM</span>
+      <div class="panel-subtitle">{translations?.ui_patientMedicalAssessment || 'Patient Medical Assessment'}</div>
+    </div>
+
+    <div class="medic-inspection-content">
+      {#if currentView === 'home'}
+        <div class="quick-patient-info">
+          <div class="patient-name-large">Dr. {data.playerName || translations?.ui_unknownMedic || 'Unknown Medic'}</div>
+          <div class="patient-id-small">{translations?.ui_fieldPhysician || 'Field Physician - Medical Corps'}</div>
         </div>
-        <div style="color: white; font-size: 1vw; display: flex; justify-content: space-between; margin-top: 0.5vw;">
-          <span>Status:</span>
-          <span style="color: {vitals.statusColor}">{vitals.status}</span>
+
+        <div class="inspection-divider"></div>
+
+        <div class="blood-level-display">
+          <div class="blood-header">
+            <i class="fas fa-briefcase-medical"></i>
+            <span>{translations?.ui_medicalBag || 'MEDICAL KIT STATUS'}</span>
+          </div>
+          <div style="padding: 1vw; text-align: center;">
+            <div style="font-size: 0.8vw; color: #27ae60; margin-bottom: 0.5vw;">
+              <i class="fas fa-check-circle" style="margin-right: 0.5vw;"></i>
+              {translations?.tool_fieldSurgeryKit || 'Field Kit Ready'}
+            </div>
+            <div style="font-size: 0.6vw; color: white;">
+              All medical instruments operational
+            </div>
+          </div>
+        </div>
+
+        <div class="inspection-divider"></div>
+
+        <div class="medical-details-section">
+          <div class="section-title">
+            <i class="fas fa-clipboard-list"></i>
+            <span>{translations?.ui_patientAssessment || 'PATIENT ASSESSMENT'}</span>
+          </div>
+          <div class="details-content">
+            {#if medicalAssessment.length === 0}
+              <div style="text-align: center; padding: 2vw; color: rgba(226, 199, 146, 0.6);">
+                <i class="fas fa-search" style="font-size: 1.5vw; margin-bottom: 0.5vw;"></i>
+                <div style="font-size: 0.7vw; margin-bottom: 0.3vw;">No assessment completed</div>
+                <div style="font-size: 0.5vw;">Use body inspection and vitals to evaluate patient condition</div>
+              </div>
+            {:else}
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.8vw; font-style: italic;">
+                Medical assessment findings:
+              </div>
+              <div style="max-height: 18vw; overflow-y: auto; margin-bottom: 1vw;">
+                {#each medicalAssessment as finding}
+                  <div style="font-size: 0.8vw; color: white; margin-bottom: 0.3vw; padding: 0.4vw 0.8vw; border-left: 2px solid white; background: rgba(226, 199, 146, 0.05);">
+                    • {finding}
+                  </div>
+                {/each}
+              </div>
+              
+              {#if treatmentsApplied.length > 0}
+                <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw; font-style: italic;">
+                  {translations?.treatmentsApplied || 'Treatments Applied'}:
+                </div>
+                <div style="max-height: 8vw; overflow-y: auto;">
+                  {#each treatmentsApplied as treatment}
+                    <div style="font-size: 0.55vw; color: #27ae60; margin-bottom: 0.2vw; padding: 0.2vw 0.5vw; border-left: 2px solid #27ae60; background: rgba(39, 174, 96, 0.05);">
+                      • {treatment}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
+
+      {#if currentView === 'vitals'}
+        <div class="vitals-checking-view">
+          <div class="section-title">
+            <i class="fas fa-heartbeat"></i>
+            <span>{translations?.vitalSignsChecking || 'VITAL SIGNS CHECKING'}</span>
+          </div>
+          
+          {#if !vitalsChecked}
+            <div class="vitals-panel" style="text-align: center; padding: 2vw;">
+              <div style="font-size: 0.8vw; color: white; margin-bottom: 1vw;">
+                <i class="fas fa-stethoscope" style="font-size: 2vw; margin-bottom: 0.5vw;"></i>
+                <div>{translations?.placeStethoscope || "Place stethoscope on patient's chest"}</div>
+              </div>
+              
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 1.5vw;">
+                {checkingVitals ? (translations?.listeningHeartbeat || 'Listening for heartbeat... Keep holding!') : (translations?.holdToCheckVitals || 'Hold the button below for 3 seconds to check vitals')}
+              </div>
+              
+              <div class="vitals-controls" style="display: flex; gap: 1vw; justify-content: center;">
+                <button 
+                  class="vitals-hold-btn"
+                  on:mousedown={startVitalsCheck}
+                  on:mouseup={stopVitalsCheck}
+                  on:mouseleave={stopVitalsCheck}
+                  style="background: {checkingVitals ? '#f39c12' : 'white'}; color: #2c1810; border: none; padding: 0.8vw 1.5vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; position: relative; overflow: hidden;"
+                >
+                  <i class="fas fa-hand-paper" style="margin-right: 0.5vw;"></i>
+                  {checkingVitals ? (translations?.checking || 'CHECKING...') : (translations?.holdToCheck || 'HOLD TO CHECK')}
+                  {#if checkingVitals}
+                    <div style="position: absolute; bottom: 0; left: 0; width: {vitalsProgress}%; height: 100%; background: rgba(39, 174, 96, 0.3); transition: width 0.1s ease;"></div>
+                  {/if}
+                </button>
+                
+                <button 
+                  on:click={() => switchView('home')}
+                  style="background: transparent; color: white; border: 1px solid white; padding: 0.8vw 1.5vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer;"
+                >
+                  <i class="fas fa-times" style="margin-right: 0.5vw;"></i>
+                  {translations?.cancel || 'CANCEL'}
+                </button>
+              </div>
+            </div>
+          {:else}
+            <div class="vitals-results" style="padding: 1vw;">
+              <div class="section-title" style="margin-bottom: 1vw;">
+                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                <span>VITAL SIGNS RESULTS</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.5vw;">
+                <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
+                  <span style="color: white; font-size: 0.7vw;">Heart Rate:</span>
+                  <span style="color: white; font-size: 0.7vw; font-weight: bold;">{vitals.heartRate} BPM</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
+                  <span style="color: white; font-size: 0.7vw;">Temperature:</span>
+                  <span style="color: white; font-size: 0.7vw; font-weight: bold;">{data.vitals?.temperature || '98.6'} °F</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
+                  <span style="color: white; font-size: 0.7vw;">Breathing:</span>
+                  <span style="color: white; font-size: 0.7vw; font-weight: bold;">{data.vitals?.breathing || '16'} /min</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
+                  <span style="color: white; font-size: 0.7vw;">Status:</span>
+                  <span style="color: {vitals.statusColor}; font-size: 0.7vw; font-weight: bold;">{vitals.status}</span>
+                </div>
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if currentView === 'body-inspection'}
+        <div class="body-inspection-view">
+          <div class="section-title">
+            <i class="fas fa-search-plus"></i>
+            <span>{translations?.ui_bodyInspectionTitle || 'BODY INSPECTION MODE'}</span>
+          </div>
+          
+          <div style="font-size: 0.6vw; color: white; margin-bottom: 0.8vw; font-style: italic;">
+            Click on body parts to perform detailed inspection
+          </div>
+          
+          <div class="body-parts-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.3vw; margin-bottom: 1vw;">
+            {#each ['head', 'spine', 'upbody', 'lowbody', 'larm', 'rarm', 'lhand', 'rhand', 'lleg', 'rleg', 'lfoot', 'rfoot'] as bodyPart}
+              <!-- svelte-ignore a11y-click-events-have-key-events -->
+              <div 
+                class="body-part-item {inspectedBones.has(bodyPart) ? 'inspected' : ''} {selectedBone === bodyPart ? 'selected' : ''}"
+                on:click={() => inspectBodyPart(bodyPart)}
+                style="padding: 0.4vw; background: {selectedBone === bodyPart ? 'rgba(226, 199, 146, 0.2)' : inspectedBones.has(bodyPart) ? 'rgba(226, 199, 146, 0.1)' : 'rgba(0,0,0,0.1)'}; border: 1px solid {selectedBone === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: pointer; font-size: 0.6vw; color: white; text-align: center; position: relative;"
+              >
+                {bodyPart.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                {#if getWoundData(bodyPart) && ((getWoundData(bodyPart).painLevel || 0) > 3 || (getWoundData(bodyPart).bleedingLevel || 0) > 2)}
+                  <div style="position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; background: {(getWoundData(bodyPart).bleedingLevel || 0) >= 6 ? '#e74c3c' : '#f39c12'}; border-radius: 50%;"></div>
+                {/if}
+                {#if inspectedBones.has(bodyPart)}
+                  <i class="fas fa-check" style="position: absolute; bottom: 2px; right: 2px; font-size: 0.5vw; color: #27ae60;"></i>
+                {/if}
+              </div>
+            {/each}
+          </div>
+
+          {#if selectedBone && detailedInspectionResults[selectedBone]}
+            <div class="bone-inspection-details" style="padding: 0.8vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.3vw; max-height: 20vw; overflow-y: auto;">
+              <h4 style="color: white; font-size: 0.8vw; margin-bottom: 0.5vw;">
+                Detailed Inspection: {selectedBone.toUpperCase()}
+              </h4>
+              <div class="detailed-results" style="font-size: 0.55vw; line-height: 1.4;">
+                {#each Object.entries(detailedInspectionResults[selectedBone]) as [key, value]}
+                  <div style="margin-bottom: 0.4vw; display: flex; flex-direction: column;">
+                    <span style="color: white; font-weight: bold; text-transform: capitalize;">
+                      {key.replace(/([A-Z])/g, ' $1')}:
+                    </span>
+                    <span style="color: {key === 'recommendation' && typeof value === 'string' && value.includes('URGENT') ? '#e74c3c' : key === 'recommendation' && typeof value === 'string' && value.includes('Treatment') ? '#f39c12' : key === 'woundDescription' ? '#E2C792' : 'white'}; margin-left: 0.5vw; font-style: {key === 'recommendation' || key === 'woundDescription' ? 'italic' : 'normal'}; line-height: {key === 'woundDescription' ? '1.4' : 'normal'};">
+                      {value}
+                    </span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if currentView === 'bandage'}
+        <div class="bandage-view">
+          <div class="section-title">
+            <i class="fas fa-plus-circle"></i>
+            <span>{translations?.ui_applyBandageTitle || 'APPLY BANDAGE'}</span>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{translations?.ui_infectionControl || 'INFECTION CONTROL'}</span>
+            </div>
+            <div class="infection-warning-section" style="background: rgba(139, 169, 85, 0.25); border: 0.05vw solid rgba(139, 169, 85, 0.4); border-radius: 0.3vw; padding: 0.8vw; box-shadow: 0 0 0.8vw rgba(139, 169, 85, 0.3);">
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_cleanWound || 'Clean wound thoroughly before applying any bandage'}</div>
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_changeBandages || 'Change bandages regularly to prevent infection'}</div>
+              <div style="font-size: 0.6vw; color: white;">• {translations?.ui_watchInfection || 'Watch for signs of infection: swelling, pus, unusual odor'}</div>
+            </div>
+          </div>
+          
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-user-injured"></i>
+              <span>{translations?.ui_bleedingConditions || 'BLEEDING CONDITIONS (Light/Moderate)'}</span>
+            </div>
+            <div class="treatment-grid">
+              {#each Object.entries(discoveredInjuries).filter(([bp, _]) => needsBandage(bp)) as [bodyPart, wound]}
+                <div 
+                  class="treatment-option {selectedBodyPart === bodyPart ? 'selected' : ''}"
+                  on:click={() => !isBandaged(bodyPart) ? selectedBodyPart = bodyPart : null}
+                  style="padding: 0.5vw; margin: 0.2vw 0; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.2)' : 'rgba(226, 199, 146, 0.05)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: {isBandaged(bodyPart) ? 'default' : 'pointer'}; display: flex; justify-content: space-between; align-items: center; opacity: {isBandaged(bodyPart) ? 0.7 : 1};"
+                >
+                  <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
+                  <span style="color: {isBandaged(bodyPart) ? '#27ae60' : wound.bleedingLevel >= 6 ? '#e74c3c' : (wound.painLevel + wound.bleedingLevel*2) > 6 ? '#f39c12' : '#e67e22'}; font-size: 0.6vw;">
+                    {isBandaged(bodyPart) ? (translations?.ui_bandaged || 'Bandaged') : wound.bleedingLevel >= 6 ? (translations?.ui_critical || 'Critical') : (wound.painLevel + wound.bleedingLevel*2) > 6 ? (translations?.ui_injured || 'Injured') : (translations?.ui_bleeding || 'Bleeding')}
+                  </span>
+                </div>
+              {/each}
+              {#if Object.entries(discoveredInjuries).filter(([bp, _]) => needsBandage(bp)).length === 0}
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6vw; font-style: italic; text-align: center; padding: 1vw;">
+                  {Object.keys(discoveredInjuries).length === 0 ? (translations?.ui_noWoundsDiscovered || 'No wounds discovered yet. Perform body inspection to identify bleeding wounds.') : (translations?.ui_noLightBleedingWounds || 'No light/moderate bleeding wounds discovered (requires bleeding level 1-6).')}
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-briefcase"></i>
+              <span>{translations?.ui_availiableBandages || 'AVAILABLE BANDAGES'}</span>
+            </div>
+            <div class="bandage-selection-grid" style="display: flex; flex-wrap: wrap; gap: 0.4vw;">
+              {#each bandageTypes as bandage}
+                <div 
+                  class="bandage-type {selectedBandageType === bandage.id ? 'selected' : ''}"
+                  on:click={() => selectedBandageType = bandage.id}
+                  style="padding: 0.8vw; height: auto; background: {selectedBandageType === bandage.id ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedBandageType === bandage.id ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; align-items: center; flex: 0 0 calc(50% - 0.2vw); box-sizing: border-box;"
+                >
+                  <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    <i class="fas {bandage.icon}" style="font-size: 1.8vw; color: white; margin-bottom: 0.3vw;"></i>
+                    <div style="color: white; font-size: 0.8vw; font-weight: bold; margin-bottom: 0.2vw;">{bandage.name}</div>
+                    <div style="color: rgba(226, 199, 146, 0.9); font-size: 0.65vw; line-height: 1.2;">{bandage.desc}</div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedBandageType && selectedBodyPart}
+            <div style="text-align: center; margin-top: 1vw;">
+              <button 
+                on:click={applyBandage}
+                style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
+              >
+                <i class="fas fa-plus" style="margin-right: 0.5vw;"></i> APPLY TREATMENT
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if currentView === 'tourniquet'}
+        <div class="tourniquet-view">
+          <div class="section-title">
+            <i class="fas fa-compress"></i>
+            <span>{translations?.ui_applyTourniquetTitle || 'APPLY TOURNIQUET'}</span>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{translations?.ui_tourniquetSafety || 'TOURNIQUET SAFETY'}</span>
+            </div>
+            <div class="warning-notes-section">
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_applyProximal || 'Apply proximal to bleeding source, never over joints'}</div>
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_tightenUntilStop || 'Tighten until bleeding stops - document application time'}</div>
+              <div style="font-size: 0.6vw; color: white;">• {translations?.ui_riskLimbLoss || 'Risk of limb loss if left on too long - monitor closely'}</div>
+            </div>
+          </div>
+          
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-user-injured"></i>
+              <span>{translations?.ui_severeBleedingConditions || 'SEVERE BLEEDING CONDITIONS'}</span>
+            </div>
+            <div class="treatment-grid">
+              {#each Object.entries(discoveredInjuries).filter(([bp, _]) => needsTourniquet(bp)) as [bodyPart, wound]}
+                <div 
+                  class="treatment-option {selectedBodyPart === bodyPart ? 'selected' : ''}"
+                  on:click={() => !isTourniqueted(bodyPart) ? selectedBodyPart = bodyPart : null}
+                  style="padding: 0.5vw; margin: 0.2vw 0; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.2)' : 'rgba(226, 199, 146, 0.05)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: {isTourniqueted(bodyPart) ? 'default' : 'pointer'}; display: flex; justify-content: space-between; align-items: center; opacity: {isTourniqueted(bodyPart) ? 0.7 : 1};"
+                >
+                  <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
+                  <span style="color: {isTourniqueted(bodyPart) ? '#27ae60' : wound.bleedingLevel > 8 ? '#e74c3c' : '#f39c12'}; font-size: 0.6vw;">
+                    {isTourniqueted(bodyPart) ? (translations?.ui_tourniqueted || 'Tourniqueted') : wound.bleedingLevel > 8 ? (translations?.ui_severeBleeding || 'Severe Bleeding') : (translations?.ui_heavyBleeding || 'Heavy Bleeding')}
+                  </span>
+                </div>
+              {/each}
+              {#if Object.entries(discoveredInjuries).filter(([bp, _]) => needsTourniquet(bp)).length === 0}
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6vw; font-style: italic; text-align: center; padding: 1vw;">
+                  {Object.keys(discoveredInjuries).length === 0 ? (translations?.ui_noSevereBleedingDiscovered || 'No wounds discovered yet. Perform body inspection to identify severe bleeding.') : (translations?.ui_noSevereBleedingWounds || 'No severe bleeding wounds discovered (requires bleeding level 7+).')}
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-briefcase"></i>
+              <span>{translations?.ui_availableTourniquets || 'AVAILABLE TOURNIQUETS'}</span>
+            </div>
+            <div class="tourniquet-selection-grid" style="display: flex; flex-wrap: wrap; gap: 0.4vw;">
+              {#each tourniquetTypes as tourniquet}
+                <div 
+                  class="tourniquet-type {selectedTourniquetType === tourniquet.id ? 'selected' : ''}"
+                  on:click={() => selectedTourniquetType = tourniquet.id}
+                  style="padding: 0.8vw; height: auto; background: {selectedTourniquetType === tourniquet.id ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedTourniquetType === tourniquet.id ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; align-items: center; flex: 0 0 calc(50% - 0.2vw); box-sizing: border-box;"
+                >
+                  <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    <i class="fas {tourniquet.icon}" style="font-size: 1.8vw; color: white; margin-bottom: 0.3vw;"></i>
+                    <div style="color: white; font-size: 0.8vw; font-weight: bold; margin-bottom: 0.2vw;">{tourniquet.name}</div>
+                    <div style="color: rgba(226, 199, 146, 0.9); font-size: 0.65vw; line-height: 1.2;">{tourniquet.desc}</div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedTourniquetType && selectedBodyPart}
+            <div style="text-align: center; margin-top: 1vw;">
+              <button 
+                on:click={applyTourniquet}
+                style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
+              >
+                <i class="fas fa-compress" style="margin-right: 0.5vw;"></i> APPLY TOURNIQUET
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if currentView === 'medicine'}
+        <div class="medicine-view">
+          <div class="section-title">
+            <i class="fas fa-pills"></i>
+            <span>{translations?.ui_administerMedicine || 'ADMINISTER MEDICINE'}</span>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{translations?.ui_administrationNotes || 'ADMINISTRATION NOTES'}</span>
+            </div>
+            <div class="warning-notes-section">
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_ensureSwallow || 'Ensure patient can swallow before administering oral medications'}</div>
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_monitorReactions || 'Monitor patient for adverse reactions after administration'}</div>
+              <div style="font-size: 0.6vw; color: white;">• {translations?.ui_drowsinessWarning || 'Some medicines may cause drowsiness or altered consciousness'}</div>
+            </div>
+          </div>
+          
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-user-injured"></i>
+              <span>{translations?.ui_painConditions || 'PAIN CONDITIONS'}</span>
+            </div>
+            <div class="treatment-grid">
+              {#each Object.entries(discoveredInjuries).filter(([bp, _]) => needsMedicine(bp)) as [bodyPart, wound]}
+                <div 
+                  class="treatment-option {selectedBodyPart === bodyPart ? 'selected' : ''}"
+                  on:click={() => selectedBodyPart = bodyPart}
+                  style="padding: 0.6vw; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0.2vw;"
+                >
+                  <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
+                  <span style="color: {wound.painLevel >= 8 ? '#e74c3c' : wound.painLevel >= 5 ? '#f39c12' : '#27ae60'}; font-size: 0.6vw;">
+                    {wound.painLevel >= 8 ? (translations?.ui_severePain || 'Severe Pain') : wound.painLevel >= 5 ? (translations?.ui_moderatePain || 'Moderate Pain') : (translations?.ui_mildPain || 'Mild Pain')}
+                  </span>
+                  {#if wound.bleedingLevel > 0}
+                    <span style="color: #f39c12; font-size: 0.5vw;">+ Bleeding ({wound.bleedingLevel})</span>
+                  {/if}
+                </div>
+              {/each}
+              {#if Object.entries(discoveredInjuries).filter(([bp, _]) => needsMedicine(bp)).length === 0}
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6vw; font-style: italic; text-align: center; padding: 1vw;">
+                  {Object.keys(discoveredInjuries).length === 0 ? (translations?.ui_noWoundsDiscovered || 'No wounds discovered yet. Perform body inspection to identify pain conditions.') : (translations?.ui_noPainConditions || 'No pain conditions discovered (requires pain level 1+).')}
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-briefcase"></i>
+              <span>{translations?.ui_availableMedicine || 'AVAILABLE MEDICINES'}</span>
+            </div>
+            <div class="medicine-selection-grid" style="display: flex; flex-wrap: wrap; gap: 0.4vw;">
+              {#each medicineTypes as medicine}
+                <div 
+                  class="medicine-type {selectedMedicineType === medicine.id ? 'selected' : ''}"
+                  on:click={() => selectedMedicineType = medicine.id}
+                  style="padding: 0.8vw; height: auto; background: {selectedMedicineType === medicine.id ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedMedicineType === medicine.id ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; align-items: center; flex: 0 0 calc(50% - 0.2vw); box-sizing: border-box;"
+                >
+                  <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    <i class="fas {medicine.icon}" style="font-size: 1.8vw; color: white; margin-bottom: 0.3vw;"></i>
+                    <div style="color: white; font-size: 0.8vw; font-weight: bold; margin-bottom: 0.2vw;">{medicine.name}</div>
+                    <div style="color: rgba(226, 199, 146, 0.9); font-size: 0.65vw; line-height: 1.2;">{medicine.desc}</div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedMedicineType}
+            <div style="text-align: center; margin-top: 1vw;">
+              <button 
+                on:click={administerMedicine}
+                style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
+              >
+                <i class="fas fa-pills" style="margin-right: 0.5vw;"></i> {translations?.ui_administerMedicine || 'ADMINISTER MEDICINE'}
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if currentView === 'injection'}
+        <div class="injection-view">
+          <div class="section-title">
+            <i class="fas fa-syringe"></i>
+            <span>{translations?.ui_giveInjectionTitle || 'GIVE INJECTION'}</span>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{translations?.ui_injectionSafety || 'INJECTION SAFETY'}</span>
+            </div>
+            <div class="warning-notes-section">
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_sterilizeSite || 'Sterilize injection site before administration'}</div>
+              <div style="font-size: 0.6vw; color: white; margin-bottom: 0.5vw;">• {translations?.ui_properTechnique || 'Use proper injection technique to avoid nerve damage'}</div>
+              <div style="font-size: 0.6vw; color: white;">• {translations?.ui_monitorAllergic || 'Monitor for immediate allergic reactions'}</div>
+            </div>
+          </div>
+          
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-user-injured"></i>
+              <span>{translations?.ui_emergengyConditions || 'EMERGENCY/SEVERE CONDITIONS'}</span>
+            </div>
+            <div class="treatment-grid">
+              {#each Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.painLevel && wound.painLevel >= 8) || (wound.bleedingLevel && wound.bleedingLevel >= 7))) as [bodyPart, wound]}
+                <div 
+                  class="treatment-option {selectedBodyPart === bodyPart ? 'selected' : ''}"
+                  on:click={() => selectedBodyPart = bodyPart}
+                  style="padding: 0.6vw; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0.2vw;"
+                >
+                  <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
+                  <span style="color: {(wound.painLevel >= 8 || wound.bleedingLevel >= 7) ? '#e74c3c' : '#f39c12'}; font-size: 0.6vw;">
+                    {wound.painLevel >= 8 && wound.bleedingLevel >= 7 ? (translations?.ui_criticalEmergency || 'Critical Emergency') : wound.painLevel >= 8 ? (translations?.ui_severePain || 'Severe Pain') : (translations?.ui_severeBleeding || 'Severe Bleeding')}
+                  </span>
+                </div>
+              {/each}
+              {#if Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.painLevel && wound.painLevel >= 8) || (wound.bleedingLevel && wound.bleedingLevel >= 7))).length === 0}
+                <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6vw; font-style: italic; text-align: center; padding: 1vw;">
+                  {Object.keys(discoveredInjuries).length === 0 ? (translations?.ui_noWoundsDiscovered || 'No wounds discovered yet. Perform body inspection to identify critical conditions.') : (translations?.ui_noEmergencyConditions || 'No emergency conditions found (requires severe pain 8+ or critical bleeding 7+).')}
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          <div class="medical-details-section" style="margin-bottom: 1vw;">
+            <div class="section-title" style="font-size: 0.7vw; margin-bottom: 0.5vw;">
+              <i class="fas fa-briefcase"></i>
+              <span>{translations?.ui_availableInjuctions || 'AVAILABLE INJECTIONS'}</span>
+            </div>
+            <div class="injection-selection-grid" style="display: flex; flex-wrap: wrap; gap: 0.4vw;">
+              {#each injectionTypes as injection}
+                <div 
+                  class="injection-type {selectedInjectionType === injection.id ? 'selected' : ''}"
+                  on:click={() => selectedInjectionType = injection.id}
+                  style="padding: 0.8vw; height: auto; background: {selectedInjectionType === injection.id ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedInjectionType === injection.id ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; align-items: center; flex: 0 0 calc(50% - 0.2vw); box-sizing: border-box;"
+                >
+                  <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    <i class="fas {injection.icon}" style="font-size: 1.8vw; color: white; margin-bottom: 0.3vw;"></i>
+                    <div style="color: white; font-size: 0.8vw; font-weight: bold; margin-bottom: 0.2vw;">{injection.name}</div>
+                    <div style="color: rgba(226, 199, 146, 0.9); font-size: 0.65vw; line-height: 1.2;">{injection.desc}</div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedInjectionType && selectedBodyPart}
+            <div style="text-align: center; margin-top: 1vw;">
+              <button 
+                on:click={giveInjection}
+                style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
+              >
+                <i class="fas fa-syringe" style="margin-right: 0.5vw;"></i> ADMINISTER INJECTION
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/if}
+      
+    </div>
+  </div>
+
+  {#if showVitalsSubMenu}
+    <div class="vitals-submenu {vitalsAnimating ? 'submenu-slide-in' : ''}" style="position: fixed; bottom: 5vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; background-position: center; border-radius: 0.5vw; padding: 1vw; z-index: 1000; min-width: 20vw;">
+      <div class="submenu-title" style="color: white; font-size: 0.8vw; font-weight: bold; text-align: center; margin-bottom: 1vw;">
+        <i class="fas fa-heartbeat" style="margin-right: 0.5vw;"></i>
+        {translations?.ui_vitalSignsChecking || 'VITAL SIGNS CHECK'}
+      </div>
+      {#if !vitalsChecked}
+        <div style="text-align: center;">
+          <div class="heartbeat-animation" style="font-size: 3vw; color: #e74c3c; margin-bottom: 1vw; text-align: center; transform: scale({checkingVitals ? 1.2 : 1});">
+            <i class="fas fa-heart"></i>
+          </div>
+          <div style="font-size: 0.6vw; color: white; margin-bottom: 1vw;">
+            {checkingVitals ? (translations?.ui_listeningHeartbeat || 'Listening for heartbeat... Keep holding!') : (translations?.ui_holdToCheckVitals || 'Hold the button below for 3 seconds')}
+          </div>
+          <div style="display: flex; gap: 1vw; justify-content: center;">
+            <button 
+              on:mousedown={startVitalsCheck}
+              on:mouseup={stopVitalsCheck}
+              on:mouseleave={stopVitalsCheck}
+              style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.6vw 1.2vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; position: relative; overflow: hidden; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+            >
+              <i class="fas fa-hand-paper" style="margin-right: 0.5vw;"></i>
+              {checkingVitals ? (translations?.ui_checking || 'CHECKING...') : (translations?.ui_holdToCheck || 'HOLD TO CHECK')}
+              {#if checkingVitals}
+                <div style="position: absolute; bottom: 0; left: 0; width: {vitalsProgress}%; height: 100%; background: rgba(39, 174, 96, 0.3); transition: width 0.1s ease;"></div>
+              {/if}
+            </button>
+            <button 
+              on:click={closeVitalsSubMenu}
+              style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.6vw 1.2vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+            >
+              {translations?.ui_cancel || 'CANCEL'}
+            </button>
+          </div>
         </div>
       {:else}
-        <div style="text-align: center;">
-          <button on:mousedown={startVitalsCheck} on:mouseup={stopVitalsCheck} on:mouseleave={stopVitalsCheck} class="menu-btn" style="background-image: url({selectionBoxBg}); width: 100%; justify-content: center;">
-            {checkingVitals ? 'CHECKING...' : 'CHECK VITALS'}
+        <div style="display: flex; flex-direction: column; gap: 0.3vw; padding: 0 1vw;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.6vw; padding: 0 0.5vw;">
+            <span style="color: white;">Heart Rate:</span>
+            <span style="color: {vitals.heartRate > 100 || vitals.heartRate < 60 ? '#e74c3c' : '#27ae60'}; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">{vitals.heartRate} BPM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.6vw; padding: 0 0.5vw;">
+            <span style="color: white;">Status:</span>
+            <span style="color: {vitals.statusColor}; font-weight: bold;">{vitals.status}</span>
+          </div>
+          <button 
+            on:click={() => {closeVitalsSubMenu(); vitalsChecked = false;}}
+            style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; margin-top: 0.5vw; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+          >
+            CLOSE
           </button>
         </div>
       {/if}
     </div>
-  </div>
+  {/if}
 
-  <!-- Center Panel: Body Inspection / Menus -->
-  <div class="center-panel">
-    <div style="background-image: url({weatheredPaper}); background-size: 100% 100%; width: 100%; padding: 2vw; display: flex; flex-direction: column; align-items: center; border-radius: 1vw;">
-      <div style="font-size: 1.5vw; color: white; font-weight: bold; margin-bottom: 2vw; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 1vw; width: 100%; text-align: center;">
-        {translations?.ui_medicalActions || 'MEDICAL ACTIONS'}
+  {#if showDoctorsBagSubMenu}
+    <div class="doctors-bag-submenu {doctorsBagAnimating ? 'submenu-slide-in' : ''}" style="position: fixed; bottom: 5vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; background-position: center; border-radius: 0.5vw; padding: 1vw; z-index: 1000; min-width: 25vw;">
+      <div class="submenu-title" style="color: white; font-size: 0.8vw; font-weight: bold; text-align: center; margin-bottom: 1vw;">
+        <i class="fas fa-briefcase-medical" style="margin-right: 0.5vw;"></i>
+        {translations?.ui_doctorsBag || 'DOCTORS BAG'}
       </div>
-      
-      <button class="menu-btn" style="background-image: url({selectionBoxBg});" on:click={() => currentView = 'body-inspection'}>
-        <i class="fas fa-search" style="margin-right: 1vw; width: 2vw; text-align: center;"></i>
-        {translations?.ui_inspectBody || 'INSPECT BODY'}
-      </button>
-      
-      <button class="menu-btn" style="background-image: url({selectionBoxBg});" on:click={() => currentView = 'bandage'}>
-        <i class="fas fa-band-aid" style="margin-right: 1vw; width: 2vw; text-align: center;"></i>
-        {translations?.ui_applyBandage || 'APPLY BANDAGE'}
-      </button>
-      
-      <button class="menu-btn" style="background-image: url({selectionBoxBg});" on:click={() => currentView = 'medicine'}>
-        <i class="fas fa-pills" style="margin-right: 1vw; width: 2vw; text-align: center;"></i>
-        {translations?.ui_administerMedicine || 'ADMINISTER MEDICINE'}
-      </button>
-
-      <button class="menu-btn" style="background-image: url({selectionBoxBg}); margin-top: auto; background-color: rgba(231, 76, 60, 0.5);" on:click={onClose}>
-        <i class="fas fa-times" style="margin-right: 1vw; width: 2vw; text-align: center;"></i>
-        CLOSE
-      </button>
-    </div>
-  </div>
-
-  <!-- Right Panel: Assessment Log -->
-  <div class="right-panel" style="background-image: url({weatheredPaper});">
-    <div style="text-align: center; color: white; font-size: 1.5vw; font-weight: bold; margin-bottom: 2vw; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 1vw;">
-      <i class="fas fa-clipboard-list" style="margin-right: 0.5vw;"></i>
-      {translations?.ui_assessmentLog || 'ASSESSMENT LOG'}
-    </div>
-    
-    <div style="flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 1vw; border-radius: 0.5vw; color: white; font-size: 0.9vw;">
-      <div style="font-style: italic; color: rgba(255,255,255,0.5);">
-        Log started...
+      <div class="medical-tools-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5vw;">
+        {#each [
+          { name: 'Stethoscope', icon: 'fa-stethoscope', action: 'stethoscope', desc: 'Check heart and lung sounds' },
+          { name: 'Thermometer', icon: 'fa-thermometer-half', action: 'thermometer', desc: 'Measure body temperature' },
+          { name: 'Laudanum', icon: 'fa-prescription-bottle', action: 'laudanum', desc: 'Opium-based painkiller' },
+          { name: 'Whiskey', icon: 'fa-wine-bottle', action: 'whiskey', desc: 'Antiseptic and anesthetic' },
+          { name: 'Field Surgery Kit', icon: 'fa-first-aid', action: 'field-kit', desc: 'Emergency surgical tools' },
+          { name: 'Smelling Salts', icon: 'fa-vial', action: 'smelling-salts', desc: 'Revive unconscious patients' }
+        ] as tool}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <div
+            class="medical-tool"
+            on:click={() => handleMedicalAction('use-tool', tool.action)}
+            style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; padding: 0.6vw; border-radius: 0.3vw; cursor: pointer; border: none; display: flex; align-items: center; justify-content: flex-start; transition: transform 0.1s ease;"
+          >
+            <div style="width: 2.5vw; display: flex; justify-content: center; align-items: center; margin-right: 0.5vw;">
+              <i class="fas {tool.icon}" style="font-size: 1.2vw; color: white;"></i>
+            </div>
+            <div>
+              <div style="color: white; font-size: 0.6vw; font-weight: bold; margin-bottom: 0.1vw;">{tool.name}</div>
+              <div style="color: {tool.desc.includes('painkiller') || tool.desc.includes('Opium') ? '#e74c3c' : tool.desc.includes('Check') || tool.desc.includes('Measure') ? '#27ae60' : '#f39c12'}; font-size: 0.45vw;">{tool.desc}</div>
+            </div>
+          </div>
+        {/each}
       </div>
-    </div>
-  </div>
-
-  {#if notification}
-    <div style="position: fixed; top: 2vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; padding: 1vw 2vw; color: white; font-weight: bold; border-radius: 0.5vw; display: flex; align-items: center; gap: 1vw; z-index: 1001;">
-      <i class={`fas ${notification.icon}`} style="color: #27ae60; font-size: 1.5vw;"></i>
-      {notification.message}
+      <div style="text-align: center; margin-top: 1vw;">
+        <button 
+          on:click={closeDoctorsBagSubMenu}
+          style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw 1vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+        >
+          <i class="fas fa-times" style="margin-right: 0.5vw;"></i> CLOSE BAG
+        </button>
+      </div>
     </div>
   {/if}
+
+  {#if showThermometerSubMenu}
+    <div class="thermometer-submenu" style="position: fixed; bottom: 5vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; background-position: center; border-radius: 0.5vw; padding: 1vw; z-index: 1000; min-width: 20vw;">
+      <div class="submenu-title" style="color: white; font-size: 0.8vw; font-weight: bold; text-align: center; margin-bottom: 1vw;">
+        <i class="fas fa-thermometer-half" style="margin-right: 0.5vw;"></i>
+        TEMPERATURE CHECK
+      </div>
+      
+      {#if !temperatureChecked}
+        <div style="text-align: center;">
+          <div style="position: relative; margin-bottom: 1vw; display: inline-block;">
+            <div class="thermometer-container" style="position: relative; display: inline-block;">
+              <div class="thermometer-fill" style="height: {checkingTemperature ? temperatureProgress * 0.02 : 0}vw; position: absolute; bottom: 0.8vw; left: 50%; transform: translateX(-50%); width: 0.2vw; background: linear-gradient(to top, #e74c3c 0%, #f39c12 70%, #f1c40f 100%); transition: height 0.1s ease; z-index: -1; border-radius: 0.1vw;"></div>
+              <i class="fas fa-thermometer-empty" style="font-size: 4vw; color: #8B4513; position: relative; z-index: 1;"></i>
+            </div>
+          </div>
+          
+          <div style="font-size: 0.6vw; color: white; margin-bottom: 1vw;">
+            {checkingTemperature ? (translations?.ui_readingTemperature || 'Reading temperature... Keep holding!') : (translations?.ui_holdToCheckTemperature || 'Hold the button below for 3 seconds')}
+          </div>
+          
+          <div style="display: flex; gap: 1vw; justify-content: center;">
+            <button 
+              on:mousedown={startTemperatureCheck}
+              on:mouseup={stopTemperatureCheck}
+              on:mouseleave={stopTemperatureCheck}
+              style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.6vw 1.2vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+            >
+              <i class="fas fa-thermometer-half" style="margin-right: 0.5vw;"></i>
+              {checkingTemperature ? (translations?.ui_reading || 'READING...') : (translations?.ui_holdToCheck || 'HOLD TO CHECK')}
+            </button>
+            <button 
+              on:click={() => showThermometerSubMenu = false}
+              style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.6vw 1.2vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+            >
+              {translations?.ui_cancel || 'CANCEL'}
+            </button>
+          </div>
+        </div>
+      {:else}
+        <div style="text-align: center;">
+          <div style="font-size: 1.5vw; color: #8B4513; margin-bottom: 1vw;">
+            {calculateTemperature()}°F
+          </div>
+          <div style="font-size: 0.6vw; color: #8B4513; margin-bottom: 1vw;">
+            {calculateTemperature() > 100.4 ? (translations?.ui_feverDetected || 'Fever detected') : calculateTemperature() < 97 ? (translations?.ui_hypothermiaRisk || 'Hypothermia risk') : (translations?.ui_normalTemperature || 'Normal temperature')}
+          </div>
+          <button 
+            on:click={() => {
+              showThermometerSubMenu = false;
+              temperatureChecked = false;
+              showNotification(`${translations?.ui_patientTemperature || 'Patient temperature'}: ${calculateTemperature()}°F`, 'fa-thermometer-half');
+            }}
+            style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
+          >
+            CLOSE
+          </button>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  {#if notification}
+    <div class="notification notification-slide-in" style="position: fixed; top: 2vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; background-position: center; border-radius: 0.3vw; padding: 1.2vw 0.8vw; color: white; font-size: 0.7vw; z-index: 1001; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold; width: 10vw; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5vw;">
+      <i class="fas {notification.icon} notification-icon-shake" style="font-size: 1.5vw; color: #27ae60;"></i>
+      <div>{notification.message}</div>
+    </div>
+  {/if}
+
 </div>

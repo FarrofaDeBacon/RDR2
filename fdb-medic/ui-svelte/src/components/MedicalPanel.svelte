@@ -6,7 +6,7 @@
   import BodyPartBar from './BodyPartBar.svelte';
 
   export let wounds: any = {};
-  export let treatments: any[] = [];
+  export let treatments: any = [];
   export let infections: any = {};
   export let bodyPartHealth: any = {};
   export let injuryStates: any = {};
@@ -18,6 +18,9 @@
   export let isSelfExamination: boolean = false;
   export let translations: any = {};
   export let onClose: () => void;
+
+  // Normalize treatments: Lua tables can arrive as objects instead of arrays
+  $: normalizedTreatments = Array.isArray(treatments) ? treatments : Object.values(treatments || {});
 
   let showBandagePanel = false;
   let showTourniquetPanel = false;
@@ -541,12 +544,12 @@
         <div class="treatments-close-btn" on:click={closePanels} style="position: absolute; top: 10px; right: 15px; font-size: 20px; color: white; cursor: pointer;">&times;</div>
       </div>
       <div class="treatments-detail-content" style="margin-top: 20px; max-height: 70%; overflow-y: auto; color: white;">
-        {#if treatments.length === 0}
+        {#if normalizedTreatments.length === 0}
           <div style="text-align: center; padding: 20px; color: white; font-style: italic;">
             No active treatments
           </div>
         {:else}
-          {#each treatments as treatment}
+          {#each normalizedTreatments as treatment}
             <div class="treatment-option" style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: white; min-height: 55px; display: flex; flex-direction: column; position: relative;">
               <div style="font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                 <span>{treatment.bodyPart?.toUpperCase() || 'UNKNOWN'}</span>
