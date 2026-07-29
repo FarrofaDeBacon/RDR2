@@ -16,8 +16,8 @@ shared_scripts {
 
 files {
     'locales/*.json',
-    'ui/build/index.html',
-    'ui/build/static/**/*'
+    'ui-svelte/dist/index.html',
+    'ui-svelte/dist/assets/**/*'
 }
 
 server_scripts {
@@ -50,4 +50,4 @@ dependencies {
 }
 
 lua54 'yes'
-ui_page 'ui/build/index.html'
+ui_page 'ui-svelte/dist/index.html'
