@@ -8,6 +8,7 @@
   let deathScreenData: any = { message: '', seconds: 0, canRespawn: false, medicsOnDuty: 0, translations: {} };
   let medicalData: any = { wounds: {}, treatments: [], infections: {}, bodyPartHealth: {}, injuryStates: {}, infectionStages: {}, bodyParts: {}, uiColors: {}, inventory: {}, bandageTypes: {}, isSelfExamination: false, translations: {} };
   let inspectionData: any = { playerName: '', vitals: {}, injuries: [], treatments: [], inventory: {}, translations: {} };
+  let globalConfigData: any = { bandageTypes: {}, tourniquetTypes: {}, medicineTypes: {}, injectionTypes: {}, bodyParts: {} };
   
   let scale = 1;
 
@@ -47,6 +48,15 @@
         break;
       case 'hide-all':
         currentView = 'hidden';
+        break;
+      case 'medical-config-data':
+        globalConfigData = {
+          bandageTypes: data?.bandageTypes || event.data.bandageTypes || {},
+          tourniquetTypes: data?.tourniquetTypes || event.data.tourniquetTypes || {},
+          medicineTypes: data?.medicineTypes || event.data.medicineTypes || {},
+          injectionTypes: data?.injectionTypes || event.data.injectionTypes || {},
+          bodyParts: data?.bodyParts || event.data.bodyParts || {}
+        };
         break;
     }
   }
@@ -147,6 +157,7 @@
       <InspectionPanel
         data={inspectionData}
         translations={inspectionData.translations}
+        configData={globalConfigData}
         onClose={hideAll}
       />
     {/if}

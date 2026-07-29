@@ -34,7 +34,7 @@
   let selectedBodyPart: string | null = null;
 
   let medicalAssessment: string[] = [];
-  let treatments{translations?.ui_appliedLbl || 'Applied:'} string[] = [];
+  let treatmentsApplied: string[] = [];
 
   let discoveredInjuries: Record<string, any> = {};
   let inspectedBones: Set<string> = new Set();
@@ -719,43 +719,46 @@
       const bleedingLevel = woundData.bleedingLevel || 0;
       
       const getPainDesc = (level: number) => {
-        if (level === 0) return 'No pain';
-        return data.injuryStates?.[level]?.pain || `Pain level ${level}`;
+        if (level === 0) return translations?.ui_noPain || 'No pain';
+        return translations?.[`ui_painLevel_${level}`] || data.injuryStates?.[level]?.pain || `Pain level ${level}`;
       };
       
       const getBleedingDesc = (level: number) => {
-        if (level === 0) return 'No bleeding';
-        return data.injuryStates?.[level]?.bleeding || `Bleeding level ${level}`;
+        if (level === 0) return translations?.ui_noBleeding || 'No bleeding';
+        return translations?.[`ui_bleedingLevel_${level}`] || data.injuryStates?.[level]?.bleeding || `Bleeding level ${level}`;
       };
       
       const getTreatmentRecommendation = (painLvl: number, bleedingLvl: number) => {
         if (bleedingLvl > 0 && painLvl > 0) {
           const maxLevel = Math.max(painLvl, bleedingLvl);
+          if (translations?.[`ui_rec_combined_${maxLevel}`]) return translations[`ui_rec_combined_${maxLevel}`];
           if (data.injuryStates?.[maxLevel]?.unifiedDesc) return data.injuryStates[maxLevel].unifiedDesc;
-          return 'Combined pain and bleeding treatment needed';
+          return translations?.ui_rec_combined_default || 'Combined pain and bleeding treatment needed';
         } else if (bleedingLvl > 0) {
+          if (translations?.[`ui_rec_bleed_${bleedingLvl}`]) return translations[`ui_rec_bleed_${bleedingLvl}`];
           if (data.injuryStates?.[bleedingLvl]?.bleedDesc) return data.injuryStates[bleedingLvl].bleedDesc;
-          if (bleedingLvl >= 8) return 'URGENT: Control bleeding immediately - life threatening';
-          if (bleedingLvl >= 6) return 'Apply tourniquet or pressure bandage to stop bleeding';
-          if (bleedingLvl >= 4) return 'Apply bandage to control bleeding';
-          return 'Monitor bleeding, apply basic bandage if needed';
+          if (bleedingLvl >= 8) return translations?.ui_rec_bleed_urgent || 'URGENT: Control bleeding immediately - life threatening';
+          if (bleedingLvl >= 6) return translations?.ui_rec_bleed_severe || 'Apply tourniquet or pressure bandage to stop bleeding';
+          if (bleedingLvl >= 4) return translations?.ui_rec_bleed_moderate || 'Apply bandage to control bleeding';
+          return translations?.ui_rec_bleed_minor || 'Monitor bleeding, apply basic bandage if needed';
         } else if (painLvl > 0) {
+          if (translations?.[`ui_rec_pain_${painLvl}`]) return translations[`ui_rec_pain_${painLvl}`];
           if (data.injuryStates?.[painLvl]?.painDesc) return data.injuryStates[painLvl].painDesc;
-          if (painLvl >= 8) return 'URGENT: Severe pain management required - administer strong painkillers';
-          if (painLvl >= 6) return 'Significant pain management needed - use pain medication';
-          if (painLvl >= 4) return 'Apply pain relief measures - basic painkillers recommended';
-          return 'Monitor discomfort, rest and basic pain relief if needed';
+          if (painLvl >= 8) return translations?.ui_rec_pain_urgent || 'URGENT: Severe pain management required - administer strong painkillers';
+          if (painLvl >= 6) return translations?.ui_rec_pain_severe || 'Significant pain management needed - use pain medication';
+          if (painLvl >= 4) return translations?.ui_rec_pain_moderate || 'Apply pain relief measures - basic painkillers recommended';
+          return translations?.ui_rec_pain_minor || 'Monitor discomfort, rest and basic pain relief if needed';
         }
-        return 'No immediate treatment required';
+        return translations?.ui_rec_none || 'No immediate treatment required';
       };
       
       const totalSeverity = painLevel + (bleedingLevel * 2);
       
       return {
         boneIntegrity: painLevel > 8 ? (translations?.ui_possibleFracture || 'Possible fracture detected') : painLevel > 5 ? (translations?.ui_boneBruising || 'Bone bruising suspected') : (translations?.ui_normalBone || 'Normal'),
-        softTissue: bleedingLevel > 0 ? getBleedingDesc(bleedingLevel) : painLevel > 0 ? `${translations?.ui_contusionsPresent || 'Contusions present'} (${getPainDesc(painLevel)})` : (translations?.ui_noVisibleDamage || 'No visible damage'),
-        bloodFlow: bleedingLevel > 6 ? `${translations?.ui_activeBleeding || 'Active bleeding'}: ${getBleedingDesc(bleedingLevel)}` : bleedingLevel > 0 ? `${getBleedingDesc(bleedingLevel)} ${translations?.ui_bleedingObserved || 'observed'}` : (translations?.ui_normalCirculation || 'Normal circulation'),
-        painResponse: painLevel > 0 ? `${translations?.ui_patientReports || 'Patient reports'}: ${getPainDesc(painLevel)}` : (translations?.ui_noSignificantPain || 'No significant pain response'),
+        softTissue: bleedingLevel > 0 ? getBleedingDesc(bleedingLevel) : painLevel > 0 ? (translations?.ui_contusionsPresent ? translations.ui_contusionsPresent.replace('{desc}', getPainDesc(painLevel)) : `Contusions present (${getPainDesc(painLevel)})`) : (translations?.ui_noVisibleDamage || 'No visible damage'),
+        bloodFlow: bleedingLevel > 6 ? (translations?.ui_activeBleeding ? translations.ui_activeBleeding.replace('{desc}', getBleedingDesc(bleedingLevel)) : `Active bleeding: ${getBleedingDesc(bleedingLevel)}`) : bleedingLevel > 0 ? (translations?.ui_bleedingObserved ? translations.ui_bleedingObserved.replace('{desc}', getBleedingDesc(bleedingLevel)) : `${getBleedingDesc(bleedingLevel)} observed`) : (translations?.ui_normalCirculation || 'Normal circulation'),
+        painResponse: painLevel > 0 ? (translations?.ui_patientReports ? translations.ui_patientReports.replace('{desc}', getPainDesc(painLevel)) : `Patient reports: ${getPainDesc(painLevel)}`) : (translations?.ui_noSignificantPain || 'No significant pain response'),
         swelling: totalSeverity > 12 ? (translations?.ui_significantSwelling || 'Significant swelling present') : totalSeverity > 6 ? (translations?.ui_minorSwelling || 'Minor swelling detected') : (translations?.ui_noneDetected || 'None detected'),
         discoloration: bleedingLevel > 3 ? (translations?.ui_bloodPooling || 'Blood pooling visible') : painLevel > 5 ? (translations?.ui_bruisingDiscoloration || 'Bruising and discoloration') : (translations?.ui_normalSkin || 'Normal skin tone'),
         woundDescription: woundData.metadata?.description || (translations?.ui_noWoundDescription || 'No detailed wound description available'),
@@ -889,8 +892,8 @@
             {#if medicalAssessment.length === 0}
               <div style="text-align: center; padding: 2vw; color: rgba(226, 199, 146, 0.6);">
                 <i class="fas fa-search" style="font-size: 1.5vw; margin-bottom: 0.5vw;"></i>
-                <div style="font-size: 0.7vw; margin-bottom: 0.3vw;">No assessment completed</div>
-                <div style="font-size: 0.5vw;">Use body inspection and vitals to evaluate patient condition</div>
+                <div style="font-size: 0.7vw; margin-bottom: 0.3vw;">{translations?.ui_noAssessmentCompleted || 'No assessment completed'}</div>
+                <div style="font-size: 0.5vw;">{translations?.ui_useBodyInspection || 'Use body inspection and vitals to evaluate patient condition'}</div>
               </div>
             {:else}
               <div style="font-size: 0.6vw; color: white; margin-bottom: 0.8vw; font-style: italic;">
@@ -971,19 +974,19 @@
               </div>
               <div style="display: flex; flex-direction: column; gap: 0.5vw;">
                 <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
-                  <span style="color: white; font-size: 0.7vw;">Heart Rate:</span>
+                  <span style="color: white; font-size: 0.7vw;">{translations?.ui_heartRateLbl || 'Heart Rate:'}</span>
                   <span style="color: white; font-size: 0.7vw; font-weight: bold;">{vitals.heartRate} BPM</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
-                  <span style="color: white; font-size: 0.7vw;">Temperature:</span>
+                  <span style="color: white; font-size: 0.7vw;">{translations?.ui_temperatureLbl || 'Temperature:'}</span>
                   <span style="color: white; font-size: 0.7vw; font-weight: bold;">{data.vitals?.temperature || '98.6'} °F</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
-                  <span style="color: white; font-size: 0.7vw;">Breathing:</span>
+                  <span style="color: white; font-size: 0.7vw;">{translations?.ui_breathingLbl || 'Breathing:'}</span>
                   <span style="color: white; font-size: 0.7vw; font-weight: bold;">{data.vitals?.breathing || '16'} /min</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 0.3vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.2vw;">
-                  <span style="color: white; font-size: 0.7vw;">Status:</span>
+                  <span style="color: white; font-size: 0.7vw;">{translations?.ui_statusLbl || 'Status:'}</span>
                   <span style="color: {vitals.statusColor}; font-size: 0.7vw; font-weight: bold;">{vitals.status}</span>
                 </div>
               </div>
@@ -1011,7 +1014,7 @@
                 on:click={() => inspectBodyPart(bodyPart)}
                 style="padding: 0.4vw; background: {selectedBone === bodyPart ? 'rgba(226, 199, 146, 0.2)' : inspectedBones.has(bodyPart) ? 'rgba(226, 199, 146, 0.1)' : 'rgba(0,0,0,0.1)'}; border: 1px solid {selectedBone === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: pointer; font-size: 0.6vw; color: white; text-align: center; position: relative;"
               >
-                {bodyPart.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                {getBodyPartName(bodyPart)}
                 {#if getWoundData(bodyPart) && ((getWoundData(bodyPart).painLevel || 0) > 3 || (getWoundData(bodyPart).bleedingLevel || 0) > 2)}
                   <div style="position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; background: {(getWoundData(bodyPart).bleedingLevel || 0) >= 6 ? '#e74c3c' : '#f39c12'}; border-radius: 50%;"></div>
                 {/if}
@@ -1025,13 +1028,13 @@
           {#if selectedBone && detailedInspectionResults[selectedBone]}
             <div class="bone-inspection-details" style="padding: 0.8vw; background: rgba(226, 199, 146, 0.05); border-radius: 0.3vw; max-height: 20vw; overflow-y: auto;">
               <h4 style="color: white; font-size: 0.8vw; margin-bottom: 0.5vw;">
-                Detailed Inspection: {selectedBone.toUpperCase()}
+                {translations?.ui_detailedInspectionLbl || 'Detailed Inspection:'} {getBodyPartName(selectedBone)}
               </h4>
               <div class="detailed-results" style="font-size: 0.55vw; line-height: 1.4;">
                 {#each Object.entries(detailedInspectionResults[selectedBone]) as [key, value]}
                   <div style="margin-bottom: 0.4vw; display: flex; flex-direction: column;">
                     <span style="color: white; font-weight: bold; text-transform: capitalize;">
-                      {key.replace(/([A-Z])/g, ' $1')}:
+                      {translations?.[`ui_report_${key}`] || key.replace(/([A-Z])/g, ' $1')}:
                     </span>
                     <span style="color: {key === 'recommendation' && typeof value === 'string' && value.includes('URGENT') ? '#e74c3c' : key === 'recommendation' && typeof value === 'string' && value.includes('Treatment') ? '#f39c12' : key === 'woundDescription' ? '#E2C792' : 'white'}; margin-left: 0.5vw; font-style: {key === 'recommendation' || key === 'woundDescription' ? 'italic' : 'normal'}; line-height: {key === 'woundDescription' ? '1.4' : 'normal'};">
                       {value}
@@ -1117,7 +1120,7 @@
                 on:click={applyBandage}
                 style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
               >
-                <i class="fas fa-plus" style="margin-right: 0.5vw;"></i> APPLY TREATMENT
+                <i class="fas fa-plus" style="margin-right: 0.5vw;"></i> {translations?.ui_applyTreatment || 'APPLY TREATMENT'}
               </button>
             </div>
           {/if}
@@ -1197,7 +1200,7 @@
                 on:click={applyTourniquet}
                 style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
               >
-                <i class="fas fa-compress" style="margin-right: 0.5vw;"></i> APPLY TOURNIQUET
+                <i class="fas fa-compress" style="margin-right: 0.5vw;"></i> {translations?.ui_applyTourniquet || 'APPLY TOURNIQUET'}
               </button>
             </div>
           {/if}
@@ -1240,7 +1243,7 @@
                     {wound.painLevel >= 8 ? (translations?.ui_severePain || 'Severe Pain') : wound.painLevel >= 5 ? (translations?.ui_moderatePain || 'Moderate Pain') : (translations?.ui_mildPain || 'Mild Pain')}
                   </span>
                   {#if wound.bleedingLevel > 0}
-                    <span style="color: #f39c12; font-size: 0.5vw;">+ Bleeding ({wound.bleedingLevel})</span>
+                    <span style="color: #f39c12; font-size: 0.5vw;">{translations?.ui_bleedingLbl || '+ Bleeding'} ({wound.bleedingLevel})</span>
                   {/if}
                 </div>
               {/each}
@@ -1360,7 +1363,7 @@
                 on:click={giveInjection}
                 style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.8vw 2vw; border-radius: 0.3vw; font-size: 0.7vw; cursor: pointer; font-weight: bold;"
               >
-                <i class="fas fa-syringe" style="margin-right: 0.5vw;"></i> ADMINISTER INJECTION
+                <i class="fas fa-syringe" style="margin-right: 0.5vw;"></i> {translations?.ui_administerInjection || 'ADMINISTER INJECTION'}
               </button>
             </div>
           {/if}
@@ -1408,18 +1411,18 @@
       {:else}
         <div style="display: flex; flex-direction: column; gap: 0.3vw; padding: 0 1vw;">
           <div style="display: flex; justify-content: space-between; font-size: 0.6vw; padding: 0 0.5vw;">
-            <span style="color: white;">Heart Rate:</span>
+            <span style="color: white;">{translations?.ui_heartRateLbl || 'Heart Rate:'}</span>
             <span style="color: {vitals.heartRate > 100 || vitals.heartRate < 60 ? '#e74c3c' : '#27ae60'}; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">{vitals.heartRate} BPM</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 0.6vw; padding: 0 0.5vw;">
-            <span style="color: white;">Status:</span>
+            <span style="color: white;">{translations?.ui_statusLbl || 'Status:'}</span>
             <span style="color: {vitals.statusColor}; font-weight: bold;">{vitals.status}</span>
           </div>
           <button 
             on:click={() => {closeVitalsSubMenu(); vitalsChecked = false;}}
             style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; margin-top: 0.5vw; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
           >
-            CLOSE
+            {translations?.ui_close || 'CLOSE'}
           </button>
         </div>
       {/if}
@@ -1462,7 +1465,7 @@
           on:click={closeDoctorsBagSubMenu}
           style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw 1vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
         >
-          <i class="fas fa-times" style="margin-right: 0.5vw;"></i> CLOSE BAG
+          <i class="fas fa-times" style="margin-right: 0.5vw;"></i> {translations?.ui_closeBag || 'CLOSE BAG'}
         </button>
       </div>
     </div>
@@ -1472,7 +1475,7 @@
     <div class="thermometer-submenu" style="position: fixed; bottom: 5vw; left: 50%; transform: translateX(-50%); background-image: url({weatheredPaper}); background-size: 100% 100%; background-position: center; border-radius: 0.5vw; padding: 1vw; z-index: 1000; min-width: 20vw;">
       <div class="submenu-title" style="color: white; font-size: 0.8vw; font-weight: bold; text-align: center; margin-bottom: 1vw;">
         <i class="fas fa-thermometer-half" style="margin-right: 0.5vw;"></i>
-        TEMPERATURE CHECK
+        {translations?.ui_temperatureCheck || 'TEMPERATURE CHECK'}
       </div>
       
       {#if !temperatureChecked}
@@ -1522,7 +1525,7 @@
             }}
             style="background-image: url({selectionBoxBg}); background-size: cover; background-position: center; color: white; border: none; padding: 0.5vw; border-radius: 0.3vw; font-size: 0.6vw; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); font-weight: bold;"
           >
-            CLOSE
+            {translations?.ui_close || 'CLOSE'}
           </button>
         </div>
       {/if}
