@@ -28,3 +28,24 @@ end)
 exports('GetVitals', function(source)
     return GetPlayerVitals(source)
 end)
+
+--- Restaura a saúde do jogador ao máximo e limpa efeitos adversos
+--- (Deve ser protegida por autenticação no caller)
+--- @param source number ID do jogador
+exports('FullHeal', function(source)
+    local caller = GetInvokingResource() or 'unknown'
+    print(("[fdb-medical-core] Auditoria: FullHeal acionado por '%s' para source %s"):format(caller, source))
+    
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if not Player then return end
+    
+    -- Chama ApplyDamage negativo usando o MaxHealth do RSGCore
+    local maxHealth = 600 -- Valor default ou dependente do core/ped
+    -- Faremos um workaround seguro, como cura altíssima para zerar dano, mas vamos também reescrever os vitals:
+    if ResetPlayerVitals then
+        ResetPlayerVitals(source)
+    else
+        -- Caso a função não esteja no escopo de api.lua, manda um dano negativo genérico massivo
+        ProcessDamage(source, 'Generic', 'Torso', -9999, caller)
+    end
+end)

@@ -1298,7 +1298,17 @@ end)
 
 RegisterNetEvent('fdb-medic:server:FullHeal', function()
     local src = source
-    exports['fdb-medical-core']:FullHeal(src)
+    
+    -- Check permissions (evita cura grátis sem item)
+    if not RSGCore.Functions.HasPermission(src, 'admin') then
+        -- Se não for admin, podemos permitir apenas se for chamado pelo script
+        -- mas por segurança, logamos e ignoramos para evitar abuse de modders.
+        print(("[fdb-medic] Aviso: Jogador %s tentou usar FullHeal sem permissão de admin."):format(src))
+        return
+    end
+
+    -- Implementado via ApplyDamage negativo para respeitar a fonte de verdade do core
+    exports['fdb-medical-core']:ApplyDamage(src, 'Treatment', 'Torso', -Config.MaxHealth)
 end)
 
 -- Dano de torniquete: valor vem do Config, não do parâmetro do evento

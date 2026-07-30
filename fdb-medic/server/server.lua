@@ -224,7 +224,8 @@ RSGCore.Commands.Add('kill', locale('sv_kill'), {{name = 'id', help = locale('sv
         return
     end
 
-    TriggerClientEvent('fdb-medic:client:KillPlayer', Player.PlayerData.source)
+    -- Kill centralizado usando a export do medical-core para garantir log e morte imediata correta
+    exports['fdb-medical-core']:ApplyDamage(Player.PlayerData.source, 'Generic', 'Torso', 9999)
 end, 'admin')
 
 -- Medic Duty Command
@@ -269,26 +270,11 @@ end)
 -- Get Players Health
 RSGCore.Functions.CreateCallback('fdb-medic:server:getplayerhealth', function(source, cb)
     local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-    local health = Player.PlayerData.metadata['health']
+    local vitals = exports['fdb-medical-core']:GetVitals(src)
+    local health = vitals and vitals.health or 0
     cb(health)
 end)
 
--- Set Player Health
-RegisterNetEvent('fdb-medic:server:SetHealth', function(amount)
-    local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-
-    if not Player then return end
-
-    amount = tonumber(amount)
-
-    if amount > Config.MaxHealth then
-        amount = Config.MaxHealth
-    end
-
-    Player.Functions.SetMetaData('health', amount)
-end)
 
 -- Medic Revive Player
 RegisterNetEvent('fdb-medic:server:RevivePlayer', function(playerId)

@@ -448,22 +448,8 @@ CreateThread(function()
     end
 end)
 
----------------------------------------------------------------------
--- player update health loop
----------------------------------------------------------------------
-CreateThread(function()
-    repeat Wait(1000) until LocalPlayer.state['isLoggedIn']
-    while true do
-        local health = GetEntityHealth(cache.ped)
-        
-        -- PERFORMANCE FIX: Don't send server events when dead (saves network traffic)
-        if not deathactive then
-            TriggerServerEvent('fdb-medic:server:SetHealth', health)
-        end
-        
-        Wait(deathactive and 5000 or 1000) -- Check every 5 seconds when dead, every 1 second when alive
-    end
-end)
+-- (Loop de SetHealth removido para não interferir na Fonte Única de Verdade do fdb-medical-core)
+
 
 ---------------------------------------------------------------------
 -- display respawn message and countdown
@@ -1104,13 +1090,6 @@ AddEventHandler('fdb-medic:client:storage', function()
     TriggerServerEvent('fdb-medic:server:openstash', stashloc)
 end)
 
----------------------------------------------------------------------
--- kill player
----------------------------------------------------------------------
-RegisterNetEvent('fdb-medic:client:KillPlayer')
-AddEventHandler('fdb-medic:client:KillPlayer', function()
-    SetEntityHealth(cache.ped, 0)
-end)
 
 ---------------------------------------------------------------------
 -- Handle vitals check response from server

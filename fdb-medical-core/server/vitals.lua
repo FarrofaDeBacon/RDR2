@@ -22,7 +22,7 @@ function GetPlayerVitals(src)
     return PlayerVitals[src]
 end
 
---- Atualiza a Statebag `medical` do ped do jogador
+--- Atualiza a Statebag `medical` do ped do jogador e a metadata oficial
 --- @param src number
 function SyncVitalsToStatebag(src)
     local ped = GetPlayerPed(src)
@@ -36,6 +36,12 @@ function SyncVitalsToStatebag(src)
         bleeding = vitals.bleeding,
         consciousness = vitals.consciousness
     }, true)
+    
+    -- Sincroniza metadata oficial do framework para compatibilidade com rsg-spawn, HUDs, etc.
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        Player.Functions.SetMetaData('health', vitals.health)
+    end
 end
 
 --- Limpeza ao desconectar
