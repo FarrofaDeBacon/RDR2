@@ -1307,8 +1307,8 @@ RegisterNetEvent('fdb-medic:server:FullHeal', function()
         return
     end
 
-    -- Implementado via ApplyDamage negativo para respeitar a fonte de verdade do core
-    exports['fdb-medical-core']:ApplyDamage(src, 'Treatment', 'Torso', -Config.MaxHealth)
+    -- Chama a export nativa recém-criada no core (que lida com o reset dos vitais)
+    exports['fdb-medical-core']:FullHeal(src)
 end)
 
 -- Dano de torniquete: valor vem do Config, não do parâmetro do evento
