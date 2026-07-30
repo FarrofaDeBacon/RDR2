@@ -30,9 +30,9 @@ body {
 }
 
 .medic-label {
-    color: #fff;
+    color: var(--text-main);
     text-align: center;
-    font-family: "RDR Lino Regular";
+    font-family: var(--font-primary);
     font-size: 2.1628vw;
     font-style: normal;
     line-height: normal;
@@ -44,13 +44,13 @@ body {
 }
 
 .medic-label span {
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
 }
 
 .medic-span {
   color: rgba(255, 255, 255, 0.45);
   text-align: center;
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   width: 100%;
   font-size: 0.6771vw;
   font-style: normal;
@@ -92,7 +92,7 @@ body {
 .medic-head-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -111,7 +111,7 @@ body {
 }
 
 .medic-head-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -166,7 +166,7 @@ body {
 .medic-spine-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -185,7 +185,7 @@ body {
 }
 
 .medic-spine-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -239,7 +239,7 @@ body {
 .medic-rhand-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -258,7 +258,7 @@ body {
 }
 
 .medic-rhand-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -312,7 +312,7 @@ body {
 .medic-lhand-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -331,7 +331,7 @@ body {
 }
 
 .medic-lhand-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -385,7 +385,7 @@ body {
 .medic-upper-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -404,7 +404,7 @@ body {
 }
 
 .medic-upper-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -469,7 +469,7 @@ body {
 .medic-larm-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -488,7 +488,7 @@ body {
 }
 
 .medic-larm-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -542,7 +542,7 @@ body {
 .medic-rarm-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -561,7 +561,7 @@ body {
 }
 
 .medic-rarm-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -615,7 +615,7 @@ body {
 .medic-lleg-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -634,7 +634,7 @@ body {
 }
 
 .medic-lleg-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -688,7 +688,7 @@ body {
 .medic-rleg-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -707,7 +707,7 @@ body {
 }
 
 .medic-rleg-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -761,7 +761,7 @@ body {
 .medic-lfoot-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -780,7 +780,7 @@ body {
 }
 
 .medic-lfoot-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -834,7 +834,7 @@ body {
 .medic-rfoot-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -853,7 +853,7 @@ body {
 }
 
 .medic-rfoot-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -907,7 +907,7 @@ body {
 .medic-lower-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -926,7 +926,7 @@ body {
 }
 
 .medic-lower-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -980,7 +980,7 @@ body {
 .medic-blood-dd-label {
   color: #e2c792;
   text-shadow: 0px 0.2083vw 1.4583vw rgba(231, 175, 19, 0.55);
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   margin-left: 0.3vw;
   margin-top: 0.35vw;
   font-size: 0.725vw;
@@ -999,7 +999,7 @@ body {
 }
 
 .medic-blood-dd-bar {
-  background: #e2c792;
+  background: var(--bg-panel);
   height: 100%;
   transition: 0.3s;
   border-radius: 0.1vw;
@@ -1046,8 +1046,8 @@ body {
     width: clamp(80px, 5vw, 120px);
     margin-left: 0;
     line-height: clamp(30px, 2vw, 40px);
-    color: #fff;
-    font-family: "RDR Lino Regular";
+    color: var(--text-main);
+    font-family: var(--font-primary);
     font-size: clamp(10px, 0.7vw, 14px);
     text-align: center;
     height: clamp(30px, 2vw, 40px);
@@ -1063,7 +1063,7 @@ body {
     width: clamp(100px, 6vw, 150px);
     color: #951515;
     line-height: clamp(30px, 2vw, 40px);
-    font-family: "RDR Lino Regular";
+    font-family: var(--font-primary);
     font-size: clamp(10px, 0.7vw, 14px);
     font-weight: bold;
     text-align: center;
@@ -1128,7 +1128,7 @@ body {
 }
 
 .medic-treatments::-webkit-scrollbar-thumb {
-  background: #e2c792;
+  background: var(--bg-panel);
   border-radius: 0.1vw;
 }
 
@@ -1142,7 +1142,7 @@ body {
 
 .treatment-title {
   color: #e2c792;
-  font-family: "RDR Lino Regular";
+  font-family: var(--font-primary);
   font-size: 0.9vw;
   font-weight: 600;
   margin-bottom: 0.3vw;
@@ -1275,7 +1275,7 @@ body {
 }
 
 .action-button:hover i {
-  color: #ffffff;
+  color: var(--text-main);
   text-shadow: 0 0 8px rgba(226, 199, 146, 0.8);
 }
 
@@ -1289,7 +1289,7 @@ body {
   color: #e2c792;
   padding: 8px 16px;
   border-radius: 8px;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -1389,7 +1389,7 @@ body {
   position: fixed;
   width: 300px;
   z-index: 1500;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   pointer-events: none; /* Allow mouse to pass through when not hovering */
 }
 
@@ -1443,7 +1443,7 @@ body {
 .treatments-title {
   font-size: 22px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-main);
   /* text-shadow: 0px 0.05vw 0.3vw rgba(231, 175, 19, 0.4); */
   letter-spacing: 2px;
   margin-bottom: 5px;
@@ -1494,7 +1494,7 @@ body {
 .category-title {
   font-size: 16px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-main);
   letter-spacing: 1px;
   /* text-shadow: 0px 0.05vw 0.3vw rgba(231, 175, 19, 0.4); */
 }
@@ -1660,7 +1660,7 @@ body {
   width: 450px;
   max-height: 80vh;
   z-index: 1500;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   transition: right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow-y: auto;
 }
@@ -1691,7 +1691,7 @@ body {
 .treatments-detail-title {
   font-size: 22px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-main);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   letter-spacing: 2px;
   margin-bottom: 5px;
@@ -1712,7 +1712,7 @@ body {
   width: 30px;
   height: 30px;
   background: rgba(139, 105, 20, 0.8);
-  color: #fff;
+  color: var(--text-main);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1761,7 +1761,7 @@ body {
 .treatment-detail-title {
   font-size: 16px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-main);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   flex-grow: 1;
 }
@@ -1793,7 +1793,7 @@ body {
 .treatment-entry-name {
   font-size: 14px;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-main);
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   margin-bottom: 2px;
 }
@@ -2615,7 +2615,7 @@ body {
   z-index: 100;
   border: 1px solid rgba(226, 199, 146, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
 }
 
 .body-part-label::before {
@@ -2648,7 +2648,7 @@ body {
   z-index: 1500;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   min-width: 400px;
 }
 
@@ -2707,7 +2707,7 @@ body {
   transform: scale(1.2) rotate(5deg);
   z-index: 2000;
   box-shadow: 0 8px 32px rgba(226, 199, 146, 0.6);
-  border-color: #fff;
+  border-color: var(--text-main);
 }
 
 .draggable-treatment .item-icon {
@@ -2788,7 +2788,7 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.8);
-  color: #fff;
+  color: var(--text-main);
   padding: 8px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -2862,7 +2862,7 @@ body {
   height: 100vh;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 20, 0.98));
   z-index: 2000;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   overflow: hidden;
   backdrop-filter: blur(5px);
 }
@@ -2981,7 +2981,7 @@ body {
 .vital-value {
   font-size: 20px;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-main);
   line-height: 1;
 }
 
@@ -3076,7 +3076,7 @@ body {
 .stat-number {
   font-size: 24px;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-main);
   margin-bottom: 5px;
 }
 
@@ -3117,7 +3117,7 @@ body {
 }
 
 .blood-level-text span:first-child {
-  color: #fff;
+  color: var(--text-main);
   font-weight: bold;
 }
 
@@ -3157,7 +3157,7 @@ body {
 
 .recommendation-text {
   flex: 1;
-  color: #fff;
+  color: var(--text-main);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -3289,10 +3289,10 @@ body {
   font-weight: bold;
 }
 
-.record-severity.critical { background: #ff6b6b; color: #fff; }
+.record-severity.critical { background: #ff6b6b; color: var(--text-main); }
 .record-severity.high { background: #ffd43b; color: #2c2c2c; }
-.record-severity.medium { background: #74c0fc; color: #fff; }
-.record-severity.low { background: #51cf66; color: #fff; }
+.record-severity.medium { background: #74c0fc; color: var(--text-main); }
+.record-severity.low { background: #51cf66; color: var(--text-main); }
 
 .record-description {
   color: #ccc;
@@ -3367,7 +3367,7 @@ body {
   opacity: 0;
   visibility: hidden;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
 }
 
 .body-part-detail-popup.visible {
@@ -3430,7 +3430,7 @@ body {
   width: 24px;
   height: 24px;
   background: rgba(139, 105, 20, 0.8);
-  color: #fff;
+  color: var(--text-main);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -3574,7 +3574,7 @@ body {
   padding: 30px 25px;
   text-align: center;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   transform: scale(0.8);
   transition: transform 0.3s ease;
 }
@@ -3683,7 +3683,7 @@ body {
 }
 
 .treatment-step.active {
-  background: #e2c792;
+  background: var(--bg-panel);
   border-color: #c2ae87;
   box-shadow: 0 0 12px rgba(226, 199, 146, 0.8);
   animation: stepPulse 1.5s ease-in-out infinite;
@@ -3720,7 +3720,7 @@ body {
 /* Cancel Button */
 .treatment-cancel-btn {
   background: rgba(139, 105, 20, 0.8);
-  color: #fff;
+  color: var(--text-main);
   border: 2px solid #8b6914;
   border-radius: 8px;
   padding: 8px 16px;
@@ -3728,7 +3728,7 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -3750,7 +3750,7 @@ body {
   border-radius: 8px;
   padding: 15px;
   color: #e2c792;
-  font-family: "RDR Lino Regular", serif;
+  font-family: var(--font-primary);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   z-index: 2500;
   transform: translateX(350px);
@@ -3835,7 +3835,7 @@ body {
   justify-content: center;
   font-size: 10px;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-main);
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 255, 255, 0.8);
   z-index: 12;

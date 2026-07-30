@@ -23,6 +23,23 @@
   $: normalizedTreatments = Array.isArray(treatments) ? treatments : Object.values(treatments || {});
 
   let showBandagePanel = false;
+
+  function getBodyPartName(bodyPart: string): string {
+    const bp = bodyPart.toLowerCase();
+    if (translations && translations[`ui_body_${bp}`]) {
+      return translations[`ui_body_${bp}`];
+    }
+    if (bodyParts && bodyParts[bodyPart]) {
+      return bodyParts[bodyPart].label || bodyParts[bodyPart];
+    }
+    const fallbackNames: { [key: string]: string } = {
+      'head': 'Head', 'spine': 'Spine', 'upbody': 'Upper Body', 'lowbody': 'Lower Body', 'upper': 'Upper Body', 'lower': 'Lower Body',
+      'larm': 'Left Arm', 'rarm': 'Right Arm', 'lhand': 'Left Hand', 'rhand': 'Right Hand',
+      'lleg': 'Left Leg', 'rleg': 'Right Leg', 'lfoot': 'Left Foot', 'rfoot': 'Right Foot'
+    };
+    return fallbackNames[bp] || bodyPart;
+  }
+
   let showTourniquetPanel = false;
   let showTreatmentsPanel = false;
   let selectedBodyPart = '';
@@ -55,9 +72,9 @@
   }
 
   function getHealthColor(health: number) {
-    if (health >= 70) return uiColors?.normal || '#27ae60';
-    if (health >= 30) return uiColors?.medium || '#f39c12';
-    return uiColors?.low || '#e74c3c';
+    if (health >= 70) return uiColors?.normal || 'var(--status-good)';
+    if (health >= 30) return uiColors?.medium || 'var(--status-medium)';
+    return uiColors?.low || 'var(--status-critical)';
   }
 
   $: bloodHealth = () => {
@@ -354,36 +371,36 @@
   }
 </style>
 
-<div class="medic-system">
-  <div class="medic-close" on:click={onClose} style="position: absolute; top: 20px; right: 30px; z-index: 10; font-size: 32px; color: #fff; cursor: pointer;">
+<div class="medic-system medical-field-book" data-theme="light">
+  <div class="medic-close" on:click={onClose} style="position: absolute; top: 20px; right: 30px; z-index: 10; font-size: 32px; color: var(--text-main); cursor: pointer;">
     &times;
   </div>
   <div class="medic-big">
     <div class="medic-label">{translations?.ui_medical || 'Medical'} <span>{translations?.ui_panel || 'Panel'}</span></div>
     <div class="medic-details">
       
-      <BodyPartBar bodyPart="head" label="HEAD" imageName="head" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="spine" label="SPINE" imageName="spine" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="upper" label="UPPER BODY" imageName="upper" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="head" label={getBodyPartName("head").toUpperCase()} imageName="head" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="spine" label={getBodyPartName("spine").toUpperCase()} imageName="spine" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="upper" label={getBodyPartName("upbody").toUpperCase()} imageName="upper" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
       
       <!-- Front-facing view -->
-      <BodyPartBar bodyPart="larm" label="RIGHT ARM" imageName="larm" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="lhand" label="RIGHT HAND" imageName="lhand" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="rarm" label="LEFT ARM" imageName="rarm" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="rhand" label="LEFT HAND" imageName="rhand" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="larm" label={getBodyPartName("larm").toUpperCase()} imageName="larm" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="lhand" label={getBodyPartName("lhand").toUpperCase()} imageName="lhand" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="rarm" label={getBodyPartName("rarm").toUpperCase()} imageName="rarm" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="rhand" label={getBodyPartName("rhand").toUpperCase()} imageName="rhand" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
       
-      <BodyPartBar bodyPart="lleg" label="RIGHT LEG" imageName="lleg" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="rleg" label="LEFT LEG" imageName="rleg" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="lleg" label={getBodyPartName("lleg").toUpperCase()} imageName="lleg" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="rleg" label={getBodyPartName("rleg").toUpperCase()} imageName="rleg" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
       
-      <BodyPartBar bodyPart="lfoot" label="RIGHT FOOT" imageName="lfoot" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
-      <BodyPartBar bodyPart="rfoot" label="LEFT FOOT" imageName="rfoot" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="lfoot" label={getBodyPartName("lfoot").toUpperCase()} imageName="lfoot" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="rfoot" label={getBodyPartName("rfoot").toUpperCase()} imageName="rfoot" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
       
-      <BodyPartBar bodyPart="lower" label="LOWER BODY" imageName="lower" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
+      <BodyPartBar bodyPart="lower" label={getBodyPartName("lowbody").toUpperCase()} imageName="lower" {wounds} {bodyPartHealth} {treatments} {infections} {injuryStates} {infectionStages} {uiColors} />
       
       <div class="medic-blood">
         <div class="medic-blood-first"><div></div></div>
         <div class="medic-blood-dd">
-          <div class="medic-blood-dd-label">Blood Level: <span style="font-size: 1.3vh; color: #fff; margin-left: 7px;">{getHealthText(bloodHealth())}</span></div>
+          <div class="medic-blood-dd-label">Blood Level: <span style="font-size: 1.3vh; color: var(--text-main); margin-left: 7px;">{getHealthText(bloodHealth())}</span></div>
           <div class="medic-blood-dd-full">
             <div class="medic-blood-dd-bar" style="width: {bloodHealth()}%; background-color: {getHealthColor(bloodHealth())};"></div>
           </div>
@@ -431,11 +448,11 @@
         {#if loadingInventory}
           <div style="text-align: center; padding: 40px 20px; color: white;">
             <div style="border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            <p style="font-style: italic;">Checking your supplies...</p>
+            <p style="font-style: italic;">{translations?.ui_checkingSupplies || 'Checking your supplies...'}</p>
           </div>
         {:else if !currentWounds || Object.keys(currentWounds).length === 0}
-          <div style="text-align: center; padding: 40px 20px; color: #90EE90; font-style: italic;">
-            <p style="font-size: 16px; margin-bottom: 10px;">You're lookin' spick and span here partner!</p>
+          <div style="text-align: center; padding: 40px 20px; color: var(--status-good); font-style: italic;">
+            <p style="font-size: 16px; margin-bottom: 10px;">{translations?.ui_spickAndSpan || "You're lookin' spick and span here partner!"}</p>
             <p style="font-size: 14px;">{translations?.ui_noBandagesNeeded || 'No bandages needed at this time.'}</p>
           </div>
         {:else}
@@ -449,20 +466,20 @@
                   applyBandage(bodyPart, currentInventory.bandages[0].itemName);
                 }
               }}
-              style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; cursor: {isDisabled ? 'not-allowed' : 'pointer'}; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: {isDisabled ? '#666' : 'white'}; min-height: 55px; opacity: {isDisabled ? 0.4 : 1}; filter: {isDisabled ? 'grayscale(100%)' : 'none'};"
+              style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; cursor: {isDisabled ? 'not-allowed' : 'pointer'}; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: {isDisabled ? 'var(--text-muted)' : 'white'}; min-height: 55px; opacity: {isDisabled ? 0.4 : 1}; filter: {isDisabled ? 'grayscale(100%)' : 'none'};"
             >
               {#if hasBandages}
                 <div style="font-weight: bold; margin-bottom: 5px;">
-                  🩹 {currentInventory.bandages[0].label} - {bodyPart.toUpperCase()}
+                  🩹 {currentInventory.bandages[0].label} - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
-                <div style="font-size: 11px; color: #f39c12;">
+                <div style="font-size: 11px; color: var(--status-medium);">
                   Bleeding: Level {wound.bleedingLevel || 0}
                 </div>
               {:else}
-                <div style="font-weight: bold; margin-bottom: 5px; color: #666;">
-                  🩹 ???? - {bodyPart.toUpperCase()}
+                <div style="font-weight: bold; margin-bottom: 5px; color: var(--text-muted);">
+                  🩹 ???? - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
-                <div style="font-size: 11px; color: #999; font-style: italic;">
+                <div style="font-size: 11px; color: var(--border-color); font-style: italic;">
                   ({translations?.ui_noBandagesInInventory || 'No bandages in inventory'})
                 </div>
               {/if}
@@ -481,7 +498,7 @@
       <div class="treatments-detail-header">
         <div class="treatments-detail-title" style="color: white; font-weight: bold;">{translations?.ui_applyTourniquetTitle || 'APPLY TOURNIQUET'}</div>
         <div class="treatments-detail-subtitle" style="color: white;">
-          {selectedTourniquetBodyPart ? '{translations?.ui_selectTourniquetType || 'Select Tourniquet Type'}' : '{translations?.ui_selectSeverelyBleedingPart || 'Select Severely Bleeding Part'}'}
+          {selectedTourniquetBodyPart ? (translations?.ui_selectTourniquetType || 'Select Tourniquet Type') : (translations?.ui_selectSeverelyBleedingPart || 'Select Severely Bleeding Part')}
         </div>
         <div class="treatments-close-btn" on:click={closePanels} style="position: absolute; top: 10px; right: 15px; font-size: 20px; color: white; cursor: pointer;">&times;</div>
       </div>
@@ -489,12 +506,12 @@
         {#if loadingInventory}
           <div style="text-align: center; padding: 40px 20px; color: white;">
             <div style="border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            <p style="font-style: italic;">Checking your supplies...</p>
+            <p style="font-style: italic;">{translations?.ui_checkingSupplies || 'Checking your supplies...'}</p>
           </div>
         {:else if !currentWounds || Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleedingLevel || 0) >= 6).length === 0}
-          <div style="text-align: center; padding: 40px 20px; color: #90EE90; font-style: italic;">
-            <p style="font-size: 16px; margin-bottom: 10px;">Ain't no severe bleedin' here!</p>
-            <p style="font-size: 14px;">No tourniquets needed right now.</p>
+          <div style="text-align: center; padding: 40px 20px; color: var(--status-good); font-style: italic;">
+            <p style="font-size: 16px; margin-bottom: 10px;">{translations?.ui_noSevereBleeding || "Ain't no severe bleedin' here!"}</p>
+            <p style="font-size: 14px;">{translations?.ui_noTourniquetsNeeded || 'No tourniquets needed right now.'}</p>
           </div>
         {:else}
           {#each Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleedingLevel || 0) >= 6) as [bodyPart, wound]}
@@ -507,21 +524,21 @@
                   applyTourniquet(bodyPart, currentInventory.tourniquets[0].itemName);
                 }
               }}
-              style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; cursor: {isDisabled ? 'not-allowed' : 'pointer'}; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: {isDisabled ? '#666' : 'white'}; min-height: 55px; opacity: {isDisabled ? 0.4 : 1}; filter: {isDisabled ? 'grayscale(100%)' : 'none'};"
+              style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; cursor: {isDisabled ? 'not-allowed' : 'pointer'}; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: {isDisabled ? 'var(--text-muted)' : 'white'}; min-height: 55px; opacity: {isDisabled ? 0.4 : 1}; filter: {isDisabled ? 'grayscale(100%)' : 'none'};"
             >
               {#if hasTourniquets}
                 <div style="font-weight: bold; margin-bottom: 5px;">
-                  🩸 {currentInventory.tourniquets[0].label} - {bodyPart.toUpperCase()}
+                  🩸 {currentInventory.tourniquets[0].label} - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
-                <div style="font-size: 11px; color: #e74c3c; font-weight: bold;">
+                <div style="font-size: 11px; color: var(--status-critical); font-weight: bold;">
                   {translations?.ui_severeBleedingLevel || 'SEVERE BLEEDING: Level '}{wound.bleedingLevel || 0}
                 </div>
               {:else}
-                <div style="font-weight: bold; margin-bottom: 5px; color: #666;">
-                  🩸 ???? - {bodyPart.toUpperCase()}
+                <div style="font-weight: bold; margin-bottom: 5px; color: var(--text-muted);">
+                  🩸 ???? - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
-                <div style="font-size: 11px; color: #999; font-style: italic;">
-                  (No tourniquets in inventory)
+                <div style="font-size: 11px; color: var(--border-color); font-style: italic;">
+                  ({translations?.ui_noTourniquetsInInventory || 'No tourniquets in inventory'})
                 </div>
               {/if}
             </div>
@@ -552,22 +569,22 @@
           {#each normalizedTreatments as treatment}
             <div class="treatment-option" style="padding: 10px; margin: 6px 0; border: none; border-radius: 5px; background-image: url({selectionBoxBg}); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: all 0.2s ease; color: white; min-height: 55px; display: flex; flex-direction: column; position: relative;">
               <div style="font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                <span>{treatment.bodyPart?.toUpperCase() || 'UNKNOWN'}</span>
-                <span style="font-size: 12px; color: #90EE90;">
+                <span>{treatment.bodyPart ? getBodyPartName(treatment.bodyPart).toUpperCase() : 'UNKNOWN'}</span>
+                <span style="font-size: 12px; color: var(--status-good);">
                   {treatment.type === 'bandage' ? 'Bandaged' : treatment.type?.toUpperCase()}
                 </span>
               </div>
-              <div style="font-size: 11px; color: #D3D3D3; margin-bottom: 8px;">
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
                 Item: {treatment.itemType || 'Unknown'} | {translations?.ui_appliedLbl || 'Applied:'} {treatment.appliedBy || 'Self'}
               </div>
               <div style="display: flex; gap: 5px; justify-content: flex-end;">
-                <button on:click={() => replaceTreatment(treatment.bodyPart, treatment.type)} style="padding: 4px 8px; font-size: 10px; background-image: url({selectionBoxBg}); background-size: 100% 100%; border: none; border-radius: 3px; color: #f39c12; cursor: pointer; transition: all 0.2s ease;">
-                  Replace
+                <button on:click={() => replaceTreatment(treatment.bodyPart, treatment.type)} style="padding: 4px 8px; font-size: 10px; background-image: url({selectionBoxBg}); background-size: 100% 100%; border: none; border-radius: 3px; color: var(--status-medium); cursor: pointer; transition: all 0.2s ease;">
+                  {translations?.ui_replace || 'Replace'}
                 </button>
                 
                 {#if !wounds[treatment.bodyPart]}
-                  <button on:click={() => removeTreatment(treatment.bodyPart, treatment.type)} style="padding: 4px 8px; font-size: 10px; background-image: url({selectionBoxBg}); background-size: 100% 100%; border: none; border-radius: 3px; color: #e74c3c; cursor: pointer; transition: all 0.2s ease;">
-                    Remove
+                  <button on:click={() => removeTreatment(treatment.bodyPart, treatment.type)} style="padding: 4px 8px; font-size: 10px; background-image: url({selectionBoxBg}); background-size: 100% 100%; border: none; border-radius: 3px; color: var(--status-critical); cursor: pointer; transition: all 0.2s ease;">
+                    {translations?.ui_remove || 'Remove'}
                   </button>
                 {/if}
               </div>
