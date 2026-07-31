@@ -10,6 +10,7 @@
   let inspectionData: any = { playerName: '', vitals: {}, injuries: [], treatments: [], inventory: {}, translations: {} };
   let globalConfigData: any = { bandageTypes: {}, tourniquetTypes: {}, medicineTypes: {}, injectionTypes: {}, bodyParts: {} };
   
+  let currentTheme = 'light';
   let scale = 1;
 
   function handleResize() {
@@ -24,7 +25,10 @@
   function handleMessage(event: MessageEvent) {
     const { type, data } = event.data;
     
-    switch (type) {
+    // Support direct string actions or type-based actions
+    const action = data?.action || event.data.action || type;
+    
+    switch (action) {
       case 'show-death-screen':
         currentView = 'death-screen';
         deathScreenData = data || {};
@@ -58,6 +62,9 @@
           bodyParts: data?.bodyParts || event.data.bodyParts || {}
         };
         break;
+      case 'setTheme':
+        currentTheme = data?.theme || event.data.theme || 'light';
+        break;
     }
   }
 
@@ -82,6 +89,9 @@
         },
         hideAll: () => {
           window.postMessage({ type: 'hide-all' }, '*');
+        },
+        setTheme: (theme: string) => {
+          window.postMessage({ type: 'setTheme', data: { theme } }, '*');
         }
       };
     }
@@ -116,7 +126,7 @@
   }
 </script>
 
-<div class="App" style="width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; display: flex; justify-content: center; align-items: center;">
+<div class="App" data-theme={currentTheme} style="width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; display: flex; justify-content: center; align-items: center;">
   <div style="width: 100vw; height: 100vh; transform: scale({scale}); transform-origin: center center; position: relative;">
     
     {#if import.meta.env.DEV}

@@ -17,7 +17,15 @@ client_scripts {
 }
 
 server_scripts {
+    'server/runtime_config.lua',
     'server/main.lua'
+}
+
+exports {
+    'SetConfig',
+    'GetConfig',
+    'GetRuntimeConfig',
+    'SetRuntimeConfig'
 }
 
 files {
