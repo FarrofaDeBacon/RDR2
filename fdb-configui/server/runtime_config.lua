@@ -40,17 +40,16 @@ local function setNestedValue(tbl, path, value)
     return true
 end
 
-exports('SetConfig', function(path, value)
+local function SetConfig(path, value)
     if setNestedValue(ConfigStore, path, value) then
         SaveConfig()
         TriggerClientEvent('fdb-configui:client:configChanged', -1, path, value)
         return true
     end
     return false
-end)
-exports('SetRuntimeConfig', exports.SetConfig)
+end
 
-exports('GetConfig', function(path)
+local function GetConfig(path)
     if not path then return ConfigStore end
     
     local keys = {}
@@ -64,9 +63,14 @@ exports('GetConfig', function(path)
         current = current[keys[i]]
     end
     return current
-end)
-exports('GetRuntimeConfig', exports.GetConfig)
+end
+
+exports('SetConfig', SetConfig)
+exports('SetRuntimeConfig', SetConfig)
+exports('GetConfig', GetConfig)
+exports('GetRuntimeConfig', GetConfig)
 
 lib.callback.register('fdb-configui:server:getGlobalConfig', function(source)
     return ConfigStore
 end)
+
