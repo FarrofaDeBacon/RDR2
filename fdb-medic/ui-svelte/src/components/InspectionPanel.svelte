@@ -281,7 +281,7 @@
 
     if (data.wounds) {
       Object.values(data.wounds).forEach((wound: any) => {
-        const severity = (wound.painLevel || 0) + (wound.bleedingLevel || 0) * 2;
+        const severity = (wound.severity || 0) + (wound.bleeding || 0) * 2;
         totalSeverity += severity;
       });
     }
@@ -321,7 +321,7 @@
 
     if (data.wounds) {
       Object.values(data.wounds).forEach((wound: any) => {
-        const severity = (wound.painLevel || 0) + (wound.bleedingLevel || 0) * 2;
+        const severity = (wound.severity || 0) + (wound.bleeding || 0) * 2;
         totalSeverity += severity;
       });
     }
@@ -372,7 +372,7 @@
   function needsMedicine(frontendBodyPart: string): boolean {
     const discoveredWound = discoveredInjuries[frontendBodyPart];
     if (!discoveredWound) return false;
-    const hasPain = discoveredWound.painLevel && discoveredWound.painLevel > 0;
+    const hasPain = discoveredWound.severity && discoveredWound.severity > 0;
     if (!hasPain) return false;
     
     if (Number(data.playerId) === -1 && data.wounds) {
@@ -394,7 +394,7 @@
   function needsBandage(frontendBodyPart: string): boolean {
     const discoveredWound = discoveredInjuries[frontendBodyPart];
     if (!discoveredWound) return false;
-    return discoveredWound.bleedingLevel && discoveredWound.bleedingLevel >= 1 && discoveredWound.bleedingLevel <= 6;
+    return discoveredWound.bleeding && discoveredWound.bleeding >= 1 && discoveredWound.bleeding <= 6;
   }
 
   function isBandaged(frontendBodyPart: string): boolean {
@@ -416,7 +416,7 @@
   function needsTourniquet(frontendBodyPart: string): boolean {
     const discoveredWound = discoveredInjuries[frontendBodyPart];
     if (!discoveredWound) return false;
-    return discoveredWound.bleedingLevel && discoveredWound.bleedingLevel >= 7;
+    return discoveredWound.bleeding && discoveredWound.bleeding >= 60;
   }
 
   function isTourniqueted(frontendBodyPart: string): boolean {
@@ -683,7 +683,7 @@
     
     const woundData = getWoundData(bodyPart);
 
-    if (woundData && !woundData.isScar && ((woundData.painLevel || 0) > 3 || (woundData.bleedingLevel || 0) > 2)) {
+    if (woundData && !woundData.isScar && ((woundData.severity || 0) > 3 || (woundData.bleeding || 0) > 2)) {
       discoveredInjuries[bodyPart] = woundData;
       discoveredInjuries = discoveredInjuries;
     }
@@ -715,22 +715,22 @@
           painResponse: translations?.ui_noActivePain || 'No active pain - fully healed',
           swelling: translations?.ui_noneHealed || 'None - injury has healed',
           discoloration: translations?.ui_permanentScar || 'Permanent scar tissue visible',
-          woundDescription: `${translations?.ui_oldHealedInjury || 'OLD HEALED INJURY:'} ${woundData.metadata?.description || translations?.ui_unknownInjury || 'Unknown injury'}`,
+          woundDescription: `${translations?.ui_oldHealedInjury || 'OLD HEALED INJURY:'} ${woundData.text || translations?.ui_unknownInjury || 'Unknown injury'}`,
           recommendation: translations?.ui_noTreatmentScar || 'No treatment required - wound has fully healed into scar tissue'
         };
       }
 
-      const painLevel = woundData.painLevel || 0;
-      const bleedingLevel = woundData.bleedingLevel || 0;
+      const severity = woundData.severity || 0;
+      const bleeding = woundData.bleeding || 0;
       
       const getPainDesc = (level: number) => {
         if (level === 0) return translations?.ui_noPain || 'No pain';
-        return translations?.[`ui_painLevel_${level}`] || data.injuryStates?.[level]?.pain || `Pain level ${level}`;
+        return translations?.[`ui_severity_${level}`] || data.injuryStates?.[level]?.pain || `Pain level ${level}`;
       };
       
       const getBleedingDesc = (level: number) => {
         if (level === 0) return translations?.ui_noBleeding || 'No bleeding';
-        return translations?.[`ui_bleedingLevel_${level}`] || data.injuryStates?.[level]?.bleeding || `Bleeding level ${level}`;
+        return translations?.[`ui_bleeding_${level}`] || data.injuryStates?.[level]?.bleeding || `Bleeding level ${level}`;
       };
       
       const getTreatmentRecommendation = (painLvl: number, bleedingLvl: number) => {
@@ -757,17 +757,17 @@
         return translations?.ui_rec_none || 'No immediate treatment required';
       };
       
-      const totalSeverity = painLevel + (bleedingLevel * 2);
+      const totalSeverity = severity + (bleeding * 2);
       
       return {
-        boneIntegrity: painLevel > 8 ? (translations?.ui_possibleFracture || 'Possible fracture detected') : painLevel > 5 ? (translations?.ui_boneBruising || 'Bone bruising suspected') : (translations?.ui_normalBone || 'Normal'),
-        softTissue: bleedingLevel > 0 ? getBleedingDesc(bleedingLevel) : painLevel > 0 ? (translations?.ui_contusionsPresent ? translations.ui_contusionsPresent.replace('{desc}', getPainDesc(painLevel)) : `Contusions present (${getPainDesc(painLevel)})`) : (translations?.ui_noVisibleDamage || 'No visible damage'),
-        bloodFlow: bleedingLevel > 6 ? (translations?.ui_activeBleeding ? translations.ui_activeBleeding.replace('{desc}', getBleedingDesc(bleedingLevel)) : `${translations?.ui_activeBleedingFallback || 'Active bleeding:'} ${getBleedingDesc(bleedingLevel)}`) : bleedingLevel > 0 ? (translations?.ui_bleedingObserved ? translations.ui_bleedingObserved.replace('{desc}', getBleedingDesc(bleedingLevel)) : `${getBleedingDesc(bleedingLevel)} ${translations?.ui_observed || 'observed'}`) : (translations?.ui_normalCirculation || 'Normal circulation'),
-        painResponse: painLevel > 0 ? (translations?.ui_patientReports ? translations.ui_patientReports.replace('{desc}', getPainDesc(painLevel)) : `Patient reports: ${getPainDesc(painLevel)}`) : (translations?.ui_noSignificantPain || 'No significant pain response'),
+        boneIntegrity: severity >= 75 ? (translations?.ui_possibleFracture || 'Possible fracture detected') : severity >= 50 ? (translations?.ui_boneBruising || 'Bone bruising suspected') : (translations?.ui_normalBone || 'Normal'),
+        softTissue: bleeding > 0 ? getBleedingDesc(bleeding) : severity > 0 ? (translations?.ui_contusionsPresent ? translations.ui_contusionsPresent.replace('{desc}', getPainDesc(severity)) : `Contusions present (${getPainDesc(severity)})`) : (translations?.ui_noVisibleDamage || 'No visible damage'),
+        bloodFlow: bleeding > 6 ? (translations?.ui_activeBleeding ? translations.ui_activeBleeding.replace('{desc}', getBleedingDesc(bleeding)) : `${translations?.ui_activeBleedingFallback || 'Active bleeding:'} ${getBleedingDesc(bleeding)}`) : bleeding > 0 ? (translations?.ui_bleedingObserved ? translations.ui_bleedingObserved.replace('{desc}', getBleedingDesc(bleeding)) : `${getBleedingDesc(bleeding)} ${translations?.ui_observed || 'observed'}`) : (translations?.ui_normalCirculation || 'Normal circulation'),
+        painResponse: severity > 0 ? (translations?.ui_patientReports ? translations.ui_patientReports.replace('{desc}', getPainDesc(severity)) : `Patient reports: ${getPainDesc(severity)}`) : (translations?.ui_noSignificantPain || 'No significant pain response'),
         swelling: totalSeverity > 12 ? (translations?.ui_significantSwelling || 'Significant swelling present') : totalSeverity > 6 ? (translations?.ui_minorSwelling || 'Minor swelling detected') : (translations?.ui_noneDetected || 'None detected'),
-        discoloration: bleedingLevel > 3 ? (translations?.ui_bloodPooling || 'Blood pooling visible') : painLevel > 5 ? (translations?.ui_bruisingDiscoloration || 'Bruising and discoloration') : (translations?.ui_normalSkin || 'Normal skin tone'),
-        woundDescription: woundData.metadata?.description || (translations?.ui_noWoundDescription || 'No detailed wound description available'),
-        recommendation: getTreatmentRecommendation(painLevel, bleedingLevel)
+        discoloration: bleeding > 3 ? (translations?.ui_bloodPooling || 'Blood pooling visible') : severity >= 50 ? (translations?.ui_bruisingDiscoloration || 'Bruising and discoloration') : (translations?.ui_normalSkin || 'Normal skin tone'),
+        woundDescription: woundData.text || (translations?.ui_noWoundDescription || 'No detailed wound description available'),
+        recommendation: getTreatmentRecommendation(severity, bleeding)
       };
     };
 
@@ -775,7 +775,7 @@
     detailedInspectionResults[bodyPart] = detailedReport;
     detailedInspectionResults = detailedInspectionResults;
 
-    if (woundData && !woundData.isScar && ((woundData.painLevel || 0) > 3 || (woundData.bleedingLevel || 0) > 2)) {
+    if (woundData && !woundData.isScar && ((woundData.severity || 0) > 3 || (woundData.bleeding || 0) > 2)) {
       const bodyPartName = getBodyPartName(bodyPart);
       const severity = woundData.severity || 0;
       const bleeding = woundData.bleeding || 0;
@@ -1023,8 +1023,8 @@
                 style="padding: 0.4vw; background: {selectedBone === bodyPart ? 'rgba(226, 199, 146, 0.2)' : inspectedBones.has(bodyPart) ? 'rgba(226, 199, 146, 0.1)' : 'rgba(0,0,0,0.1)'}; border: 1px solid {selectedBone === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: pointer; font-size: 0.6vw; color: white; text-align: center; position: relative;"
               >
                 {getBodyPartName(bodyPart)}
-                {#if getWoundData(bodyPart) && ((getWoundData(bodyPart).painLevel || 0) > 3 || (getWoundData(bodyPart).bleedingLevel || 0) > 2)}
-                  <div style="position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; background: {(getWoundData(bodyPart).bleedingLevel || 0) >= 6 ? 'var(--status-critical)' : 'var(--status-medium)'}; border-radius: 50%;"></div>
+                {#if getWoundData(bodyPart) && ((getWoundData(bodyPart).severity || 0) >= 25 || (getWoundData(bodyPart).bleeding || 0) >= 30)}
+                  <div style="position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; background: {(getWoundData(bodyPart).bleeding || 0) >= 6 ? 'var(--status-critical)' : 'var(--status-medium)'}; border-radius: 50%;"></div>
                 {/if}
                 {#if inspectedBones.has(bodyPart)}
                   <i class="fas fa-check" style="position: absolute; bottom: 2px; right: 2px; font-size: 0.5vw; color: var(--status-good);"></i>
@@ -1087,8 +1087,8 @@
                   style="padding: 0.5vw; margin: 0.2vw 0; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.2)' : 'rgba(226, 199, 146, 0.05)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: {isBandaged(bodyPart) ? 'default' : 'pointer'}; display: flex; justify-content: space-between; align-items: center; opacity: {isBandaged(bodyPart) ? 0.7 : 1};"
                 >
                   <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
-                  <span style="color: {isBandaged(bodyPart) ? 'var(--status-good)' : wound.bleedingLevel >= 6 ? 'var(--status-critical)' : (wound.painLevel + wound.bleedingLevel*2) > 6 ? 'var(--status-medium)' : '#e67e22'}; font-size: 0.6vw;">
-                    {isBandaged(bodyPart) ? (translations?.ui_bandaged || 'Bandaged') : wound.bleedingLevel >= 6 ? (translations?.ui_critical || 'Critical') : (wound.painLevel + wound.bleedingLevel*2) > 6 ? (translations?.ui_injured || 'Injured') : (translations?.ui_bleeding || 'Bleeding')}
+                  <span style="color: {isBandaged(bodyPart) ? 'var(--status-good)' : wound.bleeding >= 60 ? 'var(--status-critical)' : (wound.severity + wound.bleeding*2) > 6 ? 'var(--status-medium)' : '#e67e22'}; font-size: 0.6vw;">
+                    {isBandaged(bodyPart) ? (translations?.ui_bandaged || 'Bandaged') : wound.bleeding >= 60 ? (translations?.ui_critical || 'Critical') : (wound.severity + wound.bleeding*2) > 6 ? (translations?.ui_injured || 'Injured') : (translations?.ui_bleeding || 'Bleeding')}
                   </span>
                 </div>
               {/each}
@@ -1167,8 +1167,8 @@
                   style="padding: 0.5vw; margin: 0.2vw 0; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.2)' : 'rgba(226, 199, 146, 0.05)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.3)'}; border-radius: 0.2vw; cursor: {isTourniqueted(bodyPart) ? 'default' : 'pointer'}; display: flex; justify-content: space-between; align-items: center; opacity: {isTourniqueted(bodyPart) ? 0.7 : 1};"
                 >
                   <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
-                  <span style="color: {isTourniqueted(bodyPart) ? 'var(--status-good)' : wound.bleedingLevel > 8 ? 'var(--status-critical)' : 'var(--status-medium)'}; font-size: 0.6vw;">
-                    {isTourniqueted(bodyPart) ? (translations?.ui_tourniqueted || 'Tourniqueted') : wound.bleedingLevel > 8 ? (translations?.ui_severeBleeding || 'Severe Bleeding') : (translations?.ui_heavyBleeding || 'Heavy Bleeding')}
+                  <span style="color: {isTourniqueted(bodyPart) ? 'var(--status-good)' : wound.bleeding > 8 ? 'var(--status-critical)' : 'var(--status-medium)'}; font-size: 0.6vw;">
+                    {isTourniqueted(bodyPart) ? (translations?.ui_tourniqueted || 'Tourniqueted') : wound.bleeding > 8 ? (translations?.ui_severeBleeding || 'Severe Bleeding') : (translations?.ui_heavyBleeding || 'Heavy Bleeding')}
                   </span>
                 </div>
               {/each}
@@ -1247,11 +1247,11 @@
                   style="padding: 0.6vw; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0.2vw;"
                 >
                   <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
-                  <span style="color: {wound.painLevel >= 8 ? 'var(--status-critical)' : wound.painLevel >= 5 ? 'var(--status-medium)' : 'var(--status-good)'}; font-size: 0.6vw;">
-                    {wound.painLevel >= 8 ? (translations?.ui_severePain || 'Severe Pain') : wound.painLevel >= 5 ? (translations?.ui_moderatePain || 'Moderate Pain') : (translations?.ui_mildPain || 'Mild Pain')}
+                  <span style="color: {wound.severity >= 75 ? 'var(--status-critical)' : wound.severity >= 50 ? 'var(--status-medium)' : 'var(--status-good)'}; font-size: 0.6vw;">
+                    {wound.severity >= 75 ? (translations?.ui_severePain || 'Severe Pain') : wound.severity >= 50 ? (translations?.ui_moderatePain || 'Moderate Pain') : (translations?.ui_mildPain || 'Mild Pain')}
                   </span>
-                  {#if wound.bleedingLevel > 0}
-                    <span style="color: var(--status-medium); font-size: 0.5vw;">{translations?.ui_bleedingLbl || '+ Bleeding'} ({wound.bleedingLevel})</span>
+                  {#if wound.bleeding > 0}
+                    <span style="color: var(--status-medium); font-size: 0.5vw;">{translations?.ui_bleedingLbl || '+ Bleeding'} ({wound.bleeding})</span>
                   {/if}
                 </div>
               {/each}
@@ -1312,13 +1312,13 @@
                    on:click={() => inspectBodyPart(part)}
                    on:mouseenter={(e) => e.currentTarget.style.filter = 'brightness(1.5) drop-shadow(0 0 5px rgba(226, 199, 146, 0.8))'}
                    on:mouseleave={(e) => e.currentTarget.style.filter = 'none'}>
-                <div class="medic-{part}-first {discoveredInjuries[part] ? (discoveredInjuries[part].bleedingLevel > 0 || discoveredInjuries[part].painLevel > 0 ? 'wounded-body-part' : '') : ''}" style="position: relative;">
+                <div class="medic-{part}-first {discoveredInjuries[part] ? (discoveredInjuries[part].bleeding > 0 || discoveredInjuries[part].severity > 0 ? 'wounded-body-part' : '') : ''}" style="position: relative;">
                   <div class="body-part-icon" style="background-image: url(../assets/imgs/{part}.png); width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat;"></div>
                   
                   {#if inspectedBones.has(part)}
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.8); font-size: 0.8vw;">
                       {#if discoveredInjuries[part]}
-                        <i class="fas fa-exclamation-triangle" style="color: {discoveredInjuries[part].bleedingLevel >= 7 || discoveredInjuries[part].painLevel >= 8 ? 'var(--status-critical)' : 'var(--status-medium)'}; text-shadow: 0 0 3px black;"></i>
+                        <i class="fas fa-exclamation-triangle" style="color: {discoveredInjuries[part].bleeding >= 60 || discoveredInjuries[part].severity >= 75 ? 'var(--status-critical)' : 'var(--status-medium)'}; text-shadow: 0 0 3px black;"></i>
                       {:else}
                         <i class="fas fa-check" style="color: var(--status-good); text-shadow: 0 0 3px black;"></i>
                       {/if}
@@ -1390,19 +1390,19 @@
               <span>{translations?.ui_emergengyConditions || 'EMERGENCY/SEVERE CONDITIONS'}</span>
             </div>
             <div class="treatment-grid">
-              {#each Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.painLevel && wound.painLevel >= 8) || (wound.bleedingLevel && wound.bleedingLevel >= 7))) as [bodyPart, wound]}
+              {#each Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.severity && wound.severity >= 75) || (wound.bleeding && wound.bleeding >= 60))) as [bodyPart, wound]}
                 <div 
                   class="treatment-option {selectedBodyPart === bodyPart ? 'selected' : ''}"
                   on:click={() => selectedBodyPart = bodyPart}
                   style="padding: 0.6vw; background: {selectedBodyPart === bodyPart ? 'rgba(226, 199, 146, 0.15)' : 'rgba(0, 0, 0, 0.2)'}; border: 1px solid {selectedBodyPart === bodyPart ? 'white' : 'rgba(226, 199, 146, 0.4)'}; border-radius: 0.3vw; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0.2vw;"
                 >
                   <span style="color: white; font-size: 0.7vw;">{getBodyPartName(bodyPart).toUpperCase()}</span>
-                  <span style="color: {(wound.painLevel >= 8 || wound.bleedingLevel >= 7) ? 'var(--status-critical)' : 'var(--status-medium)'}; font-size: 0.6vw;">
-                    {wound.painLevel >= 8 && wound.bleedingLevel >= 7 ? (translations?.ui_criticalEmergency || 'Critical Emergency') : wound.painLevel >= 8 ? (translations?.ui_severePain || 'Severe Pain') : (translations?.ui_severeBleeding || 'Severe Bleeding')}
+                  <span style="color: {(wound.severity >= 75 || wound.bleeding >= 60) ? 'var(--status-critical)' : 'var(--status-medium)'}; font-size: 0.6vw;">
+                    {wound.severity >= 75 && wound.bleeding >= 60 ? (translations?.ui_criticalEmergency || 'Critical Emergency') : wound.severity >= 75 ? (translations?.ui_severePain || 'Severe Pain') : (translations?.ui_severeBleeding || 'Severe Bleeding')}
                   </span>
                 </div>
               {/each}
-              {#if Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.painLevel && wound.painLevel >= 8) || (wound.bleedingLevel && wound.bleedingLevel >= 7))).length === 0}
+              {#if Object.entries(discoveredInjuries).filter(([bp, wound]) => wound && ((wound.severity && wound.severity >= 75) || (wound.bleeding && wound.bleeding >= 60))).length === 0}
                 <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.6vw; font-style: italic; text-align: center; padding: 1vw;">
                   {Object.keys(discoveredInjuries).length === 0 ? (translations?.ui_noWoundsDiscovered || 'No wounds discovered yet. Perform body inspection to identify critical conditions.') : (translations?.ui_noEmergencyConditions || 'No emergency conditions found (requires severe pain 8+ or critical bleeding 7+).')}
                 </div>

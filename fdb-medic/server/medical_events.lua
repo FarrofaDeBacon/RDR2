@@ -1,5 +1,5 @@
 --=========================================================
--- QC-ADVANCED MEDIC - SERVER MEDICAL EVENTS
+-- FDB-MEDIC - SERVER MEDICAL EVENTS
 --=========================================================
 -- This file handles all server-side medical events and network communication
 -- Connects the database layer with client-side medical systems

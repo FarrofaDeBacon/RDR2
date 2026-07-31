@@ -473,7 +473,7 @@
                   🩹 {currentInventory.bandages[0].label} - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
                 <div style="font-size: 11px; color: var(--status-medium);">
-                  Bleeding: Level {wound.bleedingLevel || 0}
+                  Bleeding: Level {wound.bleeding || 0}
                 </div>
               {:else}
                 <div style="font-weight: bold; margin-bottom: 5px; color: var(--text-muted);">
@@ -508,13 +508,13 @@
             <div style="border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
             <p style="font-style: italic;">{translations?.ui_checkingSupplies || 'Checking your supplies...'}</p>
           </div>
-        {:else if !currentWounds || Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleedingLevel || 0) >= 6).length === 0}
+        {:else if !currentWounds || Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleeding || 0) >= 6).length === 0}
           <div style="text-align: center; padding: 40px 20px; color: var(--status-good); font-style: italic;">
             <p style="font-size: 16px; margin-bottom: 10px;">{translations?.ui_noSevereBleeding || "Ain't no severe bleedin' here!"}</p>
             <p style="font-size: 14px;">{translations?.ui_noTourniquetsNeeded || 'No tourniquets needed right now.'}</p>
           </div>
         {:else}
-          {#each Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleedingLevel || 0) >= 6) as [bodyPart, wound]}
+          {#each Object.entries(currentWounds).filter(([_, w]: [string, any]) => (w.bleeding || 0) >= 6) as [bodyPart, wound]}
             {@const hasTourniquets = currentInventory?.tourniquets && currentInventory.tourniquets.length > 0}
             {@const isDisabled = !hasTourniquets}
             <div
@@ -531,7 +531,7 @@
                   🩸 {currentInventory.tourniquets[0].label} - {getBodyPartName(bodyPart).toUpperCase()}
                 </div>
                 <div style="font-size: 11px; color: var(--status-critical); font-weight: bold;">
-                  {translations?.ui_severeBleedingLevel || 'SEVERE BLEEDING: Level '}{wound.bleedingLevel || 0}
+                  {translations?.ui_severeBleedingLevel || 'SEVERE BLEEDING: Level '}{wound.bleeding || 0}
                 </div>
               {:else}
                 <div style="font-weight: bold; margin-bottom: 5px; color: var(--text-muted);">

@@ -65,6 +65,25 @@ end)
 -- ==========================================
 -- THREAD 2: VELOCIDADE E CONTROLES (Wait 0)
 -- ==========================================
+FDB.Survival.moveRateModifiers = FDB.Survival.moveRateModifiers or {}
+
+RegisterNetEvent('fdb-survival:client:SetMoveRateModifier', function(key, rate)
+    if rate == nil or rate >= 1.0 then
+        FDB.Survival.moveRateModifiers[key] = nil -- remove, sem penalidade
+    else
+        FDB.Survival.moveRateModifiers[key] = rate
+    end
+end)
+
+local function ResolveMoveRate(baseRate)
+    local rates = { baseRate }
+    for _, rate in pairs(FDB.Survival.moveRateModifiers) do
+        table.insert(rates, rate)
+    end
+    return math.min(table.unpack(rates))
+end
+
+-- ==========================================
 CreateThread(function()
     while true do
         local sleep = 500
@@ -168,7 +187,8 @@ CreateThread(function()
             SetPedMaxMoveBlendRatio(ped, blendRatio)
             
             -- 6. RESOLVER VELOCIDADE DE MOVIMENTO (SetPedMoveRateOverride)
-            Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, finalRate) -- SetPedMoveRateOverride
+            local resolvedRate = ResolveMoveRate(finalRate)
+            Citizen.InvokeNative(0x082B1D45D8C4EEBD, ped, resolvedRate) -- SetPedMoveRateOverride
 
             ::continue::
         end
@@ -192,11 +212,13 @@ end)
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     baseClipset = nil
     currentClipset = nil
+    FDB.Survival.moveRateModifiers = {}
 end)
 
 RegisterNetEvent('RSGCore:Client:OnPlayerUnload', function()
     baseClipset = nil
     currentClipset = nil
+    FDB.Survival.moveRateModifiers = {}
 end)
 
 -- Reset ao trocar de personagem / respawnar

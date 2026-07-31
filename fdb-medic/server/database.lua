@@ -1,5 +1,5 @@
 --=========================================================
--- QC-ADVANCED MEDIC - DATABASE INTEGRATION
+-- FDB-MEDIC - DATABASE INTEGRATION
 --=========================================================
 -- This file handles all database operations for the medical system
 -- Provides persistent storage for wounds, treatments, infections, and medical history

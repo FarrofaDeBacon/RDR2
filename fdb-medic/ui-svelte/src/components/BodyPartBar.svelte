@@ -108,20 +108,20 @@
     return names[part] || part.toLowerCase();
   }
 
-  function getPainThought(painLevel: number) {
-    if (!painLevel || painLevel === 0) return null;
+  function getPainThought(severity: number) {
+    if (!severity || severity === 0) return null;
     const bodyPartName = getBodyPartDisplayName(configBodyPart);
-    if (injuryStates && injuryStates[painLevel]) {
-      return `My ${bodyPartName.toLowerCase()} ${injuryStates[painLevel].pain.toLowerCase()}`;
+    if (injuryStates && injuryStates[severity]) {
+      return `My ${bodyPartName.toLowerCase()} ${injuryStates[severity].pain.toLowerCase()}`;
     }
     return `My ${bodyPartName.toLowerCase()} is in pain`;
   }
 
-  function getBleedingThought(bleedingLevel: number) {
-    if (!bleedingLevel || bleedingLevel === 0) return null;
+  function getBleedingThought(bleeding: number) {
+    if (!bleeding || bleeding === 0) return null;
     const bodyPartName = getBodyPartDisplayName(configBodyPart);
-    if (injuryStates && injuryStates[bleedingLevel]) {
-      return `My ${bodyPartName.toLowerCase()} ${injuryStates[bleedingLevel].bleeding.toLowerCase()}`;
+    if (injuryStates && injuryStates[bleeding]) {
+      return `My ${bodyPartName.toLowerCase()} ${injuryStates[bleeding].bleeding.toLowerCase()}`;
     }
     return `My ${bodyPartName.toLowerCase()} is bleeding`;
   }
@@ -141,9 +141,9 @@
   }
 
   $: wound = wounds[configBodyPart] || wounds[bodyPart];
-  $: painLevel = wound?.painLevel || 0;
-  $: bleedingLevel = wound?.bleedingLevel || 0;
-  $: hasWoundIssues = painLevel > 0 || bleedingLevel > 0;
+  $: severity = wound?.severity || 0;
+  $: bleeding = wound?.bleeding || 0;
+  $: hasWoundIssues = severity > 0 || bleeding > 0;
   $: hasVisibleInfection = infection.stage >= 3 && !hasBandage;
   $: hasAnyStatus = hasVisibleInfection || hasBandage || hasTourniquet || hasWoundIssues;
   
@@ -188,15 +188,15 @@
         </div>
       {/if}
       
-      {#if getPainThought(painLevel)}
+      {#if getPainThought(severity)}
         <div class="status-item" style="color: #ff6b6b; margin-bottom: 6px; font-style: italic;">
-          "{getPainThought(painLevel)}"
+          "{getPainThought(severity)}"
         </div>
       {/if}
       
-      {#if getBleedingThought(bleedingLevel)}
+      {#if getBleedingThought(bleeding)}
         <div class="status-item" style="color: #e74c3c; margin-bottom: 6px; font-style: italic;">
-          "{getBleedingThought(bleedingLevel)}"
+          "{getBleedingThought(bleeding)}"
         </div>
       {/if}
       

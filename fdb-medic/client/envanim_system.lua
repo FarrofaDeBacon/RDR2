@@ -1,5 +1,5 @@
 --=========================================================
--- QC-ADVANCED MEDIC - ENVIRONMENTAL & ANIMAL ATTACK SYSTEM
+-- FDB-MEDIC - ENVIRONMENTAL & ANIMAL ATTACK SYSTEM
 --=========================================================
 -- This file handles environmental damage and animal attacks
 -- Integrates with the existing wound system for realistic injury mechanics

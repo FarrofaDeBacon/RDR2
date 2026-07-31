@@ -441,7 +441,7 @@ CreateThread(function()
             deathTimer()
             deathLog()
             deathactive = true
-            TriggerServerEvent("RSGCore:Server:SetMetaData", "isdead", true)
+            TriggerServerEvent('fdb-medical-core:server:SetDead', true)
             TriggerEvent('fdb-medic:client:DeathCam')
         end
         Wait(1000)
@@ -904,12 +904,7 @@ AddEventHandler('fdb-medic:client:revive', function()
         PlayPain(cache.ped, 4, 1, true, true)
         SetAttributeCoreValue(cache.ped, 0, 100)
         SetAttributeCoreValue(cache.ped, 1, 100)
-        TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
-        TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
-        TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-        TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
-        TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
-        TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
+        TriggerServerEvent('fdb-medical-core:server:FullRestore')
         TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
 
         -- Reset Outlaw Status on respawn
@@ -930,7 +925,7 @@ AddEventHandler('fdb-medic:client:revive', function()
         Wait(19000)
         SetNuiFocus(false, false)
 
-        TriggerServerEvent("RSGCore:Server:SetMetaData", "isdead", false)
+        TriggerServerEvent('fdb-medical-core:server:SetDead', false)
     end
 end)
 
@@ -959,12 +954,7 @@ RegisterNetEvent('fdb-medic:client:adminRevive', function()
     PlayPain(cache.ped, 4, 1, true, true)
     SetAttributeCoreValue(cache.ped, 0, 100) -- SetAttributeCoreValue
     SetAttributeCoreValue(cache.ped, 1, 100) -- SetAttributeCoreValue
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
+    TriggerServerEvent('fdb-medical-core:server:FullRestore')
     -- NOTE: Wounds persist through self-revive - use /clearwounds command to clear them
 
     -- Reset Outlaw Status on respawn
@@ -982,7 +972,7 @@ RegisterNetEvent('fdb-medic:client:adminRevive', function()
 
     DoScreenFadeIn(1800)
 
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "isdead", false)
+    TriggerServerEvent('fdb-medical-core:server:SetDead', false)
 end)
 
 ---------------------------------------------------------------------
@@ -1008,12 +998,7 @@ RegisterNetEvent('fdb-medic:client:playerRevive', function()
     PlayPain(cache.ped, 4, 1, true, true)
     SetAttributeCoreValue(cache.ped, 0, 100) -- SetAttributeCoreValue
     SetAttributeCoreValue(cache.ped, 1, 100) -- SetAttributeCoreValue
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'food', value = 100 })
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'water', value = 100 })
-    TriggerEvent('fdb-survival:client:stateChanged', { field = 'cleanliness', value = 100 })
+    TriggerServerEvent('fdb-medical-core:server:FullRestore')
     TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
     -- NOTE: Wounds persist through admin/player revive - use /clearwounds command to clear them
     -- Reset Outlaw Status on respawn
@@ -1031,7 +1016,7 @@ RegisterNetEvent('fdb-medic:client:playerRevive', function()
 
     DoScreenFadeIn(1800)
 
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "isdead", false)
+    TriggerServerEvent('fdb-medical-core:server:SetDead', false)
 end)
 
 ---------------------------------------------------------------------
@@ -1046,9 +1031,6 @@ RegisterNetEvent('fdb-medic:client:adminHeal', function()
     ClearPedBloodDamage(cache.ped)
     SetAttributeCoreValue(cache.ped, 0, 100) -- SetAttributeCoreValue
     SetAttributeCoreValue(cache.ped, 1, 100) -- SetAttributeCoreValue
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
     TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
     TriggerEvent('fdb-medic:ResetLimbs')
     lib.notify({title = locale('cl_beenhealed'), duration = 5000, type = 'inform'})
@@ -1071,9 +1053,6 @@ RegisterNetEvent('fdb-medic:client:playerHeal', function()
     ClearPedBloodDamage(cache.ped)
     SetAttributeCoreValue(cache.ped, 0, 100) -- SetAttributeCoreValue
     SetAttributeCoreValue(cache.ped, 1, 100) -- SetAttributeCoreValue
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "hunger", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "thirst", 100)
-    TriggerServerEvent("RSGCore:Server:SetMetaData", "cleanliness", 100)
     TriggerServerEvent('fdb-medic:server:SetHealth', Config.MaxHealth)
     TriggerEvent('fdb-medic:ResetLimbs')
     lib.notify({title = locale('cl_beenhealed'), duration = 5000, type = 'inform'})
@@ -2421,7 +2400,7 @@ RegisterCommand('addtreatment', function(source, args)
     })
     
     print("^2[TEST] Added treatment: " .. treatmentType .. " to " .. bodyPart .. "^7")
-end, false)
+end, true)
 
 -- Test command to directly show inspection panel
 RegisterCommand('testnui', function()
@@ -2446,7 +2425,7 @@ RegisterCommand('testnui', function()
     })
     
     print("^2[TEST NUI] Sent test inspection panel message")
-end, false)
+end, true)
 
 -- Test command to hide NUI
 RegisterCommand('hidenui', function()
@@ -2455,7 +2434,7 @@ RegisterCommand('hidenui', function()
         type = 'hide-all'
     })
     print("^2[TEST NUI] Hidden NUI")
-end, false)
+end, true)
 
 -- Developer command to force infection for testing
 RegisterCommand('forceinfection', function(source, args)
@@ -2506,7 +2485,7 @@ RegisterCommand('forceinfection', function(source, args)
     })
     
     print(string.format("[DEV COMMAND] Forced infection: %s stage %d", bodyPart, stage))
-end)
+end, true)
 
 -- Developer command to list current infections
 RegisterCommand('listinfections', function()
@@ -2548,7 +2527,7 @@ RegisterCommand('listinfections', function()
         type = 'inform',
         duration = 5000
     })
-end)
+end, true)
 
 -- Use Bandage Command: /usebandage [bandageType] [bodyPart] 
 -- This command uses the same event flow as useable items for production reliability

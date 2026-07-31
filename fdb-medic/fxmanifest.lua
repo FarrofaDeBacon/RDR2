@@ -1,9 +1,8 @@
 fx_version 'cerulean'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 game 'rdr3'
-author 'Quantum Projects Community'
+author 'FarrofaDeBacon'
 description 'fdb-medic - Advanced Medical System for RedM | Dev: Artmines'
-quantum_github 'https://github.com/Quantum-Projects-RedM/fdb-medic'
 use_experimental_fxv2_oal 'yes'
 version '0.3.1'
 
@@ -46,7 +45,8 @@ client_scripts {
 dependencies {
     'rsg-core',
     'rsg-bossmenu',
-    'ox_lib'
+    'ox_lib',
+    'fdb-medical-core'
 }
 
 lua54 'yes'

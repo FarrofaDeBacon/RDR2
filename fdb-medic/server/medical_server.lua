@@ -1,5 +1,5 @@
 --=========================================================
--- QC-ADVANCED MEDIC - SERVER MEDICAL SYSTEM
+-- FDB-MEDIC - SERVER MEDICAL SYSTEM
 --=========================================================
 -- This file handles server-side medical operations, data sync, and player events
 -- Connects the new wound/treatment/infection systems with database persistence
@@ -462,21 +462,17 @@ AddEventHandler('fdb-medic:server:RequestMedicalInspection', function(targetId)
         return
     end
     
-    -- Get patient medical data
-    local patientData = PlayerMedicalData[Patient.PlayerData.source]
-    if not patientData then
-        InitializePlayerMedicalData(Patient.PlayerData.source)
-        Wait(1000)
-        patientData = PlayerMedicalData[Patient.PlayerData.source]
-    end
+    -- Get patient medical data from core
+    local vitals = exports['fdb-medical-core']:GetVitals(Patient.PlayerData.source)
+    local coreWounds = vitals and vitals.wounds or {}
     
     -- Prepare inspection data
     local inspectionData = {
-        patientName = Patient.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname,
+        patientName = Patient.PlayerData.charinfo.firstname .. " " .. Patient.PlayerData.charinfo.lastname,
         patientId = Patient.PlayerData.citizenid,
-        wounds = patientData.wounds or {},
-        treatments = patientData.treatments or {},
-        infections = patientData.infections or {},
+        wounds = coreWounds,
+        treatments = {},
+        infections = {},
         inspectedBy = Medic.PlayerData.citizenid
     }
     
@@ -638,18 +634,9 @@ RSGCore.Commands.Add('inspect', 'Inspect another player\'s medical condition (Me
         return
     end
     
-    -- Get patient medical data
-    local patientData = PlayerMedicalData[Patient.PlayerData.source]
-    if not patientData then
-        InitializePlayerMedicalData(Patient.PlayerData.source)
-        -- Check if data was loaded successfully, fallback to empty data if not
-        patientData = PlayerMedicalData[Patient.PlayerData.source] or {
-            wounds = {},
-            treatments = {},
-            infections = {},
-            bandages = {}
-        }
-    end
+    -- Get patient medical data from the new core (fdb-medical-core)
+    local vitals = exports['fdb-medical-core']:GetVitals(Patient.PlayerData.source)
+    local coreWounds = vitals and vitals.wounds or {}
     
 
     -- Check medic's inventory for doctor bag tools and medicines
@@ -686,9 +673,10 @@ RSGCore.Commands.Add('inspect', 'Inspect another player\'s medical condition (Me
         playerName = Patient.PlayerData.charinfo.firstname .. " " .. Patient.PlayerData.charinfo.lastname,
         playerId = Patient.PlayerData.citizenid,
         playerSource = Patient.PlayerData.source,
-        wounds = patientData.wounds or {},
-        treatments = patientData.treatments or {},
-        infections = patientData.infections or {},
+        wounds = coreWounds,
+        treatments = {}, -- Treatments will now be handled natively by fdb-medical-core state
+        infections = {}, -- Infections handled natively
+
         bandages = patientData.bandages or {},
         inspectedBy = Medic.PlayerData.citizenid,
         inspectionTime = os.time(),

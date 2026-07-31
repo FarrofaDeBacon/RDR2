@@ -34,7 +34,8 @@ function SyncVitalsToStatebag(src)
         pulse = vitals.pulse,
         pain = vitals.pain,
         bleeding = vitals.bleeding,
-        consciousness = vitals.consciousness
+        consciousness = vitals.consciousness,
+        wounds = vitals.wounds or {}
     }, true)
     
     -- Sincroniza metadata oficial do framework para compatibilidade com rsg-spawn, HUDs, etc.
