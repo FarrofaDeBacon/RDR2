@@ -2640,21 +2640,34 @@ end)
 
 
 -- COMANDOS DE TESTE TEMPORARIOS (FRATURA)
-RegisterCommand('teststamina', function(source, args)
-    local val = tonumber(args[1]) or 0.5
-    print('Testando penalidade de stamina sprint multiplier para: ' .. val)
-    SetPlayerStaminaSprintDepletionMultiplier(PlayerId(), val)
-end)
 
-RegisterCommand('testaim', function(source, args)
-    local val = tonumber(args[1]) or 0.0
-    print('Testando penalidade de mira (Camera Shake) valor: ' .. val)
-    
-    if val > 0.0 then
-        -- Ativa a flag de braço quebrado
+-- /testsway 1       -> ativa sway na mira (braço quebrado)
+-- /testsway 0       -> desativa
+-- /testsway 1 1.5   -> ativa com intensidade 1.5 (padrão é 0.8)
+RegisterCommand('testsway', function(source, args)
+    local state = tonumber(args[1]) or 1
+    local intensity = tonumber(args[2]) or 0.8
+
+    if state > 0 then
+        print('Ativando sway de mira (braco fraturado) | intensidade: ' .. intensity)
+        TriggerEvent('fdb-medical-core:client:SetSwayIntensity', intensity)
         TriggerEvent('fdb-medical-core:client:SetAimPenalty', true)
     else
-        -- Desativa a flag
+        print('Desativando sway de mira')
         TriggerEvent('fdb-medical-core:client:SetAimPenalty', false)
     end
 end)
+
+-- /testtorso 1  -> ativa bloqueio de sprint (torso fraturado)
+-- /testtorso 0  -> desativa
+RegisterCommand('testtorso', function(source, args)
+    local state = tonumber(args[1]) or 1
+    if state > 0 then
+        print('Ativando fratura de torso (sprint bloqueado)')
+        TriggerEvent('fdb-medical-core:client:SetStaminaPenalty', true)
+    else
+        print('Desativando fratura de torso')
+        TriggerEvent('fdb-medical-core:client:SetStaminaPenalty', false)
+    end
+end)
+
