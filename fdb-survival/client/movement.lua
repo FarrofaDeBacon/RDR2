@@ -75,6 +75,23 @@ RegisterNetEvent('fdb-survival:client:SetMoveRateModifier', function(key, rate)
     end
 end)
 
+-- Sistema de voto de sprint disable (qualquer resource pode votar)
+-- Uso: TriggerEvent('fdb-survival:client:SetSprintDisable', 'fracture_torso', true/false)
+FDB.Survival.sprintDisableVotes = FDB.Survival.sprintDisableVotes or {}
+FDB.Survival.disableSprintFracture = false
+
+RegisterNetEvent('fdb-survival:client:SetSprintDisable')
+AddEventHandler('fdb-survival:client:SetSprintDisable', function(key, active)
+    if active then
+        FDB.Survival.sprintDisableVotes[key] = true
+    else
+        FDB.Survival.sprintDisableVotes[key] = nil
+    end
+    -- Qualquer voto ativo = sprint desabilitado
+    FDB.Survival.disableSprintFracture = (next(FDB.Survival.sprintDisableVotes) ~= nil)
+    print('[fdb-survival] Sprint disable votes: ' .. tostring(FDB.Survival.disableSprintFracture) .. ' (key: ' .. tostring(key) .. ' = ' .. tostring(active) .. ')')
+end)
+
 local function ResolveMoveRate(baseRate)
     local rates = { baseRate }
     for _, rate in pairs(FDB.Survival.moveRateModifiers) do
@@ -172,12 +189,8 @@ CreateThread(function()
                 disableSprintIllness = true
             end
             
-            -- 3.8 FRATURAS NO TORSO (Integração com fdb-medical-core via export)
-            local disableSprintFracture = false
-            local hasTorsoOk, hasTorso = pcall(function() return exports['fdb-medical-core']:HasTorsoFracture() end)
-            if hasTorsoOk and hasTorso then
-                disableSprintFracture = true
-            end
+            -- 3.8 FRATURAS NO TORSO (flag local setada via evento de fdb-medical-core)
+            local disableSprintFracture = FDB.Survival.disableSprintFracture or false
             
             -- 4. RESOLVER CONTROLES
             if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk or disableSprintIllness or disableSprintFracture then

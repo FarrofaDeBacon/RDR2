@@ -2658,16 +2658,18 @@ RegisterCommand('testsway', function(source, args)
     end
 end)
 
--- /testtorso 1  -> ativa bloqueio de sprint (torso fraturado)
+-- /testtorso 1  -> ativa bloqueio de sprint (via Maestro do fdb-survival)
 -- /testtorso 0  -> desativa
 RegisterCommand('testtorso', function(source, args)
     local state = tonumber(args[1]) or 1
     if state > 0 then
-        print('Ativando fratura de torso (sprint bloqueado)')
+        print('Ativando fratura de torso (sprint bloqueado via Maestro)')
         TriggerEvent('fdb-medical-core:client:SetStaminaPenalty', true)
     else
         print('Desativando fratura de torso')
         TriggerEvent('fdb-medical-core:client:SetStaminaPenalty', false)
     end
 end)
+
+
 

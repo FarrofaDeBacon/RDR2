@@ -30,6 +30,8 @@ RegisterNetEvent('fdb-medical-core:client:SetStaminaPenalty')
 AddEventHandler('fdb-medical-core:client:SetStaminaPenalty', function(active)
     HasTorsoFracture = active
     print('[fdb-medical-core] HasTorsoFracture = ' .. tostring(active))
+    -- Votar no Maestro do fdb-survival para bloquear sprint
+    TriggerEvent('fdb-survival:client:SetSprintDisable', 'fracture_torso', active)
 end)
 
 RegisterNetEvent('fdb-medical-core:client:SetAimPenalty')
