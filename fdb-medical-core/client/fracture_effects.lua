@@ -7,11 +7,11 @@ end)
 
 RegisterNetEvent('fdb-medical-core:client:SetAimPenalty', function(active)
     local ped = PlayerPedId()
-    -- 0xD52D6A71CB0A8450 = SetPedAccuracy
+    -- 0x7AEFB85C1D49DEB6 = SetPedAccuracy
     if active then
-        Citizen.InvokeNative(0xD52D6A71CB0A8450, ped, 0)
+        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, ped, 0)
     else
-        Citizen.InvokeNative(0xD52D6A71CB0A8450, ped, 100)
+        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, ped, 100)
     end
 end)
 
@@ -19,6 +19,6 @@ end)
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName == GetCurrentResourceName() then
         FDB.MedicalCore.HasTorsoFracture = false
-        Citizen.InvokeNative(0xD52D6A71CB0A8450, PlayerPedId(), 100)
+        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, PlayerPedId(), 100)
     end
 end)

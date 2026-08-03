@@ -2648,21 +2648,13 @@ end)
 
 RegisterCommand('testaim', function(source, args)
     local val = tonumber(args[1]) or 0.0
-    print('Testando penalidade de mira (Disable Aim) valor: ' .. val)
+    print('Testando penalidade de mira SetPedAccuracy valor: ' .. val)
     
     if val > 0.0 then
-        -- Desativa mirar e atirar com precisao no tick
-        CreateThread(function()
-            local endTime = GetGameTimer() + 10000 -- testar por 10 segundos
-            while GetGameTimer() < endTime do
-                Wait(0)
-                -- 0x07CE1E61 = INPUT_AIM
-                DisableControlAction(0, 0x07CE1E61, true)
-                -- Opcionalmente forcar a precisao pra 0
-                SetPedAccuracy(PlayerPedId(), 0)
-            end
-            SetPedAccuracy(PlayerPedId(), 100)
-            print("Fim do teste de mira")
-        end)
+        -- Ativa a pior mira possível
+        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, PlayerPedId(), 0)
+    else
+        -- Restaura a mira perfeita
+        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, PlayerPedId(), 100)
     end
 end)
