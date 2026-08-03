@@ -2648,13 +2648,13 @@ end)
 
 RegisterCommand('testaim', function(source, args)
     local val = tonumber(args[1]) or 0.0
-    print('Testando penalidade de mira SetPedAccuracy valor: ' .. val)
+    print('Testando penalidade de mira (Camera Shake) valor: ' .. val)
     
     if val > 0.0 then
-        -- Ativa a pior mira possível
-        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, PlayerPedId(), 0)
+        -- Ativa a flag de braço quebrado
+        TriggerEvent('fdb-medical-core:client:SetAimPenalty', true)
     else
-        -- Restaura a mira perfeita
-        Citizen.InvokeNative(0x7AEFB85C1D49DEB6, PlayerPedId(), 100)
+        -- Desativa a flag
+        TriggerEvent('fdb-medical-core:client:SetAimPenalty', false)
     end
 end)
