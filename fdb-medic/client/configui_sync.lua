@@ -20,12 +20,16 @@ end)
 -- Buscar tema inicial no login/spawn
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded')
 AddEventHandler('RSGCore:Client:OnPlayerLoaded', function()
-    lib.callback('fdb-configui:server:getGlobalConfig', false, function(globalConfig)
-        if globalConfig and globalConfig.hud and globalConfig.hud.theme then
-            SendNUIMessage({
-                action = 'setTheme',
-                theme = globalConfig.hud.theme
-            })
-        end
-    end)
+    if GetResourceState('fdb-configui') == 'started' then
+        pcall(function()
+            lib.callback('fdb-configui:server:getGlobalConfig', false, function(globalConfig)
+                if globalConfig and globalConfig.hud and globalConfig.hud.theme then
+                    SendNUIMessage({
+                        action = 'setTheme',
+                        theme = globalConfig.hud.theme
+                    })
+                end
+            end)
+        end)
+    end
 end)

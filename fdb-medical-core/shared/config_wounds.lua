@@ -53,3 +53,16 @@ Config.Wounds = {
         Severe   = { items = { 'tourniquet', 'suture_kit', 'laudanum' }, healBleed = true, reduceSeverity = 40, requiresMedic = true },
     },
 }
+
+Config.Fractures = {
+    CausingTypes = { ['melee'] = true, ['fall'] = true },
+    ChancePercent = 30,
+    EligibleParts = { LARM=true, RARM=true, LLEG=true, RLEG=true, TORSO=true },
+    HealDaysGame = {
+        LARM={min=20,max=28}, RARM={min=20,max=28},
+        LLEG={min=30,max=40}, RLEG={min=30,max=40},
+        TORSO={min=15,max=22},
+    },
+    Treatment = { items = {'splint'}, requiresMedic = true },
+    MoveRatePenalty = { LLEG=0.5, RLEG=0.5 },
+}

@@ -24,8 +24,6 @@ server_scripts {
     'server/server.lua',          -- Core server functionality
     'server/sv_bag.lua',          -- Medical bag server logic
     'server/versionchecker.lua',  -- Version checking
-    'server/database.lua',        -- NEW: Database integration layer
-    'server/medical_events.lua',  -- NEW: Medical system network events
     'server/medical_server.lua',  -- NEW: Medical inspection system with /inspect command
     'server/configui_sync.lua'    -- fdb-configui sync layer
 }

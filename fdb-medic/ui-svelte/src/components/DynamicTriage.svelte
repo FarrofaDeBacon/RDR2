@@ -16,21 +16,148 @@
     viewMode = viewMode === 'flesh' ? 'skeleton' : 'flesh';
   }
 
-  // Lista de partes do corpo interativas
-  const bodyPartZones = [
-    { id: 'head', label: 'Head', top: '5%', left: '45%', width: '10%', height: '12%' },
-    { id: 'upper', label: 'Upper Body', top: '18%', left: '40%', width: '20%', height: '20%' },
-    { id: 'lower', label: 'Lower Body', top: '38%', left: '40%', width: '20%', height: '15%' },
-    { id: 'larm', label: 'Left Arm', top: '20%', left: '60%', width: '12%', height: '22%' },
-    { id: 'rarm', label: 'Right Arm', top: '20%', left: '28%', width: '12%', height: '22%' },
-    { id: 'lhand', label: 'Left Hand', top: '42%', left: '65%', width: '8%', height: '10%' },
-    { id: 'rhand', label: 'Right Hand', top: '42%', left: '27%', width: '8%', height: '10%' },
-    { id: 'lleg', label: 'Left Leg', top: '53%', left: '50%', width: '12%', height: '25%' },
-    { id: 'rleg', label: 'Right Leg', top: '53%', left: '38%', width: '12%', height: '25%' },
-    { id: 'lfoot', label: 'Left Foot', top: '78%', left: '52%', width: '10%', height: '10%' },
-    { id: 'rfoot', label: 'Right Foot', top: '78%', left: '38%', width: '10%', height: '10%' },
-    { id: 'spine', label: 'Spine', top: '18%', left: '30%', width: '10%', height: '15%' }, 
+  // Modo de desenvolvedor para ajustar hitboxes
+  let devMode = false;
+  let selectedDevPartId: string | null = null;
+
+  // Listas de partes do corpo interativas separadas por modo de visualização
+  let fleshZones = [
+    { id: 'head', label: 'Cabeça', top: 1, left: 40, width: 20, height: 16 },
+    { id: 'upper', label: 'Peito', top: 18, left: 35, width: 29, height: 20 },
+    { id: 'lower', label: 'Abdômen', top: 38, left: 36, width: 28, height: 10 },
+    { id: 'rarm', label: 'Braço Dir.', top: 18, left: 17, width: 17, height: 30 },
+    { id: 'larm', label: 'Braço Esq.', top: 18, left: 65, width: 17, height: 30 },
+    { id: 'rhand', label: 'Mão Dir.', top: 49, left: 11, width: 14, height: 11 },
+    { id: 'lhand', label: 'Mão Esq.', top: 49, left: 75, width: 14, height: 11 },
+    { id: 'rleg', label: 'Perna Dir.', top: 47, left: 33, width: 17, height: 44 },
+    { id: 'lleg', label: 'Perna Esq.', top: 47, left: 50, width: 17, height: 44 },
+    { id: 'rfoot', label: 'Pé Dir.', top: 92, left: 35, width: 13, height: 8 },
+    { id: 'lfoot', label: 'Pé Esq.', top: 92, left: 53, width: 13, height: 8 }
   ];
+
+  let skeletonZones = [
+    { id: 'head', label: 'Cabeça', top: 1, left: 41, width: 18, height: 14 },
+    { id: 'upper', label: 'Peito', top: 19, left: 36, width: 28, height: 18 },
+    { id: 'rarm', label: 'Braço Dir.', top: 19, left: 19, width: 16, height: 29 },
+    { id: 'larm', label: 'Braço Esq.', top: 19, left: 65, width: 16, height: 29 },
+    { id: 'rhand', label: 'Mão Dir.', top: 49, left: 12, width: 14, height: 11 },
+    { id: 'lhand', label: 'Mão Esq.', top: 49, left: 74, width: 14, height: 11 },
+    { id: 'rleg', label: 'Perna Dir.', top: 48, left: 35, width: 13, height: 40 },
+    { id: 'lleg', label: 'Perna Esq.', top: 48, left: 53, width: 13, height: 40 },
+    { id: 'rfoot', label: 'Pé Dir.', top: 89, left: 35, width: 13, height: 10 },
+    { id: 'lfoot', label: 'Pé Esq.', top: 89, left: 52, width: 13, height: 10 },
+    { id: 'spine', label: 'Coluna', top: 18, left: 45, width: 10, height: 26 }
+  ];
+
+  // Tentar carregar do LocalStorage
+  import { onMount } from 'svelte';
+  onMount(() => {
+    try {
+      // FORÇAR LIMPEZA UMA VEZ PARA RESOLVER O BUG DA MÃO ESQUERDA
+      if (!localStorage.getItem('fdb_cache_cleared_v2')) {
+        localStorage.removeItem('fdb_fleshZones');
+        localStorage.removeItem('fdb_skeletonZones');
+        localStorage.setItem('fdb_cache_cleared_v2', 'true');
+        console.log("CACHE LIMPO AUTOMATICAMENTE");
+      } else {
+        const savedFlesh = localStorage.getItem('fdb_fleshZones');
+        const savedSkeleton = localStorage.getItem('fdb_skeletonZones');
+        if (savedFlesh) fleshZones = JSON.parse(savedFlesh);
+        if (savedSkeleton) skeletonZones = JSON.parse(savedSkeleton);
+      }
+    } catch (e) { console.error("Error loading dev config", e); }
+  });
+
+  function saveDevConfigToLocal() {
+    localStorage.setItem('fdb_fleshZones', JSON.stringify(fleshZones));
+    localStorage.setItem('fdb_skeletonZones', JSON.stringify(skeletonZones));
+    alert("Progresso salvo provisoriamente (no LocalStorage do seu jogo)!");
+  }
+
+  function resetDevConfig() {
+    localStorage.removeItem('fdb_fleshZones');
+    localStorage.removeItem('fdb_skeletonZones');
+    alert("Configurações resetadas! Feche o painel e abra novamente para ver o padrão.");
+  }
+
+  // Referência computada para as zonas ativas no momento
+  $: activeZones = viewMode === 'flesh' ? fleshZones : skeletonZones;
+
+  // Logic for dragging in dev mode
+  let draggingPartId: string | null = null;
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let startTop = 0;
+
+  function handlePointerDown(event: PointerEvent, partId: string) {
+    if (!devMode) return;
+    event.stopPropagation();
+    
+    // Ignorar se estiver clicando na borda direita/inferior (área de resize)
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    if (event.clientX > rect.right - 15 || event.clientY > rect.bottom - 15) return;
+
+    draggingPartId = partId;
+    startX = event.clientX;
+    startY = event.clientY;
+    
+    const part = activeZones.find(p => p.id === partId);
+    if (part) {
+      startLeft = part.left;
+      startTop = part.top;
+    }
+    
+    // Captura os eventos do mouse fora do elemento
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  }
+
+  function handlePointerMove(event: PointerEvent) {
+    if (!devMode || !draggingPartId) return;
+    
+    // Converter o movimento do pixel do mouse em porcentagem (baseado no container)
+    const container = document.querySelector('.body-silhouette-bg') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const percentX = ((event.clientX - startX) / rect.width) * 100;
+    const percentY = ((event.clientY - startY) / rect.height) * 100;
+    
+    const updatedMap = (zones) => zones.map(part => {
+      if (part.id === draggingPartId) {
+        return {
+          ...part,
+          left: Math.round(startLeft + percentX),
+          top: Math.round(startTop + percentY)
+        };
+      }
+      return part;
+    });
+
+    if (viewMode === 'flesh') fleshZones = updatedMap(fleshZones);
+    else skeletonZones = updatedMap(skeletonZones);
+  }
+
+  function handlePointerUp() {
+    draggingPartId = null;
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', handlePointerUp);
+  }
+
+  function generateConfigOutput() {
+    const mapper = (p) => ({
+      id: p.id,
+      label: p.label,
+      top: `${p.top}%`,
+      left: `${p.left}%`,
+      width: `${p.width}%`,
+      height: `${p.height}%`
+    });
+    
+    return "FLESH ZONES:\n" + JSON.stringify(fleshZones.map(mapper), null, 2) + 
+           "\n\nSKELETON ZONES:\n" + JSON.stringify(skeletonZones.map(mapper), null, 2);
+  }
 
   function getPartStatus(partId: string) {
     let status = { hasWound: false, isBleeding: false, isCritical: false, hasFracture: false };
@@ -49,7 +176,71 @@
   }
 
   function handlePartClick(partId: string) {
+    if (devMode) {
+      selectedDevPartId = partId; // Seleciona para redimensionar
+      return; 
+    }
     dispatch('selectPart', partId);
+  }
+  
+  function getPairedPart(partId: string) {
+    if (partId.startsWith('l')) return 'r' + partId.substring(1);
+    if (partId.startsWith('r')) return 'l' + partId.substring(1);
+    return null;
+  }
+
+  function resizeDevPart(axis: 'width' | 'height', amount: number) {
+    if (!selectedDevPartId) return;
+    const pairedId = getPairedPart(selectedDevPartId);
+    
+    // Calcula o novo valor baseado na peça selecionada
+    let newValue = 1;
+    const currentList = viewMode === 'flesh' ? fleshZones : skeletonZones;
+    const selectedPart = currentList.find(p => p.id === selectedDevPartId);
+    if (selectedPart) {
+      newValue = Math.max(1, selectedPart[axis] + amount);
+    }
+
+    const updatedMap = (zones) => zones.map(part => {
+      // Aplica na selecionada E na pareada (simetria)
+      if (part.id === selectedDevPartId || part.id === pairedId) {
+        return {
+          ...part,
+          [axis]: newValue
+        };
+      }
+      return part;
+    });
+
+    if (viewMode === 'flesh') fleshZones = updatedMap(fleshZones);
+    else skeletonZones = updatedMap(skeletonZones);
+  }
+
+  function removeDevPart() {
+    if (!selectedDevPartId) return;
+    if (viewMode === 'flesh') {
+      fleshZones = fleshZones.filter(p => p.id !== selectedDevPartId);
+    } else {
+      skeletonZones = skeletonZones.filter(p => p.id !== selectedDevPartId);
+    }
+    selectedDevPartId = null;
+  }
+
+  function moveDevPart(axis: 'top' | 'left', amount: number) {
+    if (!selectedDevPartId) return;
+    
+    const updatedMap = (zones) => zones.map(part => {
+      if (part.id === selectedDevPartId) {
+        return {
+          ...part,
+          [axis]: part[axis] + amount
+        };
+      }
+      return part;
+    });
+
+    if (viewMode === 'flesh') fleshZones = updatedMap(fleshZones);
+    else skeletonZones = updatedMap(skeletonZones);
   }
 </script>
 
@@ -81,6 +272,65 @@
     background: rgba(226,199,146, 0.2);
   }
 
+  .dev-btn {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: rgba(180, 0, 0, 0.8);
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .dev-save-btn {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    background: rgba(0, 150, 0, 0.8);
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .dev-reset-btn {
+    position: absolute;
+    top: 150px;
+    right: 20px;
+    background: rgba(150, 0, 0, 0.8);
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .dev-output {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.9);
+    color: #0f0;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 10;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #0f0;
+    white-space: pre-wrap;
+    user-select: all;
+  }
+
   .body-silhouette-bg {
     position: relative;
     height: 90%;
@@ -94,16 +344,27 @@
   .hitbox {
     position: absolute;
     cursor: pointer;
-    border: 1px dashed rgba(226,199,146, 0.1); /* Manter levemente visível para debug inicial */
-    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 255, 0, 0.4); /* DEIXEI VERDE PARA AJUDAR NO ALINHAMENTO */
+    transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
+  .hitbox.dev-mode {
+    border: 2px dashed #0f0 !important;
+    background-color: rgba(0, 255, 0, 0.1);
+    z-index: 100;
+  }
+
+  .hitbox.dev-mode.dev-selected {
+    background-color: rgba(255, 0, 0, 0.3) !important;
+    border: 2px solid #f00 !important;
+  }
+
   .hitbox:hover {
-    background-color: rgba(226,199,146, 0.2);
-    border: 1px solid rgba(226,199,146, 0.8);
+    background-color: rgba(0, 255, 0, 0.2);
+    border: 1px solid rgba(0, 255, 0, 0.8);
   }
 
   /* Modos visuais dependendo da view */
@@ -147,24 +408,89 @@
     {viewMode === 'flesh' ? 'Ativar Raio-X' : 'Modo Carne'}
   </button>
 
+  <button class="dev-btn" on:click={() => devMode = !devMode}>
+    {devMode ? 'SALVAR E SAIR (DEV)' : 'MODO ALINHAMENTO (DEV)'}
+  </button>
+
+  {#if devMode}
+    <button class="dev-save-btn" on:click={saveDevConfigToLocal}>
+      SALVAR PROVISÓRIO (LOCAL)
+    </button>
+    <button class="dev-reset-btn" on:click={resetDevConfig}>
+      RESETAR PARA PADRÃO
+    </button>
+    <div class="dev-output">
+      {#if selectedDevPartId}
+        {@const sp = activeZones.find(p => p.id === selectedDevPartId)}
+        <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid white; display: flex; flex-direction: column; gap: 15px;">
+          <strong>EDITANDO: {sp?.label}</strong>
+          
+          <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <!-- Controles de Mover -->
+            <div style="text-align: center;">
+              <strong>MOVER</strong><br/>
+              <button style="padding: 5px 15px; margin-bottom: 5px;" on:click={() => moveDevPart('top', -1)}>⬆️</button><br/>
+              <button style="padding: 5px 15px;" on:click={() => moveDevPart('left', -1)}>⬅️</button>
+              <button style="padding: 5px 15px;" on:click={() => moveDevPart('left', 1)}>➡️</button><br/>
+              <button style="padding: 5px 15px; margin-top: 5px;" on:click={() => moveDevPart('top', 1)}>⬇️</button>
+            </div>
+
+            <!-- Controles de Tamanho -->
+            <div style="text-align: center;">
+              <strong>TAMANHO (Simétrico)</strong><br/>
+              <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <div>
+                  LARGURA:<br/>
+                  <button style="padding: 5px 15px; margin-top: 5px;" on:click={() => resizeDevPart('width', -1)}>-</button>
+                  <button style="padding: 5px 15px; margin-top: 5px;" on:click={() => resizeDevPart('width', 1)}>+</button>
+                </div>
+                <div>
+                  ALTURA:<br/>
+                  <button style="padding: 5px 15px; margin-top: 5px;" on:click={() => resizeDevPart('height', -1)}>-</button>
+                  <button style="padding: 5px 15px; margin-top: 5px;" on:click={() => resizeDevPart('height', 1)}>+</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Botão de Deletar -->
+            <div style="display: flex; align-items: center;">
+              <button style="background: red; color: white; padding: 15px; font-weight: bold; border: 2px solid white; cursor: pointer;" on:click={removeDevPart}>
+                🗑️ EXCLUIR<br/>ESTA CAIXA
+              </button>
+            </div>
+          </div>
+        </div>
+      {:else}
+        <div style="margin-bottom: 15px; color: yellow;">CLIQUE EM UMA CAIXA PARA REDIMENSIONAR</div>
+      {/if}
+
+      COPIE ISSO E MANDE PRO ANTIGRAVITY:<br/><br/>
+      {generateConfigOutput()}
+    </div>
+  {/if}
+
   <div class="body-silhouette-bg" style="background-image: url({viewMode === 'flesh' ? bodyFleshImg : bodySkeletonImg});">
     <!-- Overlay hitboxes for interaction -->
-    {#each bodyPartZones as part}
+    {#each activeZones as part}
       {@const status = getPartStatus(part.id)}
       
       <!-- Lógica: Mostrar sangramento no modo Carne, mostrar Fratura no modo Esqueleto -->
-      {@const isGlowingFracture = viewMode === 'skeleton' && status.hasFracture}
-      {@const isGlowingBlood = viewMode === 'flesh' && status.isBleeding}
-      {@const isGlowingCritical = viewMode === 'flesh' && status.isCritical}
+      {@const isGlowingFracture = viewMode === 'skeleton' && status.hasFracture && !devMode}
+      {@const isGlowingBlood = viewMode === 'flesh' && status.isBleeding && !devMode}
+      {@const isGlowingCritical = viewMode === 'flesh' && status.isCritical && !devMode}
 
       <div 
-        class="hitbox {isGlowingCritical ? 'critical' : ''} {isGlowingBlood && !isGlowingCritical ? 'bleeding' : ''} {isGlowingFracture ? 'fracture' : ''}"
-        style="top: {part.top}; left: {part.left}; width: {part.width}; height: {part.height};"
+        class="hitbox {isGlowingCritical ? 'critical' : ''} {isGlowingBlood && !isGlowingCritical ? 'bleeding' : ''} {isGlowingFracture ? 'fracture' : ''} {devMode ? 'dev-mode' : ''} {devMode && selectedDevPartId === part.id ? 'dev-selected' : ''}"
+        style="top: {part.top}%; left: {part.left}%; width: {part.width}%; height: {part.height}%; touch-action: none;"
         on:click={() => handlePartClick(part.id)}
+        on:pointerdown={(e) => handlePointerDown(e, part.id)}
         title={part.label}
       >
-        <!-- Deixando o texto invisível a menos que passe o mouse, mas por agora fica semi-transparente para ajudar a alinhar -->
-        <div style="color: rgba(255,255,255,0.4); font-size: 1vh; text-align: center; pointer-events: none;">{part.label}</div>
+        <!-- Texto visível temporariamente para ajudar a alinhar -->
+        <div style="color: rgba(255,255,255,0.8); font-size: 1.2vh; font-weight: bold; text-align: center; pointer-events: none; text-shadow: 1px 1px 2px black;">
+          {part.label}
+          {#if devMode}<br/><span style="font-size: 0.8vh; color: #0f0;">Mover / Escalar</span>{/if}
+        </div>
       </div>
     {/each}
   </div>

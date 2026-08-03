@@ -95,7 +95,12 @@ html, body {
   background-image: url('./assets/medical-journal/backgrounds/bg-leather-stitched.png');
   background-size: cover;
   pointer-events: none;
-  z-index: 100;
+  z-index: 1;
+}
+
+.medical-field-book > * {
+  position: relative;
+  z-index: 2;
 }
 
 .medical-field-book .medic-label {

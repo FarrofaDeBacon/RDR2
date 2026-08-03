@@ -22,6 +22,8 @@ client_scripts {
 }
 
 server_scripts {
+    '@oxmysql/lib/MySQL.lua',
+    'server/database.lua',
     'server/vitals.lua',
     'server/wounds.lua',
     'server/bleedout.lua',

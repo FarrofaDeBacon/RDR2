@@ -1300,7 +1300,7 @@
 
       
       {#if currentView === 'body-inspection'}
-        <div class="body-inspection-view" style="display: flex; flex-direction: column; align-items: center; position: relative; height: 100%;">
+        <div class="body-inspection-view" style="display: flex; flex-direction: column; align-items: center; position: relative; height: 100%; width: 100%; overflow: hidden;">
           <div class="section-title" style="margin-bottom: 1vw;">
             <i class="fas fa-search"></i>
             <span>{translations?.ui_bodyInspection || 'BODY INSPECTION'}</span>
@@ -1308,12 +1308,12 @@
           
           <div class="medic-details" style="position: relative; width: 100%; height: 35vw; transform: scale(0.9); margin-top: -2vw;">
             {#each ["head", "spine", "upper", "larm", "lhand", "rarm", "rhand", "lleg", "rleg", "lfoot", "rfoot", "lower"] as part}
-              <div class="medic-{part}" style="position: absolute; cursor: pointer; transition: filter 0.2s;" 
+              <div class="medic-{part}" style="cursor: pointer; transition: filter 0.2s;" 
                    on:click={() => inspectBodyPart(part)}
                    on:mouseenter={(e) => e.currentTarget.style.filter = 'brightness(1.5) drop-shadow(0 0 5px rgba(226, 199, 146, 0.8))'}
                    on:mouseleave={(e) => e.currentTarget.style.filter = 'none'}>
                 <div class="medic-{part}-first {discoveredInjuries[part] ? (discoveredInjuries[part].bleeding > 0 || discoveredInjuries[part].severity > 0 ? 'wounded-body-part' : '') : ''}" style="position: relative;">
-                  <div class="body-part-icon" style="background-image: url(../assets/imgs/{part}.png); width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat;"></div>
+                  <div class="body-part-icon" style="width: 100%; height: 100%;"></div>
                   
                   {#if inspectedBones.has(part)}
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.8); font-size: 0.8vw;">
@@ -1336,14 +1336,14 @@
               </div>
               
               {#if detailedInspectionResults[selectedBone]}
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vw; font-size: 0.6vw;">
-                  <div><span style="color: #aaa;">{translations?.ui_boneIntegrity || 'Bone Integrity:'}</span> <span style="color: {detailedInspectionResults[selectedBone].boneIntegrity.includes('fracture') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].boneIntegrity}</span></div>
-                  <div><span style="color: #aaa;">{translations?.ui_softTissue || 'Soft Tissue:'}</span> <span style="color: white;">{detailedInspectionResults[selectedBone].softTissue}</span></div>
-                  <div><span style="color: #aaa;">{translations?.ui_bloodFlow || 'Blood Flow:'}</span> <span style="color: {detailedInspectionResults[selectedBone].bloodFlow.includes('Active') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].bloodFlow}</span></div>
-                  <div><span style="color: #aaa;">{translations?.ui_painResponse || 'Pain Response:'}</span> <span style="color: {detailedInspectionResults[selectedBone].painResponse.includes('Severe') || detailedInspectionResults[selectedBone].painResponse.includes('8') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].painResponse}</span></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vw; font-size: 0.6vw; align-items: start;">
+                  <div style="line-height: 1.4;"><span style="color: #aaa;">{translations?.ui_boneIntegrity || 'Bone Integrity:'}</span> <span style="color: {detailedInspectionResults[selectedBone].boneIntegrity.includes('fracture') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].boneIntegrity}</span></div>
+                  <div style="line-height: 1.4;"><span style="color: #aaa;">{translations?.ui_softTissue || 'Soft Tissue:'}</span> <span style="color: white;">{detailedInspectionResults[selectedBone].softTissue}</span></div>
+                  <div style="line-height: 1.4;"><span style="color: #aaa;">{translations?.ui_bloodFlow || 'Blood Flow:'}</span> <span style="color: {detailedInspectionResults[selectedBone].bloodFlow.includes('Active') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].bloodFlow}</span></div>
+                  <div style="line-height: 1.4;"><span style="color: #aaa;">{translations?.ui_painResponse || 'Pain Response:'}</span> <span style="color: {detailedInspectionResults[selectedBone].painResponse.includes('Severe') || detailedInspectionResults[selectedBone].painResponse.includes('8') ? 'var(--status-critical)' : 'white'}">{detailedInspectionResults[selectedBone].painResponse}</span></div>
                 </div>
                 
-                <div style="margin-top: 0.5vw; padding-top: 0.5vw; border-top: 1px dashed rgba(226,199,146,0.2); font-size: 0.6vw;">
+                <div style="margin-top: 0.5vw; padding-top: 0.5vw; border-top: 1px dashed rgba(226,199,146,0.2); font-size: 0.6vw; line-height: 1.4;">
                   <span style="color: #aaa;">{translations?.ui_recommendation || 'Recommendation:'}</span> <span style="color: {detailedInspectionResults[selectedBone].recommendation.includes('URGENT') ? 'var(--status-critical)' : 'var(--status-good)'}">{detailedInspectionResults[selectedBone].recommendation}</span>
                 </div>
               {:else}

@@ -3,6 +3,8 @@
 -- Tabela de estado de vitais server-authoritative por jogador
 -- ============================================================
 
+local RSGCore = exports['rsg-core']:GetCoreObject()
+
 PlayerVitals = {}
 
 --- Retorna a tabela de vitais de um jogador (ou inicializa se não existir)
@@ -45,8 +47,48 @@ function SyncVitalsToStatebag(src)
     end
 end
 
---- Limpeza ao desconectar
+--- Salva vitais do jogador no banco de dados ativamente
+function SavePlayerVitalsToDB(src, Player)
+    Player = Player or RSGCore.Functions.GetPlayer(src)
+    local vitals = PlayerVitals[src]
+    if vitals and Player and Player.PlayerData and Player.PlayerData.citizenid then
+        local citizenid = Player.PlayerData.citizenid
+        SaveWoundData(citizenid, vitals.wounds)
+    end
+end
+
+--- Evento de carregamento do jogador no framework
+RegisterNetEvent('RSGCore:Server:PlayerLoaded', function(Player)
+    if not Player then return end
+    local src = Player.PlayerData.source
+    local citizenid = Player.PlayerData.citizenid
+    
+    -- Garante a inicialização da tabela segura
+    local vitals = GetPlayerVitals(src)
+    
+    -- Carrega feridas do banco (se existirem)
+    local dbWounds = LoadWoundData(citizenid)
+    if dbWounds and next(dbWounds) ~= nil then
+        vitals.wounds = dbWounds
+        print("^2[fdb-medical-core] Loaded wounds for citizenid " .. citizenid .. "^7")
+    end
+    
+    SyncVitalsToStatebag(src)
+end)
+
+--- Salvamento Redundante no Drop (Framework)
+RegisterNetEvent('RSGCore:Server:PlayerDropped', function(Player)
+    if not Player then return end
+    local src = Player.PlayerData.source
+    SavePlayerVitalsToDB(src, Player)
+end)
+
+--- Limpeza ao desconectar (Nativo - Gatilho Infalível)
 AddEventHandler('playerDropped', function()
     local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if Player then
+        SavePlayerVitalsToDB(src, Player)
+    end
     PlayerVitals[src] = nil
 end)

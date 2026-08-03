@@ -77,6 +77,10 @@ function RegisterWound(src, bodyPart, damageType, amount)
     RecalculateVitals(src)
 
     SyncVitalsToStatebag(src)
+    
+    if SavePlayerVitalsToDB then
+        SavePlayerVitalsToDB(src)
+    end
 end
 
 --- Retorna a soma do bleeding de todos os ferimentos ativos do jogador

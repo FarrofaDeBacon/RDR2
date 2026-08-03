@@ -172,8 +172,14 @@ CreateThread(function()
                 disableSprintIllness = true
             end
             
+            -- 3.8 FRATURAS NO TORSO (Integração com fdb-medical-core)
+            local disableSprintFracture = false
+            if FDB.MedicalCore and FDB.MedicalCore.HasTorsoFracture then
+                disableSprintFracture = true
+            end
+            
             -- 4. RESOLVER CONTROLES
-            if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk or disableSprintIllness then
+            if disableSprintStamina or disableSprintBackpack or disableSprintBladder or disableSprintDrunk or disableSprintIllness or disableSprintFracture then
                 DisableControlAction(0, 0x8FFC75D6, true) -- INPUT_SPRINT
             end
             if disableRunStamina or disableRunBackpack or disableRunDrunk or disableRunIllness then

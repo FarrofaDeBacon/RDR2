@@ -2638,3 +2638,31 @@ RegisterCommand('removebandage', function(source, args)
     print(string.format("[BANDAGE] Removed bandage from %s", Config.BodyParts[bodyPart].label))
 end)
 
+
+-- COMANDOS DE TESTE TEMPORARIOS (FRATURA)
+RegisterCommand('teststamina', function(source, args)
+    local val = tonumber(args[1]) or 0.5
+    print('Testando penalidade de stamina sprint multiplier para: ' .. val)
+    SetPlayerStaminaSprintDepletionMultiplier(PlayerId(), val)
+end)
+
+RegisterCommand('testaim', function(source, args)
+    local val = tonumber(args[1]) or 0.0
+    print('Testando penalidade de mira (Disable Aim) valor: ' .. val)
+    
+    if val > 0.0 then
+        -- Desativa mirar e atirar com precisao no tick
+        CreateThread(function()
+            local endTime = GetGameTimer() + 10000 -- testar por 10 segundos
+            while GetGameTimer() < endTime do
+                Wait(0)
+                -- 0x07CE1E61 = INPUT_AIM
+                DisableControlAction(0, 0x07CE1E61, true)
+                -- Opcionalmente forcar a precisao pra 0
+                SetPedAccuracy(PlayerPedId(), 0)
+            end
+            SetPedAccuracy(PlayerPedId(), 100)
+            print("Fim do teste de mira")
+        end)
+    end
+end)

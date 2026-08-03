@@ -39,7 +39,7 @@ local function InitializePlayerMedicalData(source)
     local citizenid = Player.PlayerData.citizenid
     
     -- Load all medical data from database
-    local data = exports['fdb-medic']:GetCompleteMedicalProfile(citizenid)
+    local data = exports['fdb-medical-core']:GetCompleteMedicalProfile(citizenid)
     
     PlayerMedicalData[source] = {
         citizenid = citizenid,
@@ -433,6 +433,27 @@ AddEventHandler('fdb-medic:server:MedicApplyMedicine', function(targetId, medici
 end)
 
 --=========================================================
+-- CLIENT DATA REFRESH (Compatibility Layer)
+--=========================================================
+RegisterNetEvent('fdb-medic:server:LoadMedicalData')
+AddEventHandler('fdb-medic:server:LoadMedicalData', function()
+    local source = source
+    local data = PlayerMedicalData[source]
+    
+    if data then
+        -- Fetch real-time wounds from the core state
+        local coreVitals = exports['fdb-medical-core']:GetVitals(source)
+        if coreVitals and coreVitals.wounds then
+            data.wounds = coreVitals.wounds
+        end
+
+        TriggerClientEvent('fdb-medic:client:SyncWoundData', source, data.wounds or {})
+        TriggerClientEvent('fdb-medic:client:SyncTreatmentData', source, data.treatments or {})
+        TriggerClientEvent('fdb-medic:client:SyncInfectionData', source, data.infections or {})
+    end
+end)
+
+--=========================================================
 -- MEDICAL INSPECTION SYSTEM
 --=========================================================
 RegisterNetEvent('fdb-medic:server:RequestMedicalInspection')
@@ -677,7 +698,7 @@ RSGCore.Commands.Add('inspect', 'Inspect another player\'s medical condition (Me
         treatments = {}, -- Treatments will now be handled natively by fdb-medical-core state
         infections = {}, -- Infections handled natively
 
-        bandages = patientData.bandages or {},
+        bandages = PlayerMedicalData[Patient.PlayerData.source] and PlayerMedicalData[Patient.PlayerData.source].bandages or {},
         inspectedBy = Medic.PlayerData.citizenid,
         inspectionTime = os.time(),
         medicInventory = medicInventory  -- Add medic's inventory

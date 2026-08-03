@@ -2,6 +2,7 @@
 -- fdb-medical | server/api.lua
 -- Exports públicas para consumo por outros recursos
 -- ============================================================
+local RSGCore = exports['rsg-core']:GetCoreObject()
 
 --- Único ponto de entrada para QUALQUER dano no servidor.
 --- @param source number ID do jogador que recebeu o dano
