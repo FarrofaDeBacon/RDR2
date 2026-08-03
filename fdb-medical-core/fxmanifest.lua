@@ -18,7 +18,8 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/sync.lua'
+    'client/sync.lua',
+    'client/fracture_effects.lua'
 }
 
 server_scripts {
@@ -40,5 +41,7 @@ dependencies {
 exports {
     'ApplyDamage',
     'TreatWound',
-    'GetVitals'
+    'GetVitals',
+    'HasArmFracture',
+    'HasTorsoFracture'
 }

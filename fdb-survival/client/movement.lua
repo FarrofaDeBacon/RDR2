@@ -172,9 +172,10 @@ CreateThread(function()
                 disableSprintIllness = true
             end
             
-            -- 3.8 FRATURAS NO TORSO (Integração com fdb-medical-core)
+            -- 3.8 FRATURAS NO TORSO (Integração com fdb-medical-core via export)
             local disableSprintFracture = false
-            if FDB.MedicalCore and FDB.MedicalCore.HasTorsoFracture then
+            local hasTorsoOk, hasTorso = pcall(function() return exports['fdb-medical-core']:HasTorsoFracture() end)
+            if hasTorsoOk and hasTorso then
                 disableSprintFracture = true
             end
             
